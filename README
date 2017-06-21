@@ -1,0 +1,148 @@
+
+                        ##################################
+                        # EC-EARTH POST-PROCESSING TOOLS #
+                        ##################################
+
+Copied from Jost (it/ccjh) on Monday, March 27, 2017
+
+Modified to work with default ecearth output tree, remove the possibility to
+run somebody else code (just get it!) but can still processed output from
+another user (as long as it is readable), bug fix in ECmean and improve the
+perf of hireclim2 (parallel over years), which can also process monthly legged
+runs now. Catch all errors with "set -e" everywhere. Try to be smarter in
+dealing with and cleaning temporary dirs, using mktemp.
+
+Currently, only HIRESCLIM2, ECMEAN and AMWG tools have been clean up and
+tested. The last two require the output from the first one.
+
+Diagnostics based on NEMO output are partially switched off, since new variable names
+are used in NEMO and cdftools seems to conflict with current output (tested
+with primavera output).
+
+And the only machine known is cca (ECMWF).
+
+
+============
+INSTALLATION
+============
+
+The general idea is that you pass the experiment name (EXP) and the years to
+process (typically a range, say, YEAR1 YEAR2) as input to the scripts on the
+command line.  
+
+For this to work as intended, locations of this code, of the base rundir and
+of the model data, must be known. They are unlikely to change, and set as env
+variables:
+
+
+ ** GENERAL USER SETTINGS, put in your shell rc file (bash.rc or similar):
+
+export ECE3_POSTPROC_TOPDIR=<dir where this file is>
+export ECE3_POSTPROC_RUNDIR=<top dir where your ecearth runs are located -see your config-run.xml>
+export ECE3_POSTPROC_DATADIR=<dir where your ecearth data are located -see your config-run.xml>
+
+export ECE3_POSTPROC_MACHINE=<name of your (HPC) machine>
+export ECE3_POSTPROC_ACCOUNT=<HPC account>
+
+       # If the last one is not set, your default ECWF account is used. At
+       # ECMWF, this is the 1st one in the list you get with the command (on
+       # ecgate only): "account -l $USER"
+
+These are typically default settings that you will never change. However, you
+may want to overwrite the location of the rundir (where to find the EC-Earth
+output to process), because it is not from one of your runs or you moved the
+data around for example. Or you want to temporarily change the HPC account you
+used. Do *NOT* change these default settings, there is a command line option for
+each tools that let you do these temporary changes. Particularly, the
+ECE3_POSTPROC_RUNDIR should remain writable for you.
+
+
+ ** TOOLS SPECIFICS SETTINGS
+
+  You should not have to change these ones, or only once. They define the
+  needed executable/lib (cdo, nco, netcdf,...), location of auxiliary data,
+  and of final results for each of the post-processing tools.
+
+ "./conf/conf_hiresclim_cca.sh" -> 
+ "./conf/conf_ecmean_cca.sh"    -> you can change OUTDIR, the dir where the final results are saved
+ "./conf/conf_amwg_cca.sh"      -> you can change ??
+
+
+ ** OTHER SETTINGS
+
+Code relies on $SCRATCH being defined.
+
+The "convert" program should be installed and in your $PATH. Just try:
+which convert
+at the command line to double check that it is there. 
+
+
+============
+ USAGE
+============
+
+* First, run hiresclim2 to extract variables of interest:
+
+  cd ${ECE3_POSTPROC_TOPDIR}/script
+  hc.sh [-a account] [-r rundir] [-m] [-c] EXP YEAR1 YEAR2 YREF
+
+  Create set of netcdf files with monthly (default) averages of variables of
+  interest. The files are found in the ${ECE3_POSTPROC_RUNDIR}/EXP/post
+  directory.
+
+  For information about the script options, call
+
+        hc.sh -h
+
+  If you specify an alternate "rundir" for input, the new data will still be
+  in your ${ECE3_POSTPROC_RUNDIR}/EXP/post (directory tree created as needed).
+
+  Upon success, ${ECE3_POSTPROC_RUNDIR}/EXP/post/postcheck_EXP_YYYY.txt files
+  are created with some basic information. By repeating the command with the
+  -c option, these files are printed. In case of problem or for more detailed
+  information, you can look at the submitted scripts and logs, which are in
+  your $SCRATCH/tmp_ecearth3
+
+  There are few hardcoded options (if you want daily or 6h output on top of
+  the monthly one, or the nemo_extra output). In "./master_hiresclim.sh",
+  check the "hardcoded options" section.
+
+  TODO: make these options command line option?
+
+
+* Then, you can compute the global mean fluxes:
+
+  ecm.sh [-a account] [-r rundir] [-c] EXP YEAR1 YEAR2
+
+  The options are the same as for hiresclim2. For details, call
+
+      ecm.sh -h
+
+  Output table with mean global fluxes are found in:
+     ${HOME}/EC-Earth3/diag/table/${exp}
+  and there is one (summary) line of information in the:
+     ${HOME}/EC-Earth3/diag/table/globtable_cs.txt
+     ${HOME}/EC-Earth3/diag/table/globtable.txt
+  
+  The default output directory can be changed in the
+  $ECE3_POSTPROC_TOPDIR/conf/conf_ecmean_${ECE3_POSTPROC_MACHINE}.sh config
+  file.
+  
+  You can quickly check for success by executing the command again with -c
+  option. It will print the summary line from globtable.txt, if it exists. For
+  more insight, have a look at the submitted scripts and logs, which are in
+  $SCRATCH/tmp_ecearth3
+   
+  
+* or/and produce the AMWG diagnostics:
+
+  
+
+
+
+
+ 
+* Code relies on $USER and $SCRATCH being defined
+   $SCRATCH/temp_ecearth3 is used to store temporary files, generated scripts, and log.
+   $USER is used in few "qstat" command, so this is machine specific and
+   should end up in the platform functions somehow.

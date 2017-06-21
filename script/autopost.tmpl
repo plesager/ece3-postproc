@@ -1,0 +1,31 @@
+#!/bin/ksh
+#PBS -N ap_<EXPID>
+#PBS -q <JOBCLASS>
+#PBS -l EC_billing_account=<ACCOUNT>
+#PBS -l EC_total_tasks=1
+#PBS -l EC_threads_per_task=<THREADS>
+#PBS -l EC_memory_per_task=24GB
+#PBS -l EC_hyperthreads=1
+#PBS -l walltime=<TOTTIME>
+#PBS -j oe
+#PBS -e /scratch/ms/it/<USERme>/log/hiresclim_<EXPID>.err
+#PBS -o /scratch/ms/it/<USERme>/log/hiresclim_<EXPID>.out
+#PBS -S /bin/bash
+
+set -ex
+cd $PBS_O_WORKDIR
+echo EC_Nodes $EC_nodes 
+echo EC_total_tasks $EC_total_tasks
+echo EC_threads_per_task $EC_threads_per_task
+echo EC_tasks_per_node $EC_tasks_per_node
+echo EC_hyperthreads $EC_hyperthreads
+echo EC_threads_per_numa_node $EC_threads_per_numa_node
+
+. $ECE3_POSTPROC_TOPDIR/post/conf/conf_users.sh
+
+#########################
+cd $SCRIPTDIR
+NEMO_NPROCS=12
+IFS_NPROCS=12
+
+./master_hiresclim.sh <EXPID> <Y1> <Y2> <USERexp>

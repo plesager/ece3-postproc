@@ -1,0 +1,1 @@
+../ECmean/EC-mean.sh

@@ -1,0 +1,27 @@
+#! /usr/bin/env bash
+
+#PBS -N hc_<EXPID>_<YEAR>
+#PBS -q nf
+#PBS -l EC_billing_account=<ACCOUNT>
+#PBS -l EC_total_tasks=1
+#PBS -l EC_threads_per_task=12
+#PBS -l EC_memory_per_task=24GB
+#PBS -l EC_hyperthreads=1
+#PBS -l walltime=03:00:00
+#PBS -j oe
+#PBS -o <OUT>/log/hiresclim_<EXPID>_<YEAR>.out
+
+module load cray-snplauncher
+
+set -e
+
+mkdir <OUT>/log || true
+
+cd $ECE3_POSTPROC_TOPDIR/script
+
+export NEMO_NPROCS=$EC_threads_per_task
+export IFS_NPROCS=$EC_threads_per_task
+ 
+export OMP_NUM_THREADS=$EC_threads_per_task
+
+mpiexec -n 1 ./master_hiresclim.sh <OPTIONS> <EXPID> <YEAR> <YREF>
