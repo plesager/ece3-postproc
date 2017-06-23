@@ -74,12 +74,12 @@ for (( year=$year1; year<=$year2; year++)); do
     then
         # NEMO fields: we reconstruct the mask from the salinity field
         OCEMASK=$CLIMDIR/tmask.nc
-        $cdonc seltimestep,1 -gtc,0 ${FBASE}_sos.nc  $OCEMASK
+        $cdonc seltimestep,1 -gtc,0 ${FBASE}_sosaline.nc  $OCEMASK
 
         #SST, SIC, SSS
-        $cdonc cat -invertlat -remapbil,$OCEREFGRID -ifthen $OCEMASK ${FBASE}_tos.nc $CLIMDIR/SST_mon_2x2.nc
-        $cdonc cat -invertlat -remapbil,$OCEREFGRID -ifthen $OCEMASK ${FBASE}_sos.nc $CLIMDIR/SSS_mon_2x2.nc
-        #FIXME $cdonc cat -invertlat -remapbil,$OCEREFGRID -ifthen $OCEMASK -selname,iiceconc ${FBASE}_ice.nc $CLIMDIR/SICE_mon_2x2.nc
+        $cdonc cat -invertlat -remapbil,$OCEREFGRID -ifthen $OCEMASK ${FBASE}_sosstsst.nc $CLIMDIR/SST_mon_2x2.nc
+        $cdonc cat -invertlat -remapbil,$OCEREFGRID -ifthen $OCEMASK ${FBASE}_sosaline.nc $CLIMDIR/SSS_mon_2x2.nc
+        $cdonc cat -invertlat -remapbil,$OCEREFGRID -ifthen $OCEMASK -selname,iiceconc ${FBASE}_ice.nc $CLIMDIR/SICE_mon_2x2.nc
         rm $OCEMASK
     fi
 
@@ -88,7 +88,7 @@ done
 # -- time mean for all fields
 if (( do_ocean ))
 then
-    vvars="t2m msl qnet tp ewss nsss T U V Q SST SSS" #FIXME SICE"
+    vvars="t2m msl qnet tp ewss nsss T U V Q SST SSS SICE"
 else
     vvars="t2m msl qnet tp ewss nsss T U V Q"
 fi

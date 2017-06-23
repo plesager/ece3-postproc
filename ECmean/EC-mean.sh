@@ -62,7 +62,7 @@ fi
 
 # -- nemo
 do_ocean=0
-[[ -r $DATADIR/Post_${year1}/${exp}_${year1}_tos.nc ]] && do_ocean=1 && \
+[[ -r $DATADIR/Post_${year1}/${exp}_${year1}_sosstsst.nc ]] && do_ocean=1 && \
     echo "*II* ecmean accounts for nemo output"
 export do_ocean
 

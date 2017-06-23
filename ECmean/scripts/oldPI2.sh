@@ -83,9 +83,9 @@ for vv in $var2d ; do
     fi
     
     #special SICE case
-#FIXME   if [ "$vv" == "SICE" ] && (( do_ocean )) ; then
-#FIXME       $cdonc divc,0.1309 -sqr -sub $field $clim  $TMPDIR/temp_$vv.nc
-#FIXME   fi
+    if [ "$vv" == "SICE" ] && (( do_ocean )) ; then
+        $cdonc divc,0.1309 -sqr -sub $field $clim  $TMPDIR/temp_$vv.nc
+    fi
 
     #land
     if [ $vv == "t2m"  ] ; then

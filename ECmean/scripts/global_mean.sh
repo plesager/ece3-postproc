@@ -29,12 +29,12 @@ nyears=$((year2-year1))
 
 # -- ATMOSPHERE
 
-#FIXME-heatc if (( do_ocean  ))              # 'heatc' only available from nemo (but broken)
-#FIXME-heatc then
-#FIXME-heatc     varlist1="tsr ttr ssr ssrd str strd sshf slhf ssrc strc tas tcc lcc mcc hcc msl totp e tsrc ttrc ssrc strc ro sf tcwv tciw tclw heatc"
-#FIXME-heatc else
+# FIXME if (( do_ocean  ))              # 'heatc' only available from nemo
+# FIXME then
+# FIXME     varlist1="tsr ttr ssr ssrd str strd sshf slhf ssrc strc tas tcc lcc mcc hcc msl totp e tsrc ttrc ssrc strc ro sf tcwv tciw tclw heatc"
+# FIXME else
     varlist1="tsr ttr ssr ssrd str strd sshf slhf ssrc strc tas tcc lcc mcc hcc msl totp e tsrc ttrc ssrc strc ro sf tcwv tciw tclw"
-#FIXME-heatc fi
+# FIXME fi
 
 cdoformat="%9.4f,1"
 
@@ -69,8 +69,7 @@ done
 if (( do_ocean  ))
 then
     # ocean variables to be analzyed
-    # OLD NEMO varlist2="sosstsst sossheig sosaline sowaflup"
-    varlist2="tos sos zos"
+    varlist2="sosstsst sossheig sosaline sowaflup"
 
     for vv in ${varlist2}; do
 
@@ -90,11 +89,11 @@ then
     #delta ssh
     year=$year1
     indir=$DATADIR/Post_$year
-    $cdo timmean $indir/${exp}_${year1}_zos_mean.nc $WRKDIR/first.nc
+    $cdo timmean $indir/${exp}_${year1}_sossheig_mean.nc $WRKDIR/first.nc
     
     year=$year2
     indir=$DATADIR/Post_$year
-    $cdo timmean $indir/${exp}_${year2}_zos_mean.nc $WRKDIR/last.nc
+    $cdo timmean $indir/${exp}_${year2}_sossheig_mean.nc $WRKDIR/last.nc
 fi
 
 #creating a mask
@@ -131,17 +130,17 @@ $cdo fldmean -mulc,334000 -ifthen land_mask.nc mean_global_sf.nc mean_sf_land.nc
 net_surface_ocean=$( $cdo outputf,$cdoformat -add mean_ssr_ocean.nc -add  mean_str_ocean.nc -add  mean_sshf_ocean.nc -sub  mean_slhf_ocean.nc mean_sf_ocean.nc )
 net_surface_land=$( $cdo outputf,$cdoformat -add mean_ssr_land.nc -add  mean_str_land.nc -add  mean_sshf_land.nc -sub  mean_slhf_land.nc mean_sf_land.nc )
 
-#estimated flux to the ocean from heat content
-#FIXME-heatc if (( do_ocean  ))
-#FIXME-heatc then
-#FIXME-heatc     if [ $year2 -ne $year1 ]
-#FIXME-heatc     then
-#FIXME-heatc         $cdo sub -selyear,$year2 $WRKDIR/timeseries_heatc.nc -selyear,$year1  $WRKDIR/timeseries_heatc.nc  $WRKDIR/delta_heatc.nc 
-#FIXME-heatc         ocean_flux=$( $cdo outputf,$cdoformat -divc,86400 -divc,365.25 -divc,$nyears -divc,361 -divc,1e12 $WRKDIR/delta_heatc.nc )
-#FIXME-heatc     else
-#FIXME-heatc         ocean_flux=0.
-#FIXME-heatc     fi
-#FIXME-heatc fi
+# FIXME #estimated flux to the ocean from heat content
+# FIXME if (( do_ocean  ))
+# FIXME then
+# FIXME     if [ $year2 -ne $year1 ]
+# FIXME     then
+# FIXME         $cdo sub -selyear,$year2 $WRKDIR/timeseries_heatc.nc -selyear,$year1  $WRKDIR/timeseries_heatc.nc  $WRKDIR/delta_heatc.nc 
+# FIXME         ocean_flux=$( $cdo outputf,$cdoformat -divc,86400 -divc,365.25 -divc,$nyears -divc,361 -divc,1e12 $WRKDIR/delta_heatc.nc )
+# FIXME     else
+        ocean_flux=0.
+# FIXME     fi
+# FIXME fi
 
 #radiative variables
 net_TOA=$( $cdo outputf,$cdoformat -add mean_tsr.nc mean_ttr.nc )
@@ -215,8 +214,7 @@ echo -e >> ${OUTDIR}/Global_Mean_Table_${exp}_${year1}_$year2.txt
 echo -e "Global Mean" >> ${OUTDIR}/Global_Mean_Table_${exp}_${year1}_$year2.txt
 echo -e "Variable   \tunits                  \t${exp}         \tObservations" >> ${OUTDIR}/Global_Mean_Table_${exp}_${year1}_$year2.txt
 
-#OLD NEMO varlist2="tas tas_trend tcc lcc mcc hcc totp totpocean totpland e pe ro peland peocean seatrend seatrend2 sowaflup sosstsst sossheig sosaline"
-varlist2="tas tas_trend tcc lcc mcc hcc totp totpocean totpland e pe ro peland peocean seatrend seatrend2 sowaflup tos sos zos"
+varlist2="tas tas_trend tcc lcc mcc hcc totp totpocean totpland e pe ro peland peocean seatrend seatrend2 sowaflup sosstsst sossheig sosaline"
 
 for vv in ${varlist2}; do
 
@@ -225,29 +223,29 @@ for vv in ${varlist2}; do
     expval=''
     case ${vv} in
 
-        "tas")          varname="Air T at 2m    ";              units="K         ";     expval=`$cdo output mean_${vv}.nc`; eraval=287.575 ; datas="ERAI(1990-2010)";;
-        "tas_trend")    varname="Trend T at 2m  ";              units="K/100y    ";     expval=${tas_trend} ;;
-        "tcc")          varname="Tot Cloud Cover";              units="0-1       ";     expval=`$cdo output mean_${vv}.nc`; eraval=0.60461 ; datas="ERAI(1990-2010)";;
-        "lcc")          varname="Low CC         ";              units="0-1       ";     expval=`$cdo output mean_${vv}.nc`; eraval=0.36627 ; datas="ERAI(1979-2006)";;
-        "mcc")          varname="Medium CC      ";              units="0-1       ";     expval=`$cdo output mean_${vv}.nc`; eraval=0.17451 ; datas="ERAI(1979-2006)";;
-        "hcc")          varname="High CC        ";              units="0-1       ";     expval=`$cdo output mean_${vv}.nc`; eraval=0.28723 ; datas="ERAI(1979-2006)";;
+        "tas")          varname="Air T at 2m    ";      units="K         ";     expval=`$cdo output mean_${vv}.nc`; eraval=287.575 ; datas="ERAI(1990-2010)";;
+        "tas_trend")    varname="Trend T at 2m  ";      units="K/100y    ";     expval=${tas_trend} ;;
+        "tcc")          varname="Tot Cloud Cover";      units="0-1       ";     expval=`$cdo output mean_${vv}.nc`; eraval=0.60461 ; datas="ERAI(1990-2010)";;
+        "lcc")          varname="Low CC         ";      units="0-1       ";     expval=`$cdo output mean_${vv}.nc`; eraval=0.36627 ; datas="ERAI(1979-2006)";;
+        "mcc")          varname="Medium CC      ";      units="0-1       ";     expval=`$cdo output mean_${vv}.nc`; eraval=0.17451 ; datas="ERAI(1979-2006)";;
+        "hcc")          varname="High CC        ";      units="0-1       ";     expval=`$cdo output mean_${vv}.nc`; eraval=0.28723 ; datas="ERAI(1979-2006)";;
 
-        "msl")          varname="MSLP           ";              units="Pa        ";     expval=`$cdo output mean_${vv}.nc`; eraval=101135   ; datas="ERAI(1990-2010)";;
-        "totp")         varname="Tot Precipit.  ";              units="mm/day    ";     expval=`$cdo output -mulc,86400 mean_${vv}.nc`; eraval=2.92339; datas="ERAI(1990-2010)";;
-        "totpocean")    varname="Tot Pr. Ocean  ";              units="10^6 kg/s ";     expval=`$cdo output mean_${vv}.nc`;;
-        "totpland")     varname="Tot Pr. Land   ";              units="10^6 kg/s ";     expval=`$cdo output mean_${vv}.nc`;;
-        "e")            varname="Evaporation    ";              units="mm/day    ";     expval=`$cdo output -mulc,86400 mean_${vv}.nc`;;
-        "pe")           varname="P-E            ";              units="mm/day    ";     expval=`$cdo output -mulc,86400 -add mean_totp.nc mean_e.nc`;;
-        "ro")           varname="Runoff         ";              units="10^6 kg/s ";     expval=`$cdo output mean_${vv}.nc`;;
-        "peland")       varname="P-E (land)     ";              units="10^6 kg/s ";     expval=`$cdo output mean_peland.nc`;;
-        "peocean")      varname="P-E (ocean)    ";              units="10^6 kg/s ";     expval=`$cdo output mean_peocean.nc`;;
-        "seatrend")     varname="Sea Exp. Trend ";              units="m/100y    ";    (( do_ocean )) && expval=`$cdo output -mulc,0.0087 -add mean_peocean.nc mean_ro.nc`;;
-        "seatrend2")    varname="Sea Real Trend ";              units="m/100y    ";; # FIXME (( do_ocean )) && expval=`$cdo output -selvar,mean_sossheig -divc,$nyears -mulc,100 -sub last.nc first.nc `;;
-        "tos")          varname="SST            ";              units="°C        ";    (( do_ocean )) && expval=`$cdo output mean_${vv}.nc`;
-                                                                                       (( do_ocean )) && eraval=18.4147 ; datas="HadISST(1990-2010)";;
-        "sos")          varname="SSS            ";              units="psu       ";    (( do_ocean )) && expval=`$cdo output mean_${vv}.nc`;;
-        "zos")          varname="SSH            ";              units="m         ";    (( do_ocean )) && expval=`$cdo output mean_${vv}.nc`;;
-        "sowaflup")     varname="Nemo Water Flux";              units="m/100y    ";; # FIXME (( do_ocean )) && expval=`$cdo output -mulc,-0.0087 -mulc,361 -mulc,1e6 mean_${vv}.nc`;;
+        "msl")          varname="MSLP           ";      units="Pa        ";     expval=`$cdo output mean_${vv}.nc`; eraval=101135   ; datas="ERAI(1990-2010)";;
+        "totp")         varname="Tot Precipit.  ";      units="mm/day    ";     expval=`$cdo output -mulc,86400 mean_${vv}.nc`; eraval=2.92339; datas="ERAI(1990-2010)";;
+        "totpocean")    varname="Tot Pr. Ocean  ";      units="10^6 kg/s ";     expval=`$cdo output mean_${vv}.nc`;;
+        "totpland")     varname="Tot Pr. Land   ";      units="10^6 kg/s ";     expval=`$cdo output mean_${vv}.nc`;;
+        "e")            varname="Evaporation    ";      units="mm/day    ";     expval=`$cdo output -mulc,86400 mean_${vv}.nc`;;
+        "pe")           varname="P-E            ";      units="mm/day    ";     expval=`$cdo output -mulc,86400 -add mean_totp.nc mean_e.nc`;;
+        "ro")           varname="Runoff         ";      units="10^6 kg/s ";     expval=`$cdo output mean_${vv}.nc`;;
+        "peland")       varname="P-E (land)     ";      units="10^6 kg/s ";     expval=`$cdo output mean_peland.nc`;;
+        "peocean")      varname="P-E (ocean)    ";      units="10^6 kg/s ";     expval=`$cdo output mean_peocean.nc`;;
+        "seatrend")     varname="Sea Exp. Trend ";      units="m/100y    ";    (( do_ocean )) && expval=`$cdo output -mulc,0.0087 -add mean_peocean.nc mean_ro.nc`;;
+        "seatrend2")    varname="Sea Real Trend ";      units="m/100y    ";    (( do_ocean )) && expval=`$cdo output -selvar,mean_sossheig -divc,$nyears -mulc,100 -sub last.nc first.nc `;;
+        "sosstsst")     varname="SST            ";      units="°C        ";    (( do_ocean )) && expval=`$cdo output mean_${vv}.nc`;
+                                                                               (( do_ocean )) && eraval=18.4147 ; datas="HadISST(1990-2010)";;
+        "sosaline")     varname="SSS            ";      units="psu       ";    (( do_ocean )) && expval=`$cdo output mean_${vv}.nc`;;
+        "sossheig")     varname="SSH            ";      units="m         ";    (( do_ocean )) && expval=`$cdo output mean_${vv}.nc`;;
+        "sowaflup")     varname="Nemo Water Flux";      units="m/100y    ";    (( do_ocean )) && expval=`$cdo output -mulc,-0.0087 -mulc,361 -mulc,1e6 mean_${vv}.nc`;;
 
     esac
 

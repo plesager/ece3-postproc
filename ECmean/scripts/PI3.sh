@@ -85,10 +85,10 @@ for vv in $var2d ; do
                 $cdo divc,3.0116 -sqr -sub $field $clim  $TMPDIR/temp_$vv.nc
         fi
         
-#FIXME       #special SICE case
-#FIXME       if [ "$vv" == "SICE" ] && (( do_ocean )) ; then
-#FIXME               $cdo divc,0.1309 -sqr -sub $field $clim  $TMPDIR/temp_$vv.nc
-#FIXME       fi
+        #special SICE case
+        if [ "$vv" == "SICE" ] && (( do_ocean )) ; then
+            $cdo divc,0.1309 -sqr -sub $field $clim  $TMPDIR/temp_$vv.nc
+        fi
 
         #land fields: apply IFS mask
         if [ $vv == "t2m"  ] ; then
