@@ -59,7 +59,7 @@ fi
 # -- check previous processing
 if (( checkit ))
 then
-    echo "Checking ${HOME}/EC-Earth3/diag/table/globtable.txt..."
+    echo "Checking ${HOME}/EC-Earth3/diag/table/globtable.txt ..."
     grep $1.$2-$3. ${HOME}/EC-Earth3/diag/table/globtable.txt || \
             echo "*EE* check log at $SCRATCH/tmp_ecearth3"
     exit

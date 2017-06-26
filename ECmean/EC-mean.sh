@@ -12,7 +12,7 @@ set -e
 
 if [ $# -lt 3 ]
 then
-  echo "Usage:   ./EC-mean.sh exp YEARSTART YEAREND"
+  echo "Usage:   ./EC-mean.sh exp YEARSTART YEAREND [ALT_RUNDIR]"
   echo "Example: ./EC-mean.sh io01 1990 2000"
   exit 1
 fi
