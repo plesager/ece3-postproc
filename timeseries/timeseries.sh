@@ -69,8 +69,8 @@ export NEMO_MESH_DIR=${MESHDIR_TOP}/$NEMOCONFIG
 
 cd $ECE3_POSTPROC_TOPDIR/timeseries
   
-# ./monitor_atmo.sh -R $exp -o
-# ./monitor_atmo.sh -R $exp -e
+./monitor_atmo.sh -R $exp -o
+./monitor_atmo.sh -R $exp -e
 
 #######################
 # -- Oceanic timeseries
