@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -ex
+set -x
 
 #Performance Indices by Reichler and Kim (2008) 
 #Paolo Davini (ISAC-CNR) - <p.davini@isac.cnr.it> 

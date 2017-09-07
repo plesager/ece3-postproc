@@ -114,7 +114,7 @@ $PIDIR/tab2lin_cs.sh $exp $year1 $year2 >> ./globtable_cs.txt
 $PIDIR/tab2lin.sh $exp $year1 $year2 >> ./globtable.txt
 
 [[ ! -e gregory.txt ]] && \
-    cat "                  net TOA, net Sfc, t2m[tas], SST" >> gregory.txt
+    cat "                  net TOA, net Sfc, t2m[tas], SST" > gregory.txt
 $PIDIR/gregory.sh $exp $year1 $year2 >> ./gregory.txt
 
 

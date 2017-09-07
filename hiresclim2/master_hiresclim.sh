@@ -57,6 +57,8 @@ export monthly_leg
 
 . $ECE3_POSTPROC_TOPDIR/conf/conf_hiresclim_$ECE3_POSTPROC_MACHINE.sh
 
+# build 3D relative humidity; require python with netCDF4 module
+echo "Rebuild 3D relative humidity: ${rh_build:=1}"
 
 ########## HARDCODED OPTIONS ###############
 
@@ -69,9 +71,6 @@ ifs_6hrs=0
 
 # NEMO extra-fields; extra-fields require NCO
 nemo_extra=0
-
-# build 3D relative humidity; require python
-rh_build=1
 
 # copy monthly results in a second folder
 store=0

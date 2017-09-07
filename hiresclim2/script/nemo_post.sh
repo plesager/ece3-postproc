@@ -33,6 +33,15 @@ NOMP=${NEMO_NPROCS}
 # Nemo output filenames start with...
 froot=${expname}_1m_${year}0101_${year}1231
 
+# Check on use of SBC file - can be set in your ../../../conf/conf_hiresclim_<MACHINE-NAME>.sh
+echo "SBC file used: ${use_SBC:=0}"
+(( $use_SBC )) && SBC='SBC' || SBC='grid_T'
+
+# Check if new or old version of CDFtools is used -  - can be set in
+# your ../../../conf/conf_hiresclim_<MACHINE-NAME>.sh, but old syntax
+# is assumed if not set.
+echo "Use newer syntax for cdfmean: ${newercdftools:=0}"
+
 # where to save (archive) the results
 OUTDIR=$OUTDIR0/mon/Post_$year
 mkdir -p $OUTDIR || exit -1
@@ -40,6 +49,7 @@ mkdir -p $OUTDIR || exit -1
 # output filename root
 out=$OUTDIR/${expname}_${year}
 
+skip_nino=0
 case $NEMOCONFIG in
     ( ORCA1L46 )
     # depth layers for heat content (0-300m, 300-800m, 800m-bottom)
@@ -64,6 +74,7 @@ case $NEMOCONFIG in
     depth_800_bottom='45 75'
     # Nino3.4 region (in ij coordinates)
     nino34_region='470 668 519 479' # TODO NEED UPDATE WRONG INDICES !!!
+    skip_nino=1
     ;;
     ( * ) echo Stop: NEMOCONFIG=$NEMOCONFIG not defined ; exit -1 ;;
 esac
@@ -76,22 +87,29 @@ ln -s $MESHDIR/mesh_zgr.nc
 ln -s $MESHDIR/new_maskglo.nc
 
 # rebuild if necessary
-for t in grid_T grid_U grid_V icemod 
+for t in grid_T grid_U grid_V icemod SBC
 do
    if [ -f $NEMORESULTS/${froot}_${t}.nc ]
    then
       cp $NEMORESULTS/${froot}_${t}.nc .
    else
-      ln -s $NEMORESULTS/${froot}_${t}* .
-      $rbld -t $NOMP ${froot}_$t  $(ls ${froot}_${t}_????.nc | wc -w)
-      cp ${froot}_${t}.nc $NEMORESULTS
-      rm -f ${froot}_${t}_????.nc
+       if (( $(ls $NEMORESULTS/${froot}_${t}* | wc -w) ))
+       then
+           ln -s $NEMORESULTS/${froot}_${t}* .
+           $rbld -t $NOMP ${froot}_$t  $(ls ${froot}_${t}_????.nc | wc -w)
+           cp ${froot}_${t}.nc $NEMORESULTS
+           rm -f ${froot}_${t}_????.nc
+       else
+           echo "WARNING: $t files are missing"
+       fi
    fi
 done
 
 # ** AVAILABILITY
 
-# NEMO files - TODO: should this be retrieved from a dir list, or should exist for processing to go forward?
+# NEMO files - TODO: should this be retrieved from a dir list, or
+# should exist for processing to go forward? These could be set from
+# the 'rebuild if necessary' loop above
 NEMO_SAVED_FILES="grid_T grid_U grid_V icemod"
 
 itf=1   # 1: means grid_T is available 
@@ -106,21 +124,21 @@ fi
 
 
 # NEMO variables as currently named in EC-Earth output
-nm_wfo="wfo"        ; # water flux 
-nm_sst="tos"        ; # SST (2D)
-nm_sss="sos"        ; # SS salinity (2D)
-nm_ssh="zos"        ; # sea surface height (2D)
-nm_iceconc="siconc" ; # Ice concentration as in icemod file (2D)
-nm_icethic="sithic" ; # Ice thickness as in icemod file (2D)
-nm_tpot="thetao"    ; # pot. temperature (3D)
-nm_s="so"           ; # salinity (3D)
-nm_u="uo"           ; # X current (3D)
-nm_v="vo"           ; # Y current (3D)
+nm_wfo="wfo"         ; # water flux 
+nm_sst="tos"         ; # SST (2D)
+nm_sss="sos"         ; # SS salinity (2D)
+nm_ssh="zos"         ; # sea surface height (2D)
+nm_iceconc="siconc"  ; # Ice concentration as in icemod file (2D)
+nm_icethic="sithick" ; # Ice thickness as in icemod file (2D)
+nm_tpot="thetao"     ; # pot. temperature (3D)
+nm_s="so"            ; # salinity (3D)
+nm_u="uo"            ; # X current (3D)
+nm_v="vo"            ; # Y current (3D)
 
 if [ "${nm_sst}"  != "sosstsst" ];  then ncrename -v ${nm_sst},sosstsst  ${froot}_grid_T.nc ; fi
 if [ "${nm_sss}"  != "sosaline" ];  then ncrename -v ${nm_sss},sosaline  ${froot}_grid_T.nc ; fi
 if [ "${nm_ssh}"  != "sossheig" ];  then ncrename -v ${nm_ssh},sossheig  ${froot}_grid_T.nc ; fi
-if [ "${nm_wfo}"  != "sowaflup" ];  then ncrename -v ${nm_wfo},sowaflup  ${froot}_grid_T.nc ; fi
+if [ "${nm_wfo}"  != "sowaflup" ];  then ncrename -v ${nm_wfo},sowaflup  ${froot}_${SBC}.nc ; fi
 if [ "${nm_tpot}" != "votemper" ];  then ncrename -v ${nm_tpot},votemper ${froot}_grid_T.nc ; fi
 if [ "${nm_s}"    != "vosaline" ];  then ncrename -v ${nm_s},vosaline    ${froot}_grid_T.nc ; fi
 if [ ${iuf} -eq 1 ]; then
@@ -128,6 +146,19 @@ if [ ${iuf} -eq 1 ]; then
 fi
 if [ ${ivf} -eq 1 ]; then
     if [ "${nm_v}"   != "vomecrty" ];  then ncrename -v ${nm_v},vomecrty    ${froot}_grid_V.nc ; fi
+fi
+
+# ICE
+if (( $newercdftools ))         # auxilliary file for newer CDFtools (4.0 master retrieved on 06-09-2017)
+then
+    if [ "${nm_iceconc}" != "sithic" ]; then
+        ncrename -v ${nm_iceconc},sithic  ${froot}_icemod.nc  ${froot}_icemod_cdfnew.nc
+    else
+        cp ${froot}_icemod.nc  ${froot}_icemod_cdfnew.nc
+    fi
+    if [ "${nm_icethic}" != "siconc" ]; then
+        ncrename -v ${nm_icethic},siconc  ${froot}_icemod_cdfnew.nc
+    fi
 fi
 if [ "${nm_iceconc}" != "iiceconc" ]; then ncrename -v ${nm_iceconc},iiceconc  ${froot}_icemod.nc ; fi
 if [ "${nm_icethic}" != "iicethic" ]; then ncrename -v ${nm_icethic},iicethic  ${froot}_icemod.nc ; fi
@@ -143,21 +174,33 @@ $cdo showdate ${froot}_icemod.nc | tr '[:blank:]' '\n' | \
 #     $cdozip splitvar -selvar,sosstsst,sosaline,sossheig,sowaflup ${froot}_grid_T.nc ${out}_
 #    Now:
 tempf=$(mktemp $SCRATCH/tmp_ecearth3/post_hireclim2_nemo_XXXXXX)
-$cdo selvar,sosstsst,sosaline,sossheig,sowaflup ${froot}_grid_T.nc $tempf
+$cdo selvar,sosstsst,sosaline,sossheig ${froot}_grid_T.nc $tempf
+$cdozip selvar,sowaflup ${froot}_${SBC}.nc ${out}_sowaflup
 $cdozip splitvar $tempf ${out}_
 rm -f $tempf
 
-for v in sosstsst sosaline sossheig sowaflup
+for v in sosstsst sosaline sossheig # -- rename if needed, and average
 do
-   mv ${out}_${v}.nc4 ${out}_${v}.nc
-   $cdftoolsbin/cdfmean ${froot}_grid_T.nc $v T
+   [[ -f ${out}_${v}.nc4 ]] && mv ${out}_${v}.nc4 ${out}_${v}.nc
+   (( $newercdftools )) && $cdftoolsbin/cdfmean -f ${froot}_grid_T.nc -v $v -p T \
+           || $cdftoolsbin/cdfmean ${froot}_grid_T.nc $v T
+   #$cdozip -selvar,mean_$v cdfmean.nc  ${out}_${v}_mean.nc
+   $cdozip copy cdfmean.nc  ${out}_${v}_mean.nc
+done
+for v in sowaflup
+do
+   [[ -f ${out}_${v}.nc4 ]] && mv ${out}_${v}.nc4 ${out}_${v}.nc
+   (( $newercdftools )) && $cdftoolsbin/cdfmean -f ${froot}_${SBC}.nc -v $v -p T \
+           || $cdftoolsbin/cdfmean ${froot}_${SBC}.nc $v T
    #$cdozip -selvar,mean_$v cdfmean.nc  ${out}_${v}_mean.nc
    $cdozip copy cdfmean.nc  ${out}_${v}_mean.nc
 done
 
+
 # save global salinity and temperature mean
 for v in votemper vosaline; do
-    $cdftoolsbin/cdfmean ${froot}_grid_T.nc $v T 
+    (( $newercdftools )) && $cdftoolsbin/cdfmean -f ${froot}_grid_T.nc -v $v -p T \
+            || $cdftoolsbin/cdfmean ${froot}_grid_T.nc $v T 
     #$cdozip -selvar,mean_$v,mean_3D$v cdfmean.nc  ${out}_${v}_mean.nc
     $cdozip copy cdfmean.nc  ${out}_${v}_mean.nc
 done
@@ -179,36 +222,66 @@ done
 tmpstring=tmpdate
 for l in 0_300 300_800 800_bottom
 do
-    eval "${cdftoolsbin}/cdfheatc ${froot}_grid_T.nc 0 0 0 0 \$depth_$l" | \
-        awk '/Total Heat content        :/ {print $5}' > tmp_$l
-   tmpstring+=" tmp_$l"
-   $cdo -f nc settaxis,${year}-01-01,12:00:00,1mon -input,r1x1 ${out}_${l}_heatc.nc < tmp_$l
+    if (( $newercdftools ))
+    then
+        eval "${cdftoolsbin}/cdfheatc -f ${froot}_grid_T.nc -zoom 0 0 0 0 \$depth_$l" | \
+            awk '/Total Heat content        :/ {print $5}' > tmp_$l
+    else
+        eval "${cdftoolsbin}/cdfheatc ${froot}_grid_T.nc 0 0 0 0 \$depth_$l" | \
+            awk '/Total Heat content        :/ {print $5}' > tmp_$l
+    fi
+    
+    tmpstring+=" tmp_$l"
+    $cdo -f nc settaxis,${year}-01-01,12:00:00,1mon -input,r1x1 ${out}_${l}_heatc.nc < tmp_$l
 done
 
-# ** Nino3.4 SST
-$cdftoolsbin/cdfmean ${froot}_grid_T.nc sosstsst T $nino34_region 0 0
-$cdozip copy cdfmean.nc  ${out}_sosstsst_nino34.nc
 
-# ** MOC
-$cdftoolsbin/cdfmoc ${froot}_grid_V.nc
-$cdozip copy moc.nc ${out}_moc.nc
+if (( $newercdftools ))
+then
+    # ** Nino3.4 SST
+    (( ! $skip_nino )) &&
+        $cdftoolsbin/cdfmean -f ${froot}_grid_T.nc -v sosstsst -p T -w $nino34_region 0 0 -o ${out}_sosstsst_nino34.nc
 
-# barotropic stream function
-$cdftoolsbin/cdfpsi ${froot}_grid_U.nc ${froot}_grid_V.nc
-$cdozip copy psi.nc ${out}_psi.nc
+    # ** MOC
+#rhino: seg fault!    $cdftoolsbin/cdfmoc -v ${froot}_grid_V.nc -o ${out}_moc.nc
 
-# mixed layer depth
-$cdftoolsbin/cdfmxl ${froot}_grid_T.nc
-$cdozip copy mxl.nc ${out}_mxl.nc
+    # barotropic stream function
+#rhino: seg fault!    $cdftoolsbin/cdfpsi -u ${froot}_grid_U.nc -v ${froot}_grid_V.nc -o ${out}_psi.nc
 
-# ice diagnostics
-$cdozip selvar,iiceconc,iicethic \
-   ${froot}_icemod.nc ${out}_ice.nc
-$cdftoolsbin/cdficediags ${froot}_icemod.nc -lim3
-cp icediags.nc ${out}_icediags.nc
+    # mixed layer depth
+#rhino: seg fault!    $cdftoolsbin/cdfmxl -t ${froot}_grid_T.nc -o ${out}_mxl.nc
+
+    # ice diagnostics
+    $cdozip selvar,iiceconc,iicethic ${froot}_icemod.nc ${out}_ice.nc    
+    $cdftoolsbin/cdficediags -i ${froot}_icemod_cdfnew.nc -lim3 -o ${out}_icediags.nc
+else
+    # ** Nino3.4 SST
+    if (( ! $skip_nino )) ; then
+        $cdftoolsbin/cdfmean ${froot}_grid_T.nc sosstsst T $nino34_region 0 0
+        $cdozip copy cdfmean.nc  ${out}_sosstsst_nino34.nc
+    fi
+
+    # ** MOC
+    $cdftoolsbin/cdfmoc ${froot}_grid_V.nc
+    $cdozip copy moc.nc ${out}_moc.nc
+
+    # barotropic stream function
+    $cdftoolsbin/cdfpsi ${froot}_grid_U.nc ${froot}_grid_V.nc
+    $cdozip copy psi.nc ${out}_psi.nc
+
+    # mixed layer depth
+    $cdftoolsbin/cdfmxl ${froot}_grid_T.nc
+    $cdozip copy mxl.nc ${out}_mxl.nc
+
+    # ice diagnostics
+    $cdozip selvar,iiceconc,iicethic ${froot}_icemod.nc ${out}_ice.nc
+    $cdftoolsbin/cdficediags ${froot}_icemod.nc -lim3
+    cp icediags.nc ${out}_icediags.nc
+fi
 
 
-if [ $nemo_extra == 1 ] ; then
+# TODO : add case for newer cdftools syntax    
+if [ $nemo_extra == 1 && $newercdftools == 0] ; then
 
     #compute potential and in situ density
     $cdftoolsbin/cdfsiginsitu ${froot}_grid_T.nc

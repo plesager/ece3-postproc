@@ -1,0 +1,180 @@
+
+*EC-EARTH-3 POST-PROCESSING TOOLS*
+
+ECE3-POSTPROC is a suite of post-processing tools for EC-Earth 3. It
+includes HIRESCLIM2, ECMEAN and AMWG. The last two require the output
+from the first one. Other tools are available but have not been clean
+up or tested.
+
+The code has been ported on /cca (ECMWF)/ and /rhino (KNMI)/. See the
+/Porting/ instructions below to include other machines.
+
+* INSTALLATION
+  You firt need to get the code:
+
+  : git clone https://github.com/plesager/ece3-postproc.git
+
+  The general idea is that you pass the experiment name (EXP) and the
+  years to process (typically a range, say, YEAR1 YEAR2) as input to
+  the scripts on the command line.
+
+  For this to work as intended, locations of the post-processing code,
+  of the EC-Earth base rundir and of the model data, must be known.
+  They are unlikely to change and set as environment variables, but
+  can be overwritten at the command line if needed. In your shell rc
+  file (bash.rc or similar):
+
+  : export ECE3_POSTPROC_TOPDIR=<dir where this file is>
+  : export ECE3_POSTPROC_RUNDIR=<top dir where your ecearth runs are located -see your config-run.xml>
+  : export ECE3_POSTPROC_DATADIR=<dir where your ecearth data are located -see your config-run.xml>  
+  : export ECE3_POSTPROC_MACHINE=<name of your (HPC) machine>
+
+  The "_name of your (HPC) machine_" is used to retrieve the machine
+  configuration. Look for: 
+  : ./conf/conf_hiresclim_<name of your (HPC) machine>.sh
+  If it is not present, you need to port the code. See the /Porting/
+  section below.
+  
+  Optionally, you can also set your HPC account:
+  : export ECE3_POSTPROC_ACCOUNT=<HPC account>
+  If not set, your default account is used to submit job to HPC. At
+  ECMWF, this is the 1st one in the list you get with the command (on
+  ecgate only): "account -l $USER"
+
+  You may want to overwrite the location of the rundir (where to find
+  the EC-Earth output to process), because the output is not from one
+  of your runs or you moved the data around. Or you want to
+  temporarily change the HPC account you used. It is recommended *not*
+  to change the default settings, although you can. Instead, use the
+  command line options that let you do temporary changes.
+  _Particularly important_, the ECE3_POSTPROC_RUNDIR should remain
+  writable for you, since you will write processed output there when
+  processing data from an other user (whose output dir is probably not
+  writable for you).
+
+  Finally, the code relies on $SCRATCH and $USER being defined. If
+  not, define one. A lot of temporary data files, job scripts and
+  their log are being written on the $SCRATCH. The $USER is used in
+  few job manager commands (SLURM or PBS), and should already be
+  defined.
+
+** Hacks
+   - the NEMO variables name expected by HIRESCLIM2 can be different
+     than those output by EC-Earth3. If needed, change the variable
+     name from EC-Earth in '/hiresclim2/script/nemo_post.sh' below:
+     : # NEMO variables as currently named in EC-Earth output
+   - Each tool has some specifics settings. If the code has already
+     been ported to your machine, you should not have to change
+     anything there. They define the needed executable/lib (cdo, nco,
+     netcdf,...), location of auxiliary data, and of final results.
+     For reference, the machine configurations are:
+     : "./conf/conf_hiresclim_<your-machine>.sh"
+     : "./conf/conf_ecmean_<your-machine>.sh"   
+     : "./conf/conf_amwg_<your-machine>.sh"     
+
+* USAGE
+
+** First, run HIRESCLIM2 to extract and average variables of interest:
+
+   : cd ${ECE3_POSTPROC_TOPDIR}/script
+   : ./hc.sh [-a account] [-r rundir] [-m] [-c] EXP YEAR1 YEAR2 YREF
+
+   Create a set of netcdf files with monthly (default) averages of
+   variables of interest. The files are found in the
+   ${ECE3_POSTPROC_RUNDIR}/EXP/post directory.
+
+   For more information about the script options, just call
+
+   : ./hc.sh -h
+
+   If you specify an alternate "rundir" for input, the new data will still be
+   in your ${ECE3_POSTPROC_RUNDIR}/EXP/post (directory tree created as needed).
+
+   Upon success, ${ECE3_POSTPROC_RUNDIR}/EXP/post/postcheck_EXP_YYYY.txt files
+   are created with some basic information. By repeating the command with the
+   -c option, these files are printed. In case of problem or for more detailed
+   information, you can look at the submitted scripts and logs, which are in
+   your $SCRATCH/tmp_ecearth3
+
+   There are few hardcoded options (if you want daily or 6h output on top of
+   the monthly one, or the nemo_extra output). In "./master_hiresclim.sh",
+   check the "hardcoded options" section.
+
+** Then, you can compute the global mean fluxes with EC-MEAN:
+
+   : ecm.sh [-a account] [-r rundir] [-c] EXP YEAR1 YEAR2
+
+   The options are the same as for hiresclim2. For details, call
+   : ecm.sh -h
+
+   Output table with Performance Indices and mean global fluxes are found in:
+   : ${OUTDIR}/${exp}
+   and there is one (summary) line of information in the:
+   : ${OUDIR}/globtable_cs.txt
+   : ${OUDIR}/globtable.txt
+   : ${OUDIR}/gregory.txt
+ 
+   The default output directory ${OUTDIR} can be changed in the
+   $ECE3_POSTPROC_TOPDIR/conf/conf_ecmean_${ECE3_POSTPROC_MACHINE}.sh config
+   file.
+  
+   You can quickly check for success by executing the command again
+   with -c option. It will print the summary line from /globtable.txt/
+   and /gregory.txt/ files, if they exist. For more insight, have a
+   look at the submitted scripts and logs, which are in
+   $SCRATCH/tmp_ecearth3
+
+   Note that the computation of the PI fails, the code still goes
+   through. This lets you compute global means, but requires that you
+   check for error in the log file.
+  
+** or/and produce the AMWG diagnostics:
+   TODO
+   
+* PORTING  
+** Get the data. Available at:
+   : ec:/nm6/EC-EARTH/ECEARTH3.2b/INPUT/ece-post-proc.tar.gz
+
+** To port to a new machine, you need to:
+   - add platform templates in the script/platform directory (adapt
+     existing ones to your job scheduler)
+     : script/platform/hc_<your-machine>.tmpl
+     : script/platform/header_<your-machine>.tmpl
+
+   - add a configuration script for each tools:
+     : conf/conf_hiresclim_<your-machine>.sh
+     : conf/conf_timeseries_<your-machine>.sh
+     : conf/conf_ecmean_<your-machine>.sh
+     : conf/conf_amwg_<your-machine>.sh
+
+** Requirements
+   - You must install nco, netcdf, python, cdo, and cdftools if missing.
+   - For CDFTOOLS you *cannot* use the light one that ships with barakuda.
+   - If the /netCDF4/ python module is not available, you cannot build
+     the 3D relative humidity. Set in your
+     ./conf/conf_hiresclim_<your-machine>.sh:
+     : rh_build=0
+   - Some EC-Earth experiments put the water flux output from NEMO in
+     the SBC files instead of the grid_T files. Then you need
+     : export use_SBC=1
+     in your ./conf/conf_hiresclim_<your-machine>.sh config.
+
+** Build rebuild_nemo from EC-Earth source code:
+   This is needed only if the output files of NEMO are per processes.
+   In which case you need to do something along these lines:
+   : cd <EC-EARTH-DIR>/sources/nemo-3.6/TOOLS/REBUILD_NEMO/
+   : <F90-COMPILER> rebuild_nemo.f90  -o ../rebuild_nemo.exe -I<PATH-TO-NETCDF-INSTALLATION>/include -L<PATH-TO-NETCDF-INSTALLATION>/lib -lnetcdf -lnetcdff
+
+* HISTORY
+  Copied from a suite of post-processing tools from Jost (it/ccjh) on
+  Monday, March 27, 2017. This project is a quick attempt at cleaning
+  up the tools suite and making it easier to port.
+  
+  Modified to work with default ecearth-3 output tree. Removed the
+  possibility to run somebody else code (just clone it!) but can still
+  processed output from another user (as long as it is readable and
+  follows the default EC-Earth output tree/format). Bug fix in ECmean.
+  Improved the performance of HIRECLIM2 with parallelization over the
+  years. Can process monthly legged runs now. Catch all errors with
+  "set -e" everywhere (except the PI indices). Try to be smarter in
+  dealing with and cleaning temporary dirs, using mktemp.

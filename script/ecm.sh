@@ -38,8 +38,9 @@ while getopts "h?cr:a:" opt; do
 done
 shift $((OPTIND-1))
 
+# -- Scratch dir (location of submit script and its log, and temporary files)
 OUT=$SCRATCH/tmp_ecearth3
-mkdir -p $OUT
+mkdir -p $OUT/log
 
 if [ "$#" -lt 3 ]; then
    usage 
@@ -59,9 +60,12 @@ fi
 # -- check previous processing
 if (( checkit ))
 then
-    echo "Checking ${HOME}/EC-Earth3/diag/table/globtable.txt ..."
-    grep $1.$2-$3. ${HOME}/EC-Earth3/diag/table/globtable.txt || \
-            echo "*EE* check log at $SCRATCH/tmp_ecearth3"
+    # get OUTDIR
+    . $ECE3_POSTPROC_TOPDIR/conf/conf_ecmean_${ECE3_POSTPROC_MACHINE}.sh
+    echo "Checking ${OUTDIR}/globtable.txt ..."
+    grep $1.$2-$3. ${OUTDIR}/globtable.txt || \
+        echo "*EE* check log at $SCRATCH/tmp_ecearth3"
+    grep $1.$2-$3. ${OUTDIR}/gregory.txt || true
     exit
 fi
 
@@ -81,7 +85,7 @@ sed -i "s|<OUT>|$OUT|" $tgt_script
 
 echo ./EC-mean.sh $1 $2 $3 $ALT_RUNDIR >> $tgt_script
 
-qsub $tgt_script
-qstat -wu $USER
+qsub $tgt_script || sbatch $tgt_script
+qstat -wu $USER || squeue -lu $USER
 
 
