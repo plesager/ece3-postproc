@@ -54,6 +54,8 @@ fi
 [[ -z $ECE3_POSTPROC_RUNDIR  ]] && echo "User environment not set. See ../README." && exit 1 
 [[ -z $ECE3_POSTPROC_MACHINE ]] && echo "User environment not set. See ../README." && exit 1 
 
+. $ECE3_POSTPROC_TOPDIR/conf/conf_hiresclim_${ECE3_POSTPROC_MACHINE}.sh
+
 if [[ -n $ALT_RUNDIR ]]
 then
     outdir=$ALT_RUNDIR/$1/output
@@ -61,6 +63,7 @@ else
     outdir=${ECE3_POSTPROC_RUNDIR}/$1/output
 fi
 [[ ! -d $outdir ]] && echo "User experiment output $outdir does not exist!" && exit 1
+
 
 # -- check previous processing
 if (( checkit ))
@@ -93,7 +96,5 @@ do
     sed -i "s|<YREF>|$4|" $tgt_script
     sed -i "s|<OUT>|$OUT|" $tgt_script
     sed -i "s|<OPTIONS>|${options}|" $tgt_script
-    qsub $tgt_script || sbatch $tgt_script
+    ${submit_cmd} $tgt_script
 done
-
-qstat -wu $USER || squeue -l -u $USER

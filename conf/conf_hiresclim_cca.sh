@@ -6,6 +6,8 @@
 #    the following general user settings:
 #    ECE3_POSTPROC_TOPDIR, ECE3_POSTPROC_RUNDIR, or ECE3_POSTPROC_DATADIR
 
+submit_cmd="qsub"
+
 # required programs, including compression options
 module load nco netcdf python cdo cdftools
 

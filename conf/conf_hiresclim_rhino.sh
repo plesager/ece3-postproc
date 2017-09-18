@@ -6,6 +6,8 @@
 #    the following general user settings:
 #    ECE3_POSTPROC_TOPDIR, ECE3_POSTPROC_RUNDIR, or ECE3_POSTPROC_DATADIR
 
+submit_cmd="sbatch"
+
 cdo=cdo
 cdozip="$cdo -f nc4c -z zip"
 rbld="/nfs/home/users/sager/primavera/sources/nemo-3.6/TOOLS/REBUILD_NEMO/rebuild_nemo"

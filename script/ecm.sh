@@ -38,14 +38,19 @@ while getopts "h?cr:a:" opt; do
 done
 shift $((OPTIND-1))
 
-# -- Scratch dir (location of submit script and its log, and temporary files)
-OUT=$SCRATCH/tmp_ecearth3
-mkdir -p $OUT/log
-
 if [ "$#" -lt 3 ]; then
    usage 
    exit 0
 fi
+
+# -- Scratch dir (location of submit script and its log, and temporary files)
+OUT=$SCRATCH/tmp_ecearth3
+mkdir -p $OUT/log
+
+
+# -- get OUTDIR, submit command
+. $ECE3_POSTPROC_TOPDIR/conf/conf_ecmean_${ECE3_POSTPROC_MACHINE}.sh
+
 
 # -- check input dir exist (from EC-mean.sh, repeated here for a "before submission" error catch)
 if [[ -n $ALT_RUNDIR ]]
@@ -60,9 +65,7 @@ fi
 # -- check previous processing
 if (( checkit ))
 then
-    # get OUTDIR
-    . $ECE3_POSTPROC_TOPDIR/conf/conf_ecmean_${ECE3_POSTPROC_MACHINE}.sh
-    echo "Checking ${OUTDIR}/globtable.txt ..."
+    echo; echo "Checking ${OUTDIR}/globtable.txt ..."
     grep $1.$2-$3. ${OUTDIR}/globtable.txt || \
         echo "*EE* check log at $SCRATCH/tmp_ecearth3"
     grep $1.$2-$3. ${OUTDIR}/gregory.txt || true
@@ -85,7 +88,6 @@ sed -i "s|<OUT>|$OUT|" $tgt_script
 
 echo ./EC-mean.sh $1 $2 $3 $ALT_RUNDIR >> $tgt_script
 
-qsub $tgt_script || sbatch $tgt_script
-qstat -wu $USER || squeue -lu $USER
+${submit_cmd} $tgt_script
 
 

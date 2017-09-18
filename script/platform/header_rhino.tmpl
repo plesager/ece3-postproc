@@ -3,9 +3,8 @@
 #SBATCH --job-name=<JOBID>_<EXPID>_<Y1>
 #SBATCH --partition=all
 #SBATCH --nodes=1
+#SBATCH --share
 #SBATCH --output=<OUT>/log/<JOBID>_<EXPID>_<Y1>.out
-
-#mkdir <OUT>/log || true
 
 set -e
 
