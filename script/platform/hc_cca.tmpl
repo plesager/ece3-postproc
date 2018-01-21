@@ -5,11 +5,12 @@
 #PBS -l EC_billing_account=<ACCOUNT>
 #PBS -l EC_total_tasks=1
 #PBS -l EC_threads_per_task=12
-#PBS -l EC_memory_per_task=24GB
 #PBS -l EC_hyperthreads=1
 #PBS -l walltime=03:00:00
 #PBS -j oe
 #PBS -o <OUT>/log/hiresclim_<EXPID>_<YEAR>.out
+
+##PBS -l EC_memory_per_task=24GB
 
 module load cray-snplauncher
 

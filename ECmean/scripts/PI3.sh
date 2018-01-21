@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -x
+set -xe
 
 #Performance Indices by Reichler and Kim (2008) 
 #Paolo Davini (ISAC-CNR) - <p.davini@isac.cnr.it> 
@@ -17,17 +17,17 @@ set -x
 #2)Evaluate zonal field only from 1000hPa to 100hPa (as stated by RK08)
 #3)Remove windstress mask for values greater than +-0.1 N/m^2
 
-if [ $# -ne 3 ]
+if [ $# -ne 4 ]
 then
-    echo "Usage:   ./PI3.sh EXP YEARSTART YEAREND"
-    echo "Example: ./PI3.sh io01 1990 2000"
+    echo "Usage:   ${0##*/} EXP YEARSTART YEAREND LPRIMAVERA"
+    echo "Example: ${0##*/} io01 1990 2000"
     exit 1
 fi
 
 exp=$1
 year1=$2
 year2=$3
-
+primavera=$4
 
 # CLIMDIR defined by calling script
 OBSDIR=$ECE3_POSTPROC_TOPDIR/ECmean/Climate_netcdf
@@ -152,7 +152,16 @@ for vv in $var3d ; do
     $cdo setzaxis,$TMPDIR/axis.txt -invertlev -zonmean $field $TMPDIR/new_${vv}.nc
 
     #computing PIs
-    $cdo div -sqr -sub $TMPDIR/new_${vv}.nc $clim $var $TMPDIR/temp_$vv.nc
+    if [[ ${primavera} == 1 ]]; then
+        #Dei 44 lev, seleziono solo gli 11 da confrontare con OBS-dataset_ERA40 
+        $cdo div -sqr -sub -sellevel,1000,5000,10000,20000,30000,40000,50000,70000,85000,92500,100000 $TMPDIR/new_${vv}.nc $clim $var $TMPDIR/tempp_$vv.nc
+
+        #Converto da Pa (file tempp_$vv.nc) a mbar/hPa (file temp_$vv.nc) in accordo con file pressure.nc 
+        $cdo setzaxis,$TMPDIR/axis.txt $TMPDIR/tempp_$vv.nc $TMPDIR/temp_$vv.nc
+    else
+        $cdo div -sqr -sub $TMPDIR/new_${vv}.nc $clim $var $TMPDIR/temp_$vv.nc
+    fi        
+
     pivalue=$( $cdo outputf,%8.4f,1 -fldmean -vertsum -sellevel,100,200,300,400,500,700,850,925,1000 -mul $TMPDIR/pressure.nc $TMPDIR/temp_$vv.nc )
     piratio=$( echo "scale=2; $pivalue/${cmip3}" | bc | xargs printf "%4.2f\n" )
     pilong[$ii]=$piratio; ii=$(( ii + 1 )); 

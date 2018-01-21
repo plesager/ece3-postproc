@@ -9,7 +9,13 @@
 submit_cmd="qsub"
 
 # required programs, including compression options
-module load nco netcdf python cdo cdftools
+for soft in nco netcdf python cdo cdftools
+do
+    if ! module -t list 2>&1 | grep -q $soft
+    then
+        module load $soft
+    fi
+done
 
 cdo=cdo
 cdozip="$cdo -f nc4c -z zip"

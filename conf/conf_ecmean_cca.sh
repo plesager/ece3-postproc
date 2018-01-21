@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Required programs, including compression options
-module load cdo
+module -s load cdo
 
 export cdo=cdo
 export cdozip="$cdo -f nc4c -z zip"
@@ -17,3 +17,11 @@ export remap="remapcon2"
 export OUTDIR=${HOME}/EC-Earth3/diag/table/${exp}
 mkdir -p $OUTDIR
 
+# Where to save the climatology (769M AMIP, ??? NEMO). 
+# By default, if this is commented or empty, it is in you rundir next to hiresclim2 monthly means output:
+# 
+#     CLIMDIR=${ECE3_POSTPROC_RUNDIR}/${exp}/post/clim
+#     
+# Note that it is needed for reproducibility tests for example.
+
+#CLIMDIR=<my favorite path to store data>

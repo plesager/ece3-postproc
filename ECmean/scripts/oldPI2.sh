@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -x
+set -ex
 
 #Performance Indices by Reichler and Kim (2008) 
 #Paolo Davini (ISAC-CNR) - <p.davini@isac.cnr.it> 
@@ -12,16 +12,17 @@ set -x
 #For Zonal fields: missing values for 90S and 90N
 #Special values for SSS and SICE variance derived from previous Grads-based script: to be checked
 
-if [ $# -ne 3 ]
+if [ $# -lt 3 ]
 then
-    echo "Usage:   ./specialPI.sh EXP YEARSTART YEAREND"
-    echo "Example: ./specialPI.sh io01 1990 2000"
+    echo "Usage:   ${0##*/} EXP YEARSTART YEAREND LPRIMAVERA"
+    echo "Example: ${0##*/} io01 1990 2000"
     exit 1
 fi
 
 exp=$1
 year1=$2
 year2=$3
+primavera=$4
 
 # CLIMDIR defined by calling script
 OBSDIR=$ECE3_POSTPROC_TOPDIR/ECmean/Climate_netcdf
@@ -141,10 +142,21 @@ for vv in $var3d ; do
     clim=$OBSDIR/climate_${dataset}_${vv}_zonal.nc
     var=$OBSDIR/variance_${dataset}_${vv}_zonal.nc
     field=$CLIMDIR/${vv}_mean_2x2.nc
+
+    #axis correction, Pa to hPa
     $cdonc zaxisdes $clim > $TMPDIR/axis.txt
     $cdonc setzaxis,$TMPDIR/axis.txt -invertlev -zonmean $field $TMPDIR/new_${vv}.nc
 
-    $cdonc div -sqr -sub $TMPDIR/new_${vv}.nc $clim $var $TMPDIR/temp_$vv.nc
+    if [[ ${primavera} == 1 ]]; then
+        #Dei 44 lev, seleziono solo gli 11 da confrontare con OBS-dataset_ERA40 
+        $cdonc div -sqr -sub -sellevel,1000,5000,10000,20000,30000,40000,50000,70000,85000,92500,100000 $TMPDIR/new_${vv}.nc $clim $var $TMPDIR/temp_$vv.nc
+        
+        #Converto da Pa (file tempp_$vv.nc) a mbar/hPa (file temp_$vv.nc) in accordo con file pressure.nc
+        $cdonc setzaxis,$TMPDIR/axis.txt $TMPDIR/tempp_$vv.nc $TMPDIR/temp_$vv.nc
+    else
+        $cdonc div -sqr -sub $TMPDIR/new_${vv}.nc $clim $var $TMPDIR/temp_$vv.nc
+    fi
+
     pivalue=$( $cdonc outputf,%8.4f,1 -fldmean -vertsum -mul $TMPDIR/pressure.nc $TMPDIR/temp_$vv.nc )
     piratio=$( echo "scale=2; $pivalue/${cmip3}" | bc | xargs printf "%4.2f\n" )
     pilong[$ii]=$piratio; ii=$(( ii + 1 )); 

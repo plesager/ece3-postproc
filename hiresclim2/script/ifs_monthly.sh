@@ -37,25 +37,47 @@ mkdir -p $OUTDIR || exit -1
 out=$OUTDIR/${expname}_${year}
 
 # ICMSH
-for m1 in $(seq 1 $NPROCS 12)
-do
-   for m in $(seq $m1 $((m1+NPROCS-1)) )
-   do
-      ym=$(printf %04d%02d $year $m)
-      (( $mlegs )) && IFSRESULTS=$BASERESULTS/ifs/$(printf %03d $(( (year-${yref})*12+m)))
-      $cdo -b F64 -t $ecearth_table splitvar -sp2gpl \
-         -setdate,$year-$m-01 -settime,00:00:00 -timmean \
-         $IFSRESULTS/ICMSH${expname}+$ym icmsh_${ym}_ &
+if [ -n "$FILTERSH" ]
+then
+    echo "$FILTERSH" > filtsh.txt
+    for m1 in $(seq 1 $NPROCS 12)
+    do
+        for m in $(seq $m1 $((m1+NPROCS-1)) )
+        do
+            ym=$(printf %04d%02d $year $m)
+            grib_filter -o icmsh_${ym} filtsh.txt $IFSRESULTS/ICMSH${expname}+$ym &
+        done
+        wait
+        for m in $(seq $m1 $((m1+NPROCS-1)) )
+        do
+            ym=$(printf %04d%02d $year $m)
+            $cdo -b F64 -t $ecearth_table splitvar -sp2gpl \
+                -setdate,$year-$m-01 -settime,00:00:00 -timmean \
+                icmsh_${ym} icmsh_${ym}_ &
+        done
+        wait
+        rm icmsh_??????
+    done
+else
+    for m1 in $(seq 1 $NPROCS 12)
+    do
+        for m in $(seq $m1 $((m1+NPROCS-1)) )
+        do
+            ym=$(printf %04d%02d $year $m)
+            (( $mlegs )) && IFSRESULTS=$BASERESULTS/ifs/$(printf %03d $(( (year-${yref})*12+m)))
+            $cdo -b F64 -t $ecearth_table splitvar -sp2gpl \
+                -setdate,$year-$m-01 -settime,00:00:00 -timmean \
+                $IFSRESULTS/ICMSH${expname}+$ym icmsh_${ym}_ &
 
-   done
-   wait
-done
+        done
+        wait
+    done
+fi
 
 for v in t u v z lnsp
 do
    rm -f ${out}_${v}.nc
    $cdozip -r -R -t $ecearth_table cat icmsh_??????_$v.grb ${out}_${v}.nc
-
 done
 
 #part on surface pressure
@@ -65,34 +87,92 @@ rm temp_lnsp.nc
 
 
 # ICMGG
-for m1 in $(seq 1 $NPROCS 12)
-do
-   for m in $(seq $m1 $((m1+NPROCS-1)) )
-   do
-      ym=$(printf %04d%02d $year $m)
-      (( $mlegs )) && IFSRESULTS=$BASERESULTS/ifs/$(printf %03d $(( (year-${yref})*12+m)))
-      $cdo -b F64 setdate,$year-$m-01 -settime,00:00:00 -timmean \
-         $IFSRESULTS/ICMGG${expname}+$ym icmgg_${ym}.grb &
+if [ -n "$FILTERGG2D" ]
+then
+    echo "$FILTERGG2D" > filtgg2d.txt
+    for m1 in $(seq 1 $NPROCS 12)
+    do
+        for m in $(seq $m1 $((m1+NPROCS-1)) )
+        do
+            ym=$(printf %04d%02d $year $m)
+            grib_filter -o icmgg2df_${ym} filtgg2d.txt $IFSRESULTS/ICMGG${expname}+$ym &
+        done
+        wait
+        for m in $(seq $m1 $((m1+NPROCS-1)) )
+        do
+            ym=$(printf %04d%02d $year $m)
+            $cdo -b F64 setdate,$year-$m-01 -settime,00:00:00 -timmean \
+                icmgg2df_$ym icmgg2d_${ym}.grb &
+        done
+        wait
+    done
+    pptime=$($cdo showtime -seltimestep,1,2 icmgg2df_${year}01  | \
+        tr -s ' ' ':' | awk -F: '{print ($5-$2)*3600+($6-$3)*60+($7-$4)}' )
 
-   done
-   wait
-done
-rm -f icmgg_${year}.grb
-$cdo cat icmgg_${year}??.grb icmgg_${year}.grb
+    echo "$FILTERGG3D" > filtgg3d.txt
+    for m1 in $(seq 1 $NPROCS 12)
+    do
+        for m in $(seq $m1 $((m1+NPROCS-1)) )
+        do
+            ym=$(printf %04d%02d $year $m)
+            grib_filter -o icmgg3df_${ym} filtgg3d.txt $IFSRESULTS/ICMGG${expname}+$ym &
+        done
+        wait
+        for m in $(seq $m1 $((m1+NPROCS-1)) )
+        do
+            ym=$(printf %04d%02d $year $m)
+            $cdo -b F64 setdate,$year-$m-01 -settime,00:00:00 -timmean \
+                icmgg3df_$ym icmgg3d_${ym}.grb &
+        done
+        wait
+    done
 
-$cdozip -r -R -t $ecearth_table splitvar \
-   -selvar,uas,vas,tas,ci,sstk,sd,tds,tcc,lcc,mcc,hcc,tclw,tciw,tcwv,msl,q,fal,uas,vas \
-   icmgg_${year}.grb ${out}_
+    rm -f icmgg_${year}.grb icmgg3d_${year}.grb
+    $cdo cat icmgg2d_${year}??.grb icmgg_${year}.grb
+    $cdo cat icmgg3d_${year}??.grb icmgg3d_${year}.grb
+    rm icmgg2d_${year}??.grb icmgg3d_${year}??.grb icmgg2df_${year}?? icmgg3df_${year}??
 
+    $cdozip -r -R -t $ecearth_table splitvar \
+        -selvar,uas,vas,tas,ci,sstk,sd,tds,tcc,lcc,mcc,hcc,tclw,tciw,tcwv,msl,fal,uas,vas \
+        icmgg_${year}.grb ${out}_
 
-#  post-processing timestep in seconds from first month
-(( $mlegs )) && IFSRESULTS=$BASERESULTS/ifs/$(printf %03d $(( (year-${yref})*12 + 1)))
-pptime=$($cdo showtime -seltimestep,1,2 $IFSRESULTS/ICMGG${expname}+${year}01 | \
-   tr -s ' ' ':' | awk -F: '{print ($5-$2)*3600+($6-$3)*60+($7-$4)}' )
+    $cdozip -r -R -t $ecearth_table selvar,q  icmgg3d_${year}.grb ${out}_q.nc
+
+else
+
+    for m1 in $(seq 1 $NPROCS 12)
+    do
+        for m in $(seq $m1 $((m1+NPROCS-1)) )
+        do
+            ym=$(printf %04d%02d $year $m)
+            (( $mlegs )) && IFSRESULTS=$BASERESULTS/ifs/$(printf %03d $(( (year-${yref})*12+m)))
+            $cdo -b F64 setdate,$year-$m-01 -settime,00:00:00 -timmean \
+                $IFSRESULTS/ICMGG${expname}+$ym icmgg_${ym}.grb &
+
+        done
+        wait
+    done
+    rm -f icmgg_${year}.grb
+    $cdo cat icmgg_${year}??.grb icmgg_${year}.grb
+    rm -f icmgg_${year}??.grb
+
+    $cdozip -r -R -t $ecearth_table splitvar \
+        -selvar,uas,vas,tas,ci,sstk,sd,tds,tcc,lcc,mcc,hcc,tclw,tciw,tcwv,msl,q,fal,uas,vas \
+        icmgg_${year}.grb ${out}_
+
+    #  post-processing timestep in seconds from first month
+    (( $mlegs )) && IFSRESULTS=$BASERESULTS/ifs/$(printf %03d $(( (year-${yref})*12 + 1)))
+    pptime=$($cdo showtime -seltimestep,1,2 $IFSRESULTS/ICMGG${expname}+${year}01 | \
+        tr -s ' ' ':' | awk -F: '{print ($5-$2)*3600+($6-$3)*60+($7-$4)}' )
+
+fi
+
+# check timestep
 if [ $pptime -le 0 ]
 then
-   pptime=21600 # default 6-hr output timestep
+    pptime=21600 # default 6-hr output timestep
 fi
+echo Timestep is $pptime
 
 # precip and evap and runoff in kg m-2 s-1
 $cdozip -R -r -t $ecearth_table mulc,1000 -divc,$pptime -selvar,ro \

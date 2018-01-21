@@ -2,7 +2,7 @@
 
 usage()
 {
-   echo "Usage: ecm.sh [-a account] [-r rundir] [-c] EXP YEAR1 YEAR2"
+   echo "Usage: ecm.sh [-a account] [-r rundir] [-c] [-p] [-y] EXP YEAR1 YEAR2"
    echo
    echo "Submit to a job scheduler an EC-MEAN analysis of experiment EXP in years"
    echo " YEAR1 to YEAR2."
@@ -15,6 +15,8 @@ usage()
    echo "   -a account  : specify a different special project for accounting (default $ECE3_POSTPROC_ACCOUNT)"
    echo "   -r RUNDIR   : fully qualified path to another user EC-Earth top RUNDIR"
    echo "                   that is RUNDIR/EXP/post must exists and be readable"
+   echo "   -y          : (Y)early global mean are added to "
+   echo "   -p          : account for (P)rimavera complicated output"
 }
 
 set -e
@@ -22,13 +24,17 @@ set -e
 # -- default option
 account=$ECE3_POSTPROC_ACCOUNT
 
-while getopts "h?cr:a:" opt; do
+while getopts "h?cr:a:py" opt; do
     case "$opt" in
         h|\?)
             usage
             exit 0
             ;;
         r)  ALT_RUNDIR=$OPTARG
+            ;;
+        p)  theoptions="${theoptions} -p"
+            ;;
+        y)  theoptions="${theoptions} -y"
             ;;
         c)  checkit=1
             ;;
@@ -42,6 +48,9 @@ if [ "$#" -lt 3 ]; then
    usage 
    exit 0
 fi
+
+# check that we have number where expected #TODO
+
 
 # -- Scratch dir (location of submit script and its log, and temporary files)
 OUT=$SCRATCH/tmp_ecearth3
@@ -86,7 +95,7 @@ sed -i "s/<JOBID>/ecm/" $tgt_script
 sed -i "s/<Y1>/$2/" $tgt_script
 sed -i "s|<OUT>|$OUT|" $tgt_script
 
-echo ./EC-mean.sh $1 $2 $3 $ALT_RUNDIR >> $tgt_script
+echo ./EC-mean.sh ${theoptions} $1 $2 $3 $ALT_RUNDIR >> $tgt_script
 
 ${submit_cmd} $tgt_script
 

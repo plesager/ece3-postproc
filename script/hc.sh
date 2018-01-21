@@ -54,6 +54,7 @@ fi
 [[ -z $ECE3_POSTPROC_RUNDIR  ]] && echo "User environment not set. See ../README." && exit 1 
 [[ -z $ECE3_POSTPROC_MACHINE ]] && echo "User environment not set. See ../README." && exit 1 
 
+# -- get submit command
 . $ECE3_POSTPROC_TOPDIR/conf/conf_hiresclim_${ECE3_POSTPROC_MACHINE}.sh
 
 if [[ -n $ALT_RUNDIR ]]

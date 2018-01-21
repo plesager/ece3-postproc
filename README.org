@@ -102,7 +102,7 @@ The code has been ported on /cca (ECMWF)/ and /rhino (KNMI)/. See the
 
 *** Then, you can compute the global mean fluxes with EC-MEAN:
 
-    : ./ecm.sh [-a account] [-r rundir] [-c] EXP YEAR1 YEAR2
+    : ./ecm.sh [-a account] [-r rundir] [-c] [-y] [-p] EXP YEAR1 YEAR2
 
     The options are the same as for hiresclim2. For details, call
     : ./ecm.sh -h
@@ -113,7 +113,13 @@ The code has been ported on /cca (ECMWF)/ and /rhino (KNMI)/. See the
     : ${OUDIR}/globtable_cs.txt
     : ${OUDIR}/globtable.txt
     : ${OUDIR}/gregory.txt
- 
+
+    If the option /-y/ was used, you also have yearly global means available
+    in:
+    : ${OUDIR}/yearly_fldmean_${exp}.txt
+    and its subset
+    : ${OUDIR}/gregory_${exp}.txt
+
     The default output directory ${OUTDIR} can be changed in the
     $ECE3_POSTPROC_TOPDIR/conf/conf_ecmean_${ECE3_POSTPROC_MACHINE}.sh
     config file. The /gregory.txt/ has only the three variables needed

@@ -10,11 +10,42 @@
 
 set -e
 
+usage()
+{
+    echo "Usage:   ${0##*/} [-y] [-p]  EXP  YEAR_START  YEAR_END  [ALT_RUNDIR]"
+    echo
+    echo "Options are:"
+    echo "   ALTRUNDIR   : fully qualified path to another user EC-Earth top RUNDIR"
+    echo "                   that is RUNDIR/EXP/post must exists and be readable"
+    echo "   -y          : (Y)early global mean are added to "
+    echo "   -p          : account for (P)rimavera complicated output"
+}
+
+
+lp=0
+ly=0
+
+while getopts "h?py" opt; do
+    case "$opt" in
+        h|\?)
+            usage
+            exit 0
+            ;;
+#         r)  ALT_RUNDIR=$OPTARG
+#             ;;
+        p)  lp=1
+            ;;
+        y)  ly=1
+            ;;
+    esac
+done
+shift $((OPTIND-1))
+
 if [ $# -lt 3 ]
 then
-  echo "Usage:   ./EC-mean.sh exp YEARSTART YEAREND [ALT_RUNDIR]"
-  echo "Example: ./EC-mean.sh io01 1990 2000"
-  exit 1
+    echo; echo "*EE* not enough arguments !!"; echo
+    usage
+    exit 1
 fi
 
 # experiment name
@@ -38,10 +69,11 @@ fi
 ############################################################
 # TEMP dirs
 ############################################################
-
-# Where to store the 2x2 climatologies
-export CLIMDIR=$(mktemp -d) # $SCRATCH/tmp_ecearth3/post_${exp}_model2x2_XXXXXX)
-mkdir -p $CLIMDIR || true
+set +x
+# Where to store the 2x2 climatologies (keep if doing reproducibility test for example)
+[[ -z $CLIMDIR ]] && CLIMDIR=${ECE3_POSTPROC_RUNDIR}/${exp}/post/clim-${year1}-${year2}
+export CLIMDIR
+mkdir -p $CLIMDIR
 
 TMPDIR=$(mktemp -d) # $SCRATCH/tmp_ecearth3.XXXXXX)
 
@@ -84,16 +116,35 @@ export maskfile=$ECE3_POSTPROC_DATADIR/ifs/T${res}L91/19900101/ICMGGECE3INIT
 ############################################################
 # Call postprocessings
 ############################################################
+
+printf " ----------------------------------- Yearly Global Mean\n"
+
+if [ $ly -eq 1 ]; then
+    echo "loopyear switch on: ${ly}"
+    [[ ! -e $OUTDIR/gregory_${exp}.txt ]] && \
+        echo "                  net TOA, net Sfc, t2m[tas], SST" > $OUTDIR/gregory_${exp}.txt
+    for iy in $( seq $2 1 $3 ) ; do
+        cd $PIDIR/scripts/ 
+        ./global_mean.sh $exp $iy $iy
+        cd $OUTDIR/..
+        $PIDIR/tab2lin_cs.sh $exp $iy $iy > $OUTDIR/globtable_cs_$exp_$iy-$iy.txt
+        $PIDIR/tab2lin.sh $exp $iy $iy    > $OUTDIR/globtable_$exp_$iy-$iy.txt
+        cat $OUTDIR/globtable_cs_$exp_$iy-$iy.txt >> $OUTDIR/yearly_fldmean_${exp}.txt
+        rm -f $OUTDIR/globtable_cs_$exp_$iy-$iy.txt $OUTDIR/globtable_$exp_$iy-$iy.txt
+        $PIDIR/gregory.sh $exp $iy $iy >> $OUTDIR/gregory_${exp}.txt        
+    done
+fi
+
 cd $PIDIR/scripts/ 
 
-printf " ----------------------------------- Post 2x2\n"
+printf "\n\n ----------------------------------- Post 2x2\n"
 ./post2x2.sh $exp $year1 $year2
-
+set -x
 printf "\n\n ----------------------------------- old PI2\n"
-./oldPI2.sh $exp $year1 $year2
+./oldPI2.sh $exp $year1 $year2 $lp
 
 printf "\n\n----------------------------------- PI3\n"
-./PI3.sh $exp $year1 $year2
+./PI3.sh $exp $year1 $year2 $lp
 
 printf "\n\n----------------------------------- Global Mean\n"
 ./global_mean.sh $exp $year1 $year2
@@ -108,17 +159,18 @@ mv $TMPDIR/out.txt $OUTDIR/PI2_RK08_${exp}_${year1}_${year2}.txt
 #not needed rm $CLIMDIR/*.nc
 #not needed rmdir $CLIMDIR
 
+# TODO - avoid interceding update of these 3 files
 cd $OUTDIR/..
-touch globtable.txt globtable_cs.txt
+#touch globtable.txt globtable_cs.txt
 $PIDIR/tab2lin_cs.sh $exp $year1 $year2 >> ./globtable_cs.txt
 $PIDIR/tab2lin.sh $exp $year1 $year2 >> ./globtable.txt
 
 [[ ! -e gregory.txt ]] && \
-    cat "                  net TOA, net Sfc, t2m[tas], SST" > gregory.txt
+    echo "                  net TOA, net Sfc, t2m[tas], SST" > gregory.txt
 $PIDIR/gregory.sh $exp $year1 $year2 >> ./gregory.txt
 
 
-#finalizing
+# finalizing
 cd -
 echo "table produced"
 
