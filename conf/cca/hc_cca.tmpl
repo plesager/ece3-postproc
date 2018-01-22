@@ -25,4 +25,4 @@ export IFS_NPROCS=$EC_threads_per_task
  
 export OMP_NUM_THREADS=$EC_threads_per_task
 
-mpiexec -n 1 ./master_hiresclim.sh <OPTIONS> <EXPID> <YEAR> <YREF>
+mpiexec -n 1 ../hiresclim2/master_hiresclim.sh <OPTIONS> <EXPID> <YEAR> <YREF>

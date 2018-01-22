@@ -36,8 +36,10 @@ while getopts "h?cr:a:" opt; do
 done
 shift $((OPTIND-1))
 
-OUT=$SCRATCH/tmp_ecearth3
+OUT=$SCRATCH/tmp_ecearth3_ts
 mkdir -p $OUT
+
+CONFDIR=${ECE3_POSTPROC_TOPDIR}/conf/${ECE3_POSTPROC_MACHINE}
 
 if [ "$#" -ne 1 ]; then
     usage 
@@ -59,7 +61,7 @@ fi
 # then
 #     echo "Checking ${HOME}/EC-Earth3/diag/table/globtable.txt..."
 #     grep $1.$2-$3. ${HOME}/EC-Earth3/diag/table/globtable.txt || \
-#             echo "*EE* check log at $SCRATCH/tmp_ecearth3"
+#             echo "*EE* check log at $SCRATCH/tmp_ecearth3_ts"
 #     exit
 # fi
 
@@ -67,7 +69,7 @@ fi
 # -- submit script
 tgt_script=$OUT/ts_$1.job
 
-sed "s/<EXPID>/$1/" < $ECE3_POSTPROC_TOPDIR/script/platform/header_$ECE3_POSTPROC_MACHINE.tmpl > $tgt_script
+sed "s/<EXPID>/$1/" < ${CONFDIR}/header_$ECE3_POSTPROC_MACHINE.tmpl > $tgt_script
 
 [[ -n $account ]] && \
     sed -i "s/<ACCOUNT>/$account/" $tgt_script || \

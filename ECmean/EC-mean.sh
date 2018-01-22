@@ -12,10 +12,10 @@ set -e
 
 usage()
 {
-    echo "Usage:   ${0##*/} [-y] [-p]  EXP  YEAR_START  YEAR_END  [ALT_RUNDIR]"
+    echo "Usage:   ${0##*/} [-y] [-p] [-r ALT_RUNDIR]  EXP  YEAR_START  YEAR_END"
     echo
     echo "Options are:"
-    echo "   ALTRUNDIR   : fully qualified path to another user EC-Earth top RUNDIR"
+    echo "   -r ALT_RUNDIR : fully qualified path to another user EC-Earth top RUNDIR"
     echo "                   that is RUNDIR/EXP/post must exists and be readable"
     echo "   -y          : (Y)early global mean are added to "
     echo "   -p          : account for (P)rimavera complicated output"
@@ -31,8 +31,8 @@ while getopts "h?py" opt; do
             usage
             exit 0
             ;;
-#         r)  ALT_RUNDIR=$OPTARG
-#             ;;
+        r)  ALT_RUNDIR=$OPTARG
+            ;;
         p)  lp=1
             ;;
         y)  ly=1
@@ -55,11 +55,8 @@ year1=$2
 year2=$3
 
 # load cdo, netcdf and dir for results
-. $ECE3_POSTPROC_TOPDIR/conf/conf_ecmean_${ECE3_POSTPROC_MACHINE}.sh
+. $ECE3_POSTPROC_TOPDIR/conf/$ECE3_POSTPROC_MACHINE/conf_ecmean_${ECE3_POSTPROC_MACHINE}.sh
 
-if [ $# -eq 4 ]; then           # optional alternative top rundir 
-   ALT_RUNDIR=$4
-fi
 
 ############################################################
 # HARDCODED OPTIONS
@@ -69,13 +66,12 @@ fi
 ############################################################
 # TEMP dirs
 ############################################################
-set +x
-# Where to store the 2x2 climatologies (keep if doing reproducibility test for example)
+# Where to store the 2x2 climatologies
 [[ -z $CLIMDIR ]] && CLIMDIR=${ECE3_POSTPROC_RUNDIR}/${exp}/post/clim-${year1}-${year2}
 export CLIMDIR
 mkdir -p $CLIMDIR
 
-TMPDIR=$(mktemp -d) # $SCRATCH/tmp_ecearth3.XXXXXX)
+TMPDIR=$(mktemp -d) # $SCRATCH/tmp_ecearth3_ecmean.XXXXXX)
 
 ############################################################
 # Checking settings dependent only on the ECE3_POSTPROC_* variables, i.e. env
@@ -155,9 +151,6 @@ rm $OUTDIR/PI2_RK08_${exp}_${year1}_${year2}.txt $OUTDIR/PIold_RK08_${exp}_${yea
 mv $TMPDIR/out.txt $OUTDIR/PI2_RK08_${exp}_${year1}_${year2}.txt 
 #not needed rm -rf $TMPDIR
 #not needed  
-#not needed # Deleting the 2x2 climatology to save space
-#not needed rm $CLIMDIR/*.nc
-#not needed rmdir $CLIMDIR
 
 # TODO - avoid interceding update of these 3 files
 cd $OUTDIR/..

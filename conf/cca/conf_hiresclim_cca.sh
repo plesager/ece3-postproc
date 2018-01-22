@@ -1,5 +1,13 @@
 #!/bin/bash
 
+# -- Filter IFS output (to be applied through a grib_filter call)
+# Useful when there are output with different timestep.
+# Comment if no filtering/change for different output
+#FILTERGG2D="if ( (!(typeOfLevel is \"isobaricInhPa\") && !(typeOfLevel is \"isobaricInPa\") && !(typeOfLevel is \"potentialVorticity\" ))) { write; }"
+#FILTERGG3D="if ( ((typeOfLevel is \"isobaricInhPa\") || (typeOfLevel is \"isobaricInPa\") )) { write; }"
+#FILTERSH="if ( ((dataTime == 0000) || (dataTime == 0600) || (dataTime == 1200)  || (dataTime == 1800) )) { write; }"
+
+
 # Configuration file for hiresclim script
 # 
 # Add here machine dependent set up that do NOT necessarily depends on any of

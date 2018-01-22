@@ -30,7 +30,8 @@ while getopts "h?cr:a:py" opt; do
             usage
             exit 0
             ;;
-        r)  ALT_RUNDIR=$OPTARG
+        r)  theoptions="${theoptions} -r $OPTARG"
+            ALT_RUNDIR=$OPTARG
             ;;
         p)  theoptions="${theoptions} -p"
             ;;
@@ -45,20 +46,41 @@ done
 shift $((OPTIND-1))
 
 if [ "$#" -lt 3 ]; then
-   usage 
-   exit 0
+    echo; echo "*EE* missing arguments"; echo
+    usage 
+    exit 1
 fi
 
-# check that we have number where expected #TODO
+# check that we have a 4-digit number for the year input
+if [[ ! $2 =~ ^[0-9]{4}$ ]]
+then
+    echo ;echo "*EE* argument YEAR1 (=$2) should be a 4-digit integer"; echo
+    usage
+    exit 1
+fi
+if [[ ! $3 =~ ^[0-9]{4}$ ]]
+then
+    echo; echo "*EE* argument YEAR2 (=$3) should be a 4-digit integer"; echo
+    usage
+    exit 1
+fi
 
+# check we have a 4-letter experiment
+if [[ ! $1 =~ ^[a-Z]{4}$ ]]
+then
+    echo; echo "*EE* argument EXP (=$1) should be a 4-letter string"; echo
+    usage
+    exit 1
+fi
 
 # -- Scratch dir (location of submit script and its log, and temporary files)
-OUT=$SCRATCH/tmp_ecearth3
+OUT=$SCRATCH/tmp_ece3_ecmean
 mkdir -p $OUT/log
 
+CONFDIR=${ECE3_POSTPROC_TOPDIR}/conf/${ECE3_POSTPROC_MACHINE}
 
 # -- get OUTDIR, submit command
-. $ECE3_POSTPROC_TOPDIR/conf/conf_ecmean_${ECE3_POSTPROC_MACHINE}.sh
+. ${CONFDIR}/conf_ecmean_${ECE3_POSTPROC_MACHINE}.sh
 
 
 # -- check input dir exist (from EC-mean.sh, repeated here for a "before submission" error catch)
@@ -76,7 +98,7 @@ if (( checkit ))
 then
     echo; echo "Checking ${OUTDIR}/globtable.txt ..."
     grep $1.$2-$3. ${OUTDIR}/globtable.txt || \
-        echo "*EE* check log at $SCRATCH/tmp_ecearth3"
+        echo "*EE* check log at $SCRATCH/tmp_ece3_ecmean"
     grep $1.$2-$3. ${OUTDIR}/gregory.txt || true
     exit
 fi
@@ -85,7 +107,7 @@ fi
 # -- submit script
 tgt_script=$OUT/ecm_$1_$2_$3.job
 
-sed "s/<EXPID>/$1/" < $ECE3_POSTPROC_TOPDIR/script/platform/header_$ECE3_POSTPROC_MACHINE.tmpl > $tgt_script
+sed "s/<EXPID>/$1/" < ${CONFDIR}/header_$ECE3_POSTPROC_MACHINE.tmpl > $tgt_script
 
 [[ -n $account ]] && \
     sed -i "s/<ACCOUNT>/$account/" $tgt_script || \
@@ -95,7 +117,7 @@ sed -i "s/<JOBID>/ecm/" $tgt_script
 sed -i "s/<Y1>/$2/" $tgt_script
 sed -i "s|<OUT>|$OUT|" $tgt_script
 
-echo ./EC-mean.sh ${theoptions} $1 $2 $3 $ALT_RUNDIR >> $tgt_script
+echo ../ECmean/EC-mean.sh ${theoptions} $1 $2 $3 >> $tgt_script
 
 ${submit_cmd} $tgt_script
 

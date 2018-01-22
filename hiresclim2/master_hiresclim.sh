@@ -55,7 +55,7 @@ export monthly_leg
 [[ -z $ECE3_POSTPROC_RUNDIR  ]] && echo "User environment not set. See ../README." && exit 1 
 [[ -z $ECE3_POSTPROC_MACHINE ]] && echo "User environment not set. See ../README." && exit 1 
 
-. $ECE3_POSTPROC_TOPDIR/conf/conf_hiresclim_$ECE3_POSTPROC_MACHINE.sh
+. $ECE3_POSTPROC_TOPDIR/conf/$ECE3_POSTPROC_MACHINE/conf_hiresclim_$ECE3_POSTPROC_MACHINE.sh
 
 # build 3D relative humidity; require python with netCDF4 module
 echo "Rebuild 3D relative humidity: ${rh_build:=1}"

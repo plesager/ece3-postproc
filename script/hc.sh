@@ -55,7 +55,9 @@ fi
 [[ -z $ECE3_POSTPROC_MACHINE ]] && echo "User environment not set. See ../README." && exit 1 
 
 # -- get submit command
-. $ECE3_POSTPROC_TOPDIR/conf/conf_hiresclim_${ECE3_POSTPROC_MACHINE}.sh
+CONFDIR=${ECE3_POSTPROC_TOPDIR}/conf/${ECE3_POSTPROC_MACHINE}
+
+. ${CONFDIR}/conf_hiresclim_${ECE3_POSTPROC_MACHINE}.sh
 
 if [[ -n $ALT_RUNDIR ]]
 then
@@ -73,21 +75,21 @@ then
     do 
         echo; echo "-- check $YEAR--"; echo
         cat ${ECE3_POSTPROC_RUNDIR}/$1/post/postcheck_$1_$YEAR.txt || \
-            echo "*EE* check log at $SCRATCH/tmp_ecearth3"
+            echo "*EE* check log at $SCRATCH/tmp_ece3_hiresclim2"
     done
     exit
 fi
 
 
 # -- Scratch dir (location of submit script and its log, and temporary files)
-OUT=$SCRATCH/tmp_ecearth3
+OUT=$SCRATCH/tmp_ece3_hiresclim2
 mkdir -p $OUT/log
 
 # -- Write and submit one script per year
 for YEAR in $(eval echo {$2..$3})
 do 
     tgt_script=$OUT/hc_$1_$YEAR.job
-    sed "s/<EXPID>/$1/" < platform/hc_$ECE3_POSTPROC_MACHINE.tmpl > $tgt_script
+    sed "s/<EXPID>/$1/" < ${CONFDIR}/hc_$ECE3_POSTPROC_MACHINE.tmpl > $tgt_script
 
     [[ -n $account ]] && \
         sed -i "s/<ACCOUNT>/$account/" $tgt_script || \

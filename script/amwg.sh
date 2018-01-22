@@ -58,11 +58,13 @@ fi
 OUT=$SCRATCH/tmp_ecearth3
 mkdir -p $OUT
 
+CONFDIR=${ECE3_POSTPROC_TOPDIR}/conf/${ECE3_POSTPROC_MACHINE}
+
 
 # -- submit script
 tgt_script=$OUT/amwg_$1.job
 
-sed "s/<EXPID>/$1/" < $ECE3_POSTPROC_TOPDIR/script/platform/header_$ECE3_POSTPROC_MACHINE.tmpl > $tgt_script
+sed "s/<EXPID>/$1/" < ${CONFIG}/header_$ECE3_POSTPROC_MACHINE.tmpl > $tgt_script
 [[ -n $account ]] && \
     sed -i "s/<ACCOUNT>/$account/" $tgt_script || \
     sed -i "/<ACCOUNT>/ d" $tgt_script

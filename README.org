@@ -30,9 +30,9 @@ The code has been ported on /cca (ECMWF)/ and /rhino (KNMI)/. See the
    : export ECE3_POSTPROC_MACHINE=<name of your (HPC) machine>
 
    The "_name of your (HPC) machine_" is used to retrieve the machine
-   configuration. Look for: 
-   : ./conf/conf_hiresclim_<name of your (HPC) machine>.sh
-   If it is not present, you need to port the code. See the /Porting/
+   configuration. The list of available platforms is: 
+   : ls ./conf/
+   If yours is not present, you need to port the code. See the /Porting/
    section below.
   
    Optionally, you can also set your HPC account:
@@ -73,6 +73,11 @@ The code has been ported on /cca (ECMWF)/ and /rhino (KNMI)/. See the
       : "./conf/conf_amwg_<your-machine>.sh"     
 
 ** USAGE
+*** To use a job manager or not
+    If you use a job scheduler (SLURM, PBSpro, ...), there is a set of
+    wrappers that let you submit jobs in parallel. If not, you can still run
+    the wrapped scripts. In all cases, the calls are made in the /script/
+    sub-directory. The wrappers calls are described here.
 
 *** First, run HIRESCLIM2 to extract and average variables of interest:
 
@@ -94,7 +99,7 @@ The code has been ported on /cca (ECMWF)/ and /rhino (KNMI)/. See the
     are created with some basic information. By repeating the command with the
     -c option, these files are printed. In case of problem or for more detailed
     information, you can look at the submitted scripts and logs, which are in
-    your $SCRATCH/tmp_ecearth3
+    your $SCRATCH/tmp_ece3_hiresclim2
 
     There are few hardcoded options (if you want daily or 6h output on top of
     the monthly one, or the nemo_extra output). In "./master_hiresclim.sh",
@@ -121,7 +126,7 @@ The code has been ported on /cca (ECMWF)/ and /rhino (KNMI)/. See the
     : ${OUDIR}/gregory_${exp}.txt
 
     The default output directory ${OUTDIR} can be changed in the
-    $ECE3_POSTPROC_TOPDIR/conf/conf_ecmean_${ECE3_POSTPROC_MACHINE}.sh
+    : $ECE3_POSTPROC_TOPDIR/conf/${ECE3_POSTPROC_MACHINE}/conf_ecmean_${ECE3_POSTPROC_MACHINE}.sh
     config file. The /gregory.txt/ has only the three variables needed
     for a Gregory plot.
   
@@ -129,11 +134,7 @@ The code has been ported on /cca (ECMWF)/ and /rhino (KNMI)/. See the
     with -c option. It will print the summary line from /globtable.txt/
     and /gregory.txt/ files, if they exist. For more insight, have a
     look at the submitted scripts and logs, which are in
-    $SCRATCH/tmp_ecearth3
-
-    Note that the computation of the PI fails, the code still goes
-    through. This lets you compute global means, but requires that you
-    check for error in the log file.
+    $SCRATCH/tmp_ece3_ecmean
   
 *** or/and produce the AMWG diagnostics:
     TODO
@@ -143,18 +144,21 @@ The code has been ported on /cca (ECMWF)/ and /rhino (KNMI)/. See the
     : ec:/nm6/EC-EARTH/ECEARTH3.2b/INPUT/ece-post-proc.tar.gz
 
 *** To port to a new machine, you need to:
-    - add platform templates in the script/platform directory (adapt
+    - add platform templates in a conf/<your_platform_name> directory (adapt
       existing ones to your job scheduler)
-      : script/platform/hc_<your-machine>.tmpl
-      : script/platform/header_<your-machine>.tmpl
+      : conf/<your-machine>/platform/hc_<your-machine>.tmpl
+      : conf/<your-machine>/platform/header_<your-machine>.tmpl
       The job scheduler command to submit job is set in the
       configuration scripts. 
     - add a configuration script for each tools:
-      : conf/conf_hiresclim_<your-machine>.sh
-      : conf/conf_timeseries_<your-machine>.sh
-      : conf/conf_ecmean_<your-machine>.sh
-      : conf/conf_amwg_<your-machine>.sh
-      TODO: combine those into one file, since there is a lot of overlap.
+      : conf/<your-machine>/conf_hiresclim_<your-machine>.sh
+      : conf/<your-machine>/conf_timeseries_<your-machine>.sh
+      : conf/<your-machine>/conf_ecmean_<your-machine>.sh
+      : conf/<your-machine>/conf_amwg_<your-machine>.sh
+
+      TODO: combine those into two config files: one USER oriented (i.e
+      anything that changes with the experiment to process), and one for the
+      machine (i.e. setup that should not changed with the experiment/user).
      
 *** Requirements
     - You must install nco, netcdf, python, cdo, and cdftools if missing.
@@ -182,7 +186,8 @@ The code has been ported on /cca (ECMWF)/ and /rhino (KNMI)/. See the
    Modified to work with default ecearth-3 output tree. Removed the
    possibility to run somebody else code (just clone it!) but can still
    processed output from another user (as long as it is readable and
-   follows the default EC-Earth output tree/format). Bug fix in ECmean.
+   follows the default EC-Earth output tree/format).
+
    Improved the performance of HIRECLIM2 with parallelization over the
    years. Can process monthly legged runs now. Catch all errors with
    "set -e" everywhere (except the PI indices). Try to be smarter in
