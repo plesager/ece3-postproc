@@ -26,7 +26,7 @@ primavera=$4
 
 # CLIMDIR defined by calling script
 OBSDIR=$ECE3_POSTPROC_TOPDIR/ECmean/Climate_netcdf
-outfile=$OUTDIR/PIold_RK08_${exp}_${year1}_${year2}.txt
+outfile=${OUTDIR}/${exp}/PIold_RK08_${exp}_${year1}_${year2}.txt
 
 TMPDIR=$(mktemp -d $SCRATCH/tmp_ecearth3.XXXXXX)
 

@@ -1,0 +1,27 @@
+Original from BSC (Martin Ménégoz, Francois Massonnet)
+Adapted for the ECE3-POSTPROC package.
+
+One issue is for users to have the same output structure to be able to
+compare results. The script /compare.sh/ is a wrapper around calls to R
+scripts. 
+
+In BSC, the EC-mean climato for one ensemble (identified with exp) is expected
+in:
+
+ <some dir>/$exp/fc{0..n-1}/....mon_2x2.nc 
+
+(and resulting plots are put in <some dir>) but here we have (see EC-mean.sh):
+
+ ${ECE3_POSTPROC_RUNDIR}/${stem}${k}/post/clim-${year1}-${year2}
+
+
+Fundamentally, this is more than just changing the inputs to the R
+scripts. The R scripts themselves have to be modified. It is however easy to
+convert from one tree to another.
+
+Here the R scripts require the topdir, and assume that data are in: 
+
+${stem}${k}/post/clim-${year1}-${year2}
+
+below it.
+  

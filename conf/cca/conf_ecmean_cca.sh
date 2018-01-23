@@ -13,9 +13,9 @@ submit_cmd="qsub"
 # preferred type of CDO interpolation (curvilinear grids are obliged to use bilinear)
 export remap="remapcon2"
 
-# Where to save the table produced
-export OUTDIR=${HOME}/EC-Earth3/diag/table-twan/${exp}
-mkdir -p $OUTDIR
+# Where to save the table produced. Tables will be in the ${OUTDIR}/${exp} dir
+export OUTDIR=${HOME}/EC-Earth3/diag/table
+#export OUTDIR=${HOME}/ECEARTH/diag/table
 
 # Where to save the climatology (769M AMIP, ??? NEMO). 
 # By default, if this is commented or empty, it is in you rundir next to hiresclim2 monthly means output:

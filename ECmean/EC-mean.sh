@@ -57,6 +57,8 @@ year2=$3
 # load cdo, netcdf and dir for results
 . $ECE3_POSTPROC_TOPDIR/conf/$ECE3_POSTPROC_MACHINE/conf_ecmean_${ECE3_POSTPROC_MACHINE}.sh
 
+TABLEDIR=${OUTDIR}/${exp}
+mkdir -p $TABLEDIR
 
 ############################################################
 # HARDCODED OPTIONS
@@ -117,17 +119,17 @@ printf " ----------------------------------- Yearly Global Mean\n"
 
 if [ $ly -eq 1 ]; then
     echo "loopyear switch on: ${ly}"
-    [[ ! -e $OUTDIR/gregory_${exp}.txt ]] && \
-        echo "                  net TOA, net Sfc, t2m[tas], SST" > $OUTDIR/gregory_${exp}.txt
+    [[ ! -e $TABLEDIR/gregory_${exp}.txt ]] && \
+        echo "                  net TOA, net Sfc, t2m[tas], SST" > $TABLEDIR/gregory_${exp}.txt
     for iy in $( seq $2 1 $3 ) ; do
         cd $PIDIR/scripts/ 
         ./global_mean.sh $exp $iy $iy
-        cd $OUTDIR/..
-        $PIDIR/tab2lin_cs.sh $exp $iy $iy > $OUTDIR/globtable_cs_$exp_$iy-$iy.txt
-        $PIDIR/tab2lin.sh $exp $iy $iy    > $OUTDIR/globtable_$exp_$iy-$iy.txt
-        cat $OUTDIR/globtable_cs_$exp_$iy-$iy.txt >> $OUTDIR/yearly_fldmean_${exp}.txt
-        rm -f $OUTDIR/globtable_cs_$exp_$iy-$iy.txt $OUTDIR/globtable_$exp_$iy-$iy.txt
-        $PIDIR/gregory.sh $exp $iy $iy >> $OUTDIR/gregory_${exp}.txt        
+        cd $TABLEDIR/..
+        $PIDIR/tab2lin_cs.sh $exp $iy $iy > $TABLEDIR/globtable_cs_$exp_$iy-$iy.txt
+        $PIDIR/tab2lin.sh $exp $iy $iy    > $TABLEDIR/globtable_$exp_$iy-$iy.txt
+        cat $TABLEDIR/globtable_cs_$exp_$iy-$iy.txt >> $TABLEDIR/yearly_fldmean_${exp}.txt
+        rm -f $TABLEDIR/globtable_cs_$exp_$iy-$iy.txt $TABLEDIR/globtable_$exp_$iy-$iy.txt
+        $PIDIR/gregory.sh $exp $iy $iy >> $TABLEDIR/gregory_${exp}.txt        
     done
 fi
 
@@ -146,14 +148,14 @@ printf "\n\n----------------------------------- Global Mean\n"
 ./global_mean.sh $exp $year1 $year2
 
 # Rearranging in a single table the PI from the old and the new versions
-cat $OUTDIR/PIold_RK08_${exp}_${year1}_${year2}.txt $OUTDIR/PI2_RK08_${exp}_${year1}_${year2}.txt > $TMPDIR/out.txt
-rm $OUTDIR/PI2_RK08_${exp}_${year1}_${year2}.txt $OUTDIR/PIold_RK08_${exp}_${year1}_${year2}.txt
-mv $TMPDIR/out.txt $OUTDIR/PI2_RK08_${exp}_${year1}_${year2}.txt 
+cat $TABLEDIR/PIold_RK08_${exp}_${year1}_${year2}.txt $TABLEDIR/PI2_RK08_${exp}_${year1}_${year2}.txt > $TMPDIR/out.txt
+rm $TABLEDIR/PI2_RK08_${exp}_${year1}_${year2}.txt $TABLEDIR/PIold_RK08_${exp}_${year1}_${year2}.txt
+mv $TMPDIR/out.txt $TABLEDIR/PI2_RK08_${exp}_${year1}_${year2}.txt 
 #not needed rm -rf $TMPDIR
 #not needed  
 
 # TODO - avoid interceding update of these 3 files
-cd $OUTDIR/..
+cd $TABLEDIR/..
 #touch globtable.txt globtable_cs.txt
 $PIDIR/tab2lin_cs.sh $exp $year1 $year2 >> ./globtable_cs.txt
 $PIDIR/tab2lin.sh $exp $year1 $year2 >> ./globtable.txt
@@ -167,7 +169,7 @@ $PIDIR/gregory.sh $exp $year1 $year2 >> ./gregory.txt
 cd -
 echo "table produced"
 
-cd $OUTDIR/..
+cd $TABLEDIR/..
 \rm -f ecmean_$exp.tar 
 \rm -f ecmean_$exp.tar.gz
 tar cvf ecmean_$exp.tar $exp

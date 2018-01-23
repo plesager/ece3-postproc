@@ -24,10 +24,9 @@ set -e
 # -- default option
 account=$ECE3_POSTPROC_ACCOUNT
 
-while getopts "h?cr:a:py" opt; do
+while getopts "hcr:a:py" opt; do
     case "$opt" in
-        h|\?)
-            usage
+        h)  usage
             exit 0
             ;;
         r)  theoptions="${theoptions} -r $OPTARG"
@@ -41,6 +40,8 @@ while getopts "h?cr:a:py" opt; do
             ;;
         a)  account=$OPTARG
             ;;
+        *)  usage
+            exit 1
     esac
 done
 shift $((OPTIND-1))
@@ -66,7 +67,7 @@ then
 fi
 
 # check we have a 4-letter experiment
-if [[ ! $1 =~ ^[a-Z]{4}$ ]]
+if [[ ! $1 =~ ^[a-Z0-9_]{4}$ ]]
 then
     echo; echo "*EE* argument EXP (=$1) should be a 4-letter string"; echo
     usage

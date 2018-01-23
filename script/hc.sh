@@ -25,9 +25,9 @@ set -e
 account=$ECE3_POSTPROC_ACCOUNT
 
 # -- options
-while getopts "h?cr:a:m" opt; do
+while getopts "hcr:a:m" opt; do
     case "$opt" in
-        h|\?)
+        h)
             usage
             exit 0
             ;;
@@ -40,6 +40,8 @@ while getopts "h?cr:a:m" opt; do
             ;;
         a)  account=$OPTARG
             ;;
+        *)  usage
+            exit 1
     esac
 done
 shift $((OPTIND-1))

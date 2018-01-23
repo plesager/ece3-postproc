@@ -21,6 +21,8 @@ exp=$1
 year1=$2
 year2=$3
 
+TABLEDIR=${OUTDIR}/${exp}
+
 ############################################
 # No need to touch below this line/
 ############################################
@@ -163,9 +165,9 @@ corrected_TOA_SFC=$( echo " " $( echo $net_TOA - $net_surface + $Snow_LH | bc | 
 #Writing variables to file: part on radiation
 varlist="tsr ttr net_TOA ssr str sshf slhf SW_cloud_forcing LW_cloud_forcing net_surface corrected_net_surface TOA_SFC corrected_TOA_SFC Snow_LH Snow_LH_ocean Snow_LH_land net_surface_ocean net_surface_land  ocean_flux" 
 
-echo -e "${exp} ${year1} ${year2}" > ${OUTDIR}/Global_Mean_Table_${exp}_${year1}_$year2.txt
-echo -e "Radiation" >> ${OUTDIR}/Global_Mean_Table_${exp}_${year1}_$year2.txt
-echo -e "Variable \t \t${exp}\t \tECE2 \tTRENBERTH09" >> ${OUTDIR}/Global_Mean_Table_${exp}_${year1}_$year2.txt
+echo -e "${exp} ${year1} ${year2}" > ${TABLEDIR}/Global_Mean_Table_${exp}_${year1}_$year2.txt
+echo -e "Radiation" >> ${TABLEDIR}/Global_Mean_Table_${exp}_${year1}_$year2.txt
+echo -e "Variable \t \t${exp}\t \tECE2 \tTRENBERTH09" >> ${TABLEDIR}/Global_Mean_Table_${exp}_${year1}_$year2.txt
 
 for vv in ${varlist}; do
 
@@ -205,14 +207,14 @@ for vv in ${varlist}; do
     #print only if exists
     if [ -z "$expval"  ] ; then expval="     N/A" ; fi
 
-    echo -e "${varname}\t\t${expval}\t${ecval}\t${trenval}" >> ${OUTDIR}/Global_Mean_Table_${exp}_${year1}_$year2.txt
+    echo -e "${varname}\t\t${expval}\t${ecval}\t${trenval}" >> ${TABLEDIR}/Global_Mean_Table_${exp}_${year1}_$year2.txt
 done 
 
 #Writing variables to file: part on global mean of variables
-echo -e >> ${OUTDIR}/Global_Mean_Table_${exp}_${year1}_$year2.txt
-echo -e >> ${OUTDIR}/Global_Mean_Table_${exp}_${year1}_$year2.txt
-echo -e "Global Mean" >> ${OUTDIR}/Global_Mean_Table_${exp}_${year1}_$year2.txt
-echo -e "Variable   \tunits                  \t${exp}         \tObservations" >> ${OUTDIR}/Global_Mean_Table_${exp}_${year1}_$year2.txt
+echo -e >> ${TABLEDIR}/Global_Mean_Table_${exp}_${year1}_$year2.txt
+echo -e >> ${TABLEDIR}/Global_Mean_Table_${exp}_${year1}_$year2.txt
+echo -e "Global Mean" >> ${TABLEDIR}/Global_Mean_Table_${exp}_${year1}_$year2.txt
+echo -e "Variable   \tunits                  \t${exp}         \tObservations" >> ${TABLEDIR}/Global_Mean_Table_${exp}_${year1}_$year2.txt
 
 varlist2="tas tas_trend tcc lcc mcc hcc totp totpocean totpland e pe ro peland peocean seatrend seatrend2 sowaflup sosstsst sossheig sosaline"
 
@@ -252,7 +254,7 @@ for vv in ${varlist2}; do
     # meaningful print
     if [ -z "$expval"  ] ; then expval="     N/A" ; fi
 
-    echo -e "${varname}\t${units}\t${expval}\t\t${eraval}\t$datas" >> ${OUTDIR}/Global_Mean_Table_${exp}_${year1}_$year2.txt
+    echo -e "${varname}\t${units}\t${expval}\t\t${eraval}\t$datas" >> ${TABLEDIR}/Global_Mean_Table_${exp}_${year1}_$year2.txt
 done
 
 #cleaning and exiting

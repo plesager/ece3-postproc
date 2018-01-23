@@ -1,5 +1,5 @@
 
-* EC-EARTH-3 POST-PROCESSING TOOLS
+* EC-Earth-3 Post-Processing Tools
 
 ECE3-POSTPROC is a suite of post-processing tools for EC-Earth 3. It
 includes HIRESCLIM2, ECMEAN and AMWG. The last two require the output
@@ -112,33 +112,111 @@ The code has been ported on /cca (ECMWF)/ and /rhino (KNMI)/. See the
     The options are the same as for hiresclim2. For details, call
     : ./ecm.sh -h
 
-    Output table with Performance Indices and mean global fluxes are found in:
+    Output tables with Performance Indices and mean global fluxes are found in:
     : ${OUTDIR}/${exp}
     and one line summary is found:
-    : ${OUDIR}/globtable_cs.txt
-    : ${OUDIR}/globtable.txt
-    : ${OUDIR}/gregory.txt
+    : ${OUTDIR}/globtable_cs.txt
+    : ${OUTDIR}/globtable.txt
+    : ${OUTDIR}/gregory.txt
 
-    If the option /-y/ was used, you also have yearly global means available
+    If the option /-y/ was used, you also get yearly global means available
     in:
     : ${OUDIR}/yearly_fldmean_${exp}.txt
     and its subset
     : ${OUDIR}/gregory_${exp}.txt
+    which has only the three variables needed for a Gregory plot.
 
-    The default output directory ${OUTDIR} can be changed in the
+    The default output directory ${OUTDIR} is set in the
     : $ECE3_POSTPROC_TOPDIR/conf/${ECE3_POSTPROC_MACHINE}/conf_ecmean_${ECE3_POSTPROC_MACHINE}.sh
-    config file. The /gregory.txt/ has only the three variables needed
-    for a Gregory plot.
+    config file.
   
-    You can quickly check for success by executing the command again
-    with -c option. It will print the summary line from /globtable.txt/
-    and /gregory.txt/ files, if they exist. For more insight, have a
-    look at the submitted scripts and logs, which are in
-    $SCRATCH/tmp_ece3_ecmean
-  
+    You can quickly check for success by executing the command again with -c
+    option. It will print the summary line from /globtable.txt/ and
+    /gregory.txt/ files, if they exist. For more insight, have a look at the
+    submitted scripts and logs, which are in $SCRATCH/tmp_ece3_ecmean
+
+    EC-Mean creates a climatology from the experiment to derive the
+    performance indices. The climatology is by default in the same directory
+    as the HIRESCLIM2 output:
+    : ${ECE3_POSTPROC_RUNDIR}/EXP/post/clim-${YEAR1}-${YEAR2}
+    and not removed, since it can be use for other purposes (notably the
+    reproducibility test). You can overwrite this default location, but for
+    now script for the reproducibility test expect the default one.
+      
 *** or/and produce the AMWG diagnostics:
     TODO
    
+** REPRODUCIBILITY TEST
+*** Requirements
+    The acceptance/reproducibility test relies on a set of scripts written in
+    R. Few R packages are also needed: /s2dverification, ncdf4,
+    RColorBrewer/. If you do not control you environment and R and/or the
+    packages are missing, it may be easier to work on another machine where
+    you can easy installed the packages for example:
+
+    : # define a personal R library location, and make sure that R is aware of it: 
+    : mkdir /usr/people/sager/Rlib
+    : export R_LIBS=/usr/people/sager/Rlib/
+    :
+    : # in R, install:
+    : install.packages("s2dverification", lib="/usr/people/sager/Rlib/")
+    : install.packages("ncdf4", lib="/usr/people/sager/Rlib/")
+    : install.packages("RColorBrewer", lib="/usr/people/sager/Rlib/")
+*** Experiment design
+    You must run 5 experiments for 20 years with perturbed initial
+    conditions. For AMIP runs, you can create these initial conditions on the
+    fly, by adding a call to the perturbation script in your
+    /classic/ece-*.sh.tmpl/, i.e. by replacing:
+    : ln -s \
+    : ${ini_data_dir}/ifs/${ifs_grid}/${leg_start_date_yyyymmdd}/ICMSHECE3INIT \
+    :                                                     ICMSH${exp_name}INIT
+    with
+    : # apply AMIP perturbation to 3D temperature
+    : ${ECE3_POSTPROC_TOPDIR}/reproducibility/perturb_ifs_ic.py -s t \
+    :     ${ini_data_dir}/ifs/${ifs_grid}/${leg_start_date_yyyymmdd}/ICMSHECE3INIT \
+    :                                                         ICMSH${exp_name}INIT
+
+    For CMIP, you need to have the perturbed ocean restart ready. TO BE CONTINUED.
+    
+    Your experiments name should be made of *3 characters (the stem) followed
+    by a number from 1-to-5*. For example: /cca1, cca2, cca3, cca4, cca5/. The
+    stem uniquely defines your ensemble.
+
+*** Postprocessing steps
+    For each of your 5 experiments, you need to run /hireclim2/ followed by
+    /EC-mean/ to get their resulting climatology and their Reichler-Kim
+    performance indices. For example, assuming your experiment runs from
+    1990-2009:
+    : # Get monthly means
+    : cd ${ECE3_POSTPROC_TOPDIR}/script
+    : for k in {1..5}; do ./hc.sh cca${k} 1990 2009 1990; done
+    :
+    : # Once the /hc.sh/ jobs are finished, get climatology and PI
+    : for k in {1..5}; do ./ecm.sh cca${k} 1990 2009; done
+
+    Then you need to gather the PI results into a format suitable for the R scripts:
+    : cd  ${ECE3_POSTPROC_TOPDIR}/reproducibility/
+    : ./collect_ens.sh [-t] STEM  NB_MEMBER  YEAR1  YEAR2
+    The /-t/ option let you collect both the PI indices and the climatology
+    from each run into a tar file in your $SCRATCH. This is useful for sharing
+    and then being able to compare with another ensemble results.
+ 
+*** Comparing 
+    Once you have two ensembles, you can compare them. Two parameters must be
+    set in the /compare.sh/ script:
+    - CLIMDIR: location of EC-mean climatology sets for all runs
+    - RK: location of R&K performance indices tables for the ensembles
+
+    For run ${nb} of ensemble ${stem}, climatological data are expected in:
+    : $CLIM/${stem}${nb}/post/clim-${year1}-${year2}/
+    For one ensemble, ${stem}, tables are expected in:
+    : ${RK}/${stem}/
+
+    If you use the /-t/ option to collect all these data in a tar file (see
+    previous step), RK and CLIMDIR are both the directory where you unpack the
+    archive.
+
+
 ** PORTING  
 *** Get the data. Available at:
     : ec:/nm6/EC-EARTH/ECEARTH3.2b/INPUT/ece-post-proc.tar.gz
@@ -179,9 +257,11 @@ The code has been ported on /cca (ECMWF)/ and /rhino (KNMI)/. See the
     : <F90-COMPILER> rebuild_nemo.f90  -o ../rebuild_nemo.exe -I<PATH-TO-NETCDF-INSTALLATION>/include -L<PATH-TO-NETCDF-INSTALLATION>/lib -lnetcdf -lnetcdff
 
 ** HISTORY
-   Copied from a suite of post-processing tools from Jost (it/ccjh) on
-   Monday, March 27, 2017. This project is a quick attempt at cleaning
-   up the tools suite and making it easier to port.
+   Copied from a suite of post-processing tools from Jost (it/ccjh) on Monday,
+   March 27, 2017. This project is a quick attempt at cleaning up the tools
+   suite and making it easier to port.  Added and adapted (Jan 2018) the code
+   for the reproducibility test developed by Martin Ménégoz and Francois
+   Massonnet.
   
    Modified to work with default ecearth-3 output tree. Removed the
    possibility to run somebody else code (just clone it!) but can still
@@ -189,6 +269,6 @@ The code has been ported on /cca (ECMWF)/ and /rhino (KNMI)/. See the
    follows the default EC-Earth output tree/format).
 
    Improved the performance of HIRECLIM2 with parallelization over the
-   years. Can process monthly legged runs now. Catch all errors with
-   "set -e" everywhere (except the PI indices). Try to be smarter in
-   dealing with and cleaning temporary dirs, using mktemp.
+   years. Can process monthly legged runs. Catch all errors with "set -e"
+   everywhere. Try to be smart in dealing with and cleaning up temporary dirs,
+   by using mktemp.
