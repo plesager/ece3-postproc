@@ -98,9 +98,10 @@ mkdir -p $TABLEDIR
 if [[ -n $CLIMDIR ]] 
 then
     echo "we may have a problem: not fully implemented"
+    exit 1
 else
-    # Assume default location for 2x2 climatology (See ECmean/EC-mean.sh)
-    CLIMDIR=${ECE3_POSTPROC_RUNDIR}/${root}[1-$nb]/post/clim-${year1}-${year2}
+    # Assume default location for 2x2 climatology (See ECmean/EC-mean.sh), which is:
+    # CLIMDIR=${ECE3_POSTPROC_RUNDIR}/${root}[1-$nb]/post/clim-${year1}-${year2}
     CLIMTOPDIR=${ECE3_POSTPROC_RUNDIR}
 fi
 

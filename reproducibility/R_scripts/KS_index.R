@@ -4,16 +4,17 @@
 args = commandArgs(trailingOnly=TRUE)
 
 # test if there are the correct number of arguments: if not, return an error
-if (length(args)!=6) {
-  stop("You should use 5 arguments: the path where is located the data, exp1, exp2, year1, year2", call.=FALSE)
+if (length(args)!=7) {
+  stop("KS_index.R: You should use 7 arguments: the two paths data, plots dir, exp1, exp2, year1, year2", call.=FALSE)
 }
 
 path=args[1]
 rkdir=args[2]
-exp1=args[3]
-exp2=args[4]
-year1=args[5]
-year2=args[6]
+plotdir=args[3]
+exp1=args[4]
+exp2=args[5]
+year1=args[6]
+year2=args[7]
 
 # Initial plot:
 var_name=c('t2m','msl','qnet','tp','ewss','nsss','SST','SSS','SICE','T','U','V','Q')
@@ -21,7 +22,7 @@ var_name=c('t2m','msl','qnet','tp','ewss','nsss','SST','SSS','SICE','T','U','V',
 nb_var=length(var_name)
 ylimites=c(0.8,1.2)
 
-postscript(paste(path,'reichler_kim_scores_stat_',exp1,'_',exp2,'.eps',sep=''), width = 550, height = 300)
+postscript(paste(plotdir,'/reichler_kim_scores_stat_',exp1,'_',exp2,'.eps',sep=''), width = 550, height = 300)
 plot(NULL,main='Reichler-Kim normalized index\n Symbols appear in red when ensemble distribution statistically differ according to a KS test, otherwise in blue',xaxt = "n",xlab='var',ylab='Normalized RK index',xlim=c(1,nb_var),ylim=ylimites)
 axis(1,at=1:nb_var,labels=var_name)
 abline(v=seq(0.5,nb_var-0.5,1),lty=3)
@@ -33,7 +34,7 @@ shift=0.2
 for (ji in 1:nb_var) {
 
 var=var_name[ji]
-print(paste("working for",var))
+print(paste("KS: working for",var))
 
 file_exp1=paste(rkdir,'/',exp1,'/',exp1,'_',year1,'_',year2,'_',var,'.txt',sep='')
 index_exp1 <- unlist(read.table(file_exp1),use.names=FALSE)

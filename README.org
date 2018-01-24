@@ -3,8 +3,8 @@
 
 ECE3-POSTPROC is a suite of post-processing tools for EC-Earth 3. It
 includes HIRESCLIM2, ECMEAN and AMWG. The last two require the output
-from the first one. Other tools are available but have not been clean
-up or tested.
+from the first one. A REPRODUCIBILITY TEST is also provided. Other
+tools are available but have not been clean up or tested.
 
 The code has been ported on /cca (ECMWF)/ and /rhino (KNMI)/. See the
 /Porting/ instructions below to include other machines.
@@ -77,7 +77,7 @@ The code has been ported on /cca (ECMWF)/ and /rhino (KNMI)/. See the
     If you use a job scheduler (SLURM, PBSpro, ...), there is a set of
     wrappers that let you submit jobs in parallel. If not, you can still run
     the wrapped scripts. In all cases, the calls are made in the /script/
-    sub-directory. The wrappers calls are described here.
+    sub-directory of the package. The wrappers calls are described here.
 
 *** First, run HIRESCLIM2 to extract and average variables of interest:
 
@@ -147,21 +147,30 @@ The code has been ported on /cca (ECMWF)/ and /rhino (KNMI)/. See the
     TODO
    
 ** REPRODUCIBILITY TEST
+*** Overview
+    The acceptance/reproducibility test consists in 4 steps:
+    - run an ensemble of 5 members
+    - running EC-mean to get the climatology and the Reichler & Kim
+      (R&K) performance indices of each run
+    - cast the R&K indices into a format suitable for the next step
+    - repeat for another ensemble and compare 
+      
 *** Requirements
-    The acceptance/reproducibility test relies on a set of scripts written in
-    R. Few R packages are also needed: /s2dverification, ncdf4,
-    RColorBrewer/. If you do not control you environment and R and/or the
-    packages are missing, it may be easier to work on another machine where
-    you can easy installed the packages for example:
-
-    : # define a personal R library location, and make sure that R is aware of it: 
+    The acceptance/reproducibility test relies on a set of scripts
+    written in R. Few R packages are needed: /s2dverification, ncdf4,
+    RColorBrewer/. If you do not control your environment and R and/or
+    the packages are missing, it may be easier to work on another
+    machine where you can easy installed the packages for example:
+    : # define a personal R library location,
     : mkdir /usr/people/sager/Rlib
+    : # and make sure that R is aware of it (put that one in your ~/.bashrc): 
     : export R_LIBS=/usr/people/sager/Rlib/
-    :
+    : 
     : # in R, install:
     : install.packages("s2dverification", lib="/usr/people/sager/Rlib/")
     : install.packages("ncdf4", lib="/usr/people/sager/Rlib/")
     : install.packages("RColorBrewer", lib="/usr/people/sager/Rlib/")
+
 *** Experiment design
     You must run 5 experiments for 20 years with perturbed initial
     conditions. For AMIP runs, you can create these initial conditions on the
@@ -180,7 +189,10 @@ The code has been ported on /cca (ECMWF)/ and /rhino (KNMI)/. See the
     
     Your experiments name should be made of *3 characters (the stem) followed
     by a number from 1-to-5*. For example: /cca1, cca2, cca3, cca4, cca5/. The
-    stem uniquely defines your ensemble.
+    stem uniquely defines your ensemble. If you do not follow this
+    format, collecting the R&K indices in a format suitable for the
+    comparison scripts will be slightly more complicated but still
+    feasible (see below).
 
 *** Postprocessing steps
     For each of your 5 experiments, you need to run /hireclim2/ followed by
@@ -190,7 +202,7 @@ The code has been ported on /cca (ECMWF)/ and /rhino (KNMI)/. See the
     : # Get monthly means
     : cd ${ECE3_POSTPROC_TOPDIR}/script
     : for k in {1..5}; do ./hc.sh cca${k} 1990 2009 1990; done
-    :
+    : 
     : # Once the /hc.sh/ jobs are finished, get climatology and PI
     : for k in {1..5}; do ./ecm.sh cca${k} 1990 2009; done
 
@@ -198,24 +210,51 @@ The code has been ported on /cca (ECMWF)/ and /rhino (KNMI)/. See the
     : cd  ${ECE3_POSTPROC_TOPDIR}/reproducibility/
     : ./collect_ens.sh [-t] STEM  NB_MEMBER  YEAR1  YEAR2
     The /-t/ option let you collect both the PI indices and the climatology
-    from each run into a tar file in your $SCRATCH. This is useful for sharing
-    and then being able to compare with another ensemble results.
- 
-*** Comparing 
-    Once you have two ensembles, you can compare them. Two parameters must be
-    set in the /compare.sh/ script:
-    - CLIMDIR: location of EC-mean climatology sets for all runs
-    - RK: location of R&K performance indices tables for the ensembles
+    from each run into a tar file in your $SCRATCH. This is *useful
+    for sharing and then being able to compare with other ensemble
+    results*. 
 
-    For run ${nb} of ensemble ${stem}, climatological data are expected in:
-    : $CLIM/${stem}${nb}/post/clim-${year1}-${year2}/
-    For one ensemble, ${stem}, tables are expected in:
-    : ${RK}/${stem}/
+    If your run names and/or EC-mean output do not follow the default
+    settings, you can still collect the data without too much work.
+    Indeed the /collect_ens.sh/ is essentially one line of code that is easy
+    to hack and run at the command line or an ad hoc script:
+
+    #+BEGIN_SRC sh
+    var2d="t2m msl qnet tp ewss nsss SST SSS SICE T U V Q"
+
+    for var in ${var2d}
+    do
+      for rname in your-list-of-run-names
+      do
+          cat ${path-to-rk-tables}/PI2_RK08_${rname}_${year1}_${year2}.txt | grep "^${var} " | \
+              tail -1  | \
+              awk {'print $2'} >> ${EnsembleName}_${year1}_${year2}_${var}.txt
+      done
+    done
+    #+END_SRC
+     
+*** Comparing 
+    Once you have two ensembles processed, you can compare them. Both
+    ensembles output collected in the previous step should be gathered
+    in a DATADIR, where:
+    
+    #+BEGIN_SRC sh
+    # For run ${nb} of ensemble ${stem}, climatological data are expected in:
+    $DATADIR/${stem}${nb}/post/clim-${year1}-${year2}/
+    # For one ensemble, ${stem}, tables are expected in:
+    $DATADIR/${stem}/
+    #+END_SRC
 
     If you use the /-t/ option to collect all these data in a tar file (see
-    previous step), RK and CLIMDIR are both the directory where you unpack the
-    archive.
+    previous step), DATADIR is just the directory where you unpack the
+    archive. If not, it should not be difficult to re-organize your
+    output with few /mkdir/ and /mv/ calls.
 
+    With the data in place, the statistics package can be run:
+    : ./compare.sh -d $DATADIR stem1 stem2 start_year end_year nb_member
+    A PDF file with all generated plots is created in DATADIR/plots.
+    That default location can be overwritten at the command line with
+    the -p option.
 
 ** PORTING  
 *** Get the data. Available at:

@@ -11,20 +11,26 @@ library(RColorBrewer)
 args = commandArgs(trailingOnly=TRUE)
 
 ## test if there are the correct number of arguments: if not, return an error
-if (length(args)!=6) {
-    stop("You should use 6 arguments: the path where is located the data, exp1, exp2, year1, year2 and the number of members", call.=FALSE)
+if (length(args) < 7) {
+    stop("map_diff_experiments.R: You should use 7 arguments: data location, plot location, exp1, exp2, year1, year2, the number of members, (option) skip ice flag", call.=FALSE)
 }
 
 path=args[1]
-exp1=args[2]
-exp2=args[3]
-year1=args[4]
-year2=args[5]
-nmemb=args[6]
+plotdir=args[2]
+exp1=args[3]
+exp2=args[4]
+year1=args[5]
+year2=args[6]
+nmemb=args[7]
 
 var_name=c('t2m','msl','qnet','tp','ewss','nsss','SICE')
 var_name2=c('tas','msl','str','totp','ewss','nsss','ci')
 nb_var=length(var_name)
+
+if (length(args)==8){
+    nb_var=length(var_name)-1
+}
+
 
 for (ji in 1:nb_var) {
 
@@ -51,8 +57,8 @@ for (ji in 1:nb_var) {
             }
             
             writeLines(paste("       reading experiment ",exp_name[jexp]," and member ",jmemb,sep=""))
-            writeLines(paste("       number of longitudes=",length(lon),sep=""))
-            writeLines(paste("       number of latitudes=",length(lat),sep=""))
+            ##DBG writeLines(paste("       number of longitudes=",length(lon),sep=""))
+            ##DBG writeLines(paste("       number of latitudes=",length(lat),sep=""))
 
             if (dim(lon)==dim(data)[3] && dim(lat)==dim(data)[4]) {
                 writeLines("       dimensions OK")
@@ -68,7 +74,7 @@ for (ji in 1:nb_var) {
         }
     }
 
-    writeLines(paste("    computing means for",var,'...\n'))
+    writeLines(paste("    computing stats for",var,'...'))
 
     ## Mean and differences:
     mean_data <- Mean1Dim(data,posdim=5)
@@ -101,7 +107,7 @@ for (ji in 1:nb_var) {
     brks_max=max(abs(diff_exp1_exp2))
     brks_def=seq(-brks_max,brks_max,brks_max/5.)
     jBrewColors <- brewer.pal(n=length(brks_def)-1,name='RdBu')
-    postscript(paste(path,'/diff_',exp1,'_',exp2,'_',var,'.eps',sep=""))
+    postscript(paste(plotdir,'/diff_',exp1,'_',exp2,'_',var,'.eps',sep=""))
 
     PlotEquiMap(diff_exp1_exp2,lon,lat,toptitle=paste(var," difference between ",nmemb,"-member experiments ",exp1," and ",exp2,". Black doted regions indicate where the difference \n is significant according to a Kolmogorov-Smirnov test (",percent,"% of grid points show a significant difference)",sep=""),
                 sizetit = 0.5, units = "",
@@ -116,7 +122,7 @@ for (ji in 1:nb_var) {
 
     brks_def=c(0,0.0001,0.001,0.01,0.05,0.1,0.5,1)
     jBrewColors <- brewer.pal(n=length(brks_def)-1,name='RdBu')
-    postscript(paste(path,'/p_value_diff_',exp1,'_',exp2,'_',var,'.eps',sep=""))
+    postscript(paste(plotdir,'/p_value_diff_',exp1,'_',exp2,'_',var,'.eps',sep=""))
 
     PlotEquiMap(p_value,lon,lat,toptitle=paste(var," p_value when comparing the difference between ",nmemb,"-member experiments ",exp1," and ",exp2," according to a Kolmogorov-Smirnov test",sep=""),
                 sizetit = 0.5, units = "",
