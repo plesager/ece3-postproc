@@ -22,7 +22,7 @@ then
 fi
 
 # temp working dir, within $TMPDIR so it is automatically removed or use XXXX template if debugging
-WRKDIR=$(mktemp -d $SCRATCH/tmp_ecearth3/post_hireclim2_XXXXXX) 
+WRKDIR=$(mktemp -d $SCRATCH/tmp_ece3_hiresclim2/post_hireclim2_XXXXXX) 
 cd $WRKDIR
 
 #where to get the files
@@ -173,7 +173,7 @@ $cdo showdate ${froot}_icemod.nc | tr '[:blank:]' '\n' | \
 #    remove piping and do it in two steps. Used to be:
 #     $cdozip splitvar -selvar,sosstsst,sosaline,sossheig,sowaflup ${froot}_grid_T.nc ${out}_
 #    Now:
-tempf=$(mktemp $SCRATCH/tmp_ecearth3/post_hireclim2_nemo_XXXXXX)
+tempf=$(mktemp $SCRATCH/tmp_ece3_hiresclim2/post_hireclim2_nemo_XXXXXX)
 $cdo selvar,sosstsst,sosaline,sossheig ${froot}_grid_T.nc $tempf
 $cdozip selvar,sowaflup ${froot}_${SBC}.nc ${out}_sowaflup
 $cdozip splitvar $tempf ${out}_
@@ -207,7 +207,7 @@ done
 
 # ** ice diagnostics
 
-tempf=$(mktemp $SCRATCH/tmp_ecearth3/post_hireclim2_ice_XXXXXX)
+tempf=$(mktemp $SCRATCH/tmp_ece3_hiresclim2/post_hireclim2_ice_XXXXXX)
 $cdo selvar,iiceconc,iicethic ${froot}_icemod.nc $tempf
 $cdozip splitvar $tempf ${out}_
 rm -f $tempf

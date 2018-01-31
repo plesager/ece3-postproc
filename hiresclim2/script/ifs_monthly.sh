@@ -14,13 +14,13 @@ yref=$3
 #usage
 if [ $# -lt 3 ]
 then
-  echo "Usage:   ./ifs_monthly.sh EXP YEAR"
-  echo "Example: ./ifs_monthly.sh io01 1990"
+  echo "Usage:   ./ifs_monthly.sh EXP YEAR YREF"
+  echo "Example: ./ifs_monthly.sh io01 1990 1990"
   exit 1
 fi
 
 # temp working dir, within $TMPDIR so it is automatically removed
-WRKDIR=$(mktemp -d $SCRATCH/tmp_ecearth3/post_hireclim2_XXXXXX) # use template if debugging
+WRKDIR=$(mktemp -d $SCRATCH/tmp_ece3_hiresclim2/post_hireclim2_XXXXXX) # use template if debugging
 cd $WRKDIR
 
 # where to get the files, assuming yearly legs
