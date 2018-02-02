@@ -1,27 +1,38 @@
-Original from BSC (Martin Ménégoz, Francois Massonnet)
-Adapted for the ECE3-POSTPROC package.
+Original from BSC (Martin Ménégoz, Francois Massonnet). Adapted for the
+ECE3-POSTPROC package. See below for some relevant the difference between BSC
+original version and current version.
 
-One issue is for users to have the same output structure to be able to
-compare results. The script /compare.sh/ is a wrapper around calls to R
-scripts. 
+See the ../README.org (in above folder) for instructions on how to conduct a
+reproducibility test.
 
-In BSC, the EC-mean climato for one ensemble (identified with exp) is expected
-in:
+###########
+# Content #
+###########
+perturb_ifs_ic.py          : script to create perturbation of the atmosphere 3D temperature in IFS Initial Conditions.
+new_initial_conditions.py  : [not used] alternate script to perturb 3D temperature (uses pygrib instead of grib_script
+gener_perturb_restart.bash : script to create perturbation of NEMO restart. Write and call a R script.
+collect_ens.sh             : parse the performance indices table of EC-Mean and collect the climatology computed by EC-mean
+compare.sh                 : wrapper around R scripts that effectively compare two ensembles. Produces a PDF summary.
+R_scripts                  : dir with the R scripts
+README                     : this file
+
+
+###################################################
+# Difference between original and current version #
+###################################################
+
+The comparison software requires the EC-mean output data in a specific
+directory structure. 
+
+In BSC, the EC-mean climato for one ensemble (identified with 'exp') of n
+experiments is expected in:
 
  <some dir>/$exp/fc{0..n-1}/....mon_2x2.nc 
 
 (and resulting plots are put in <some dir>) but here we have (see EC-mean.sh):
 
- ${ECE3_POSTPROC_RUNDIR}/${stem}${k}/post/clim-${year1}-${year2}
+ <some dir>/${stem}{1..n}/post/clim-${year1}-${year2}/....mon_2x2.nc
 
-
-Fundamentally, this is more than just changing the inputs to the R
-scripts. The R scripts themselves have to be modified. It is however easy to
-convert from one tree to another.
-
-Here the R scripts require the topdir, and assume that data are in: 
-
-${stem}${k}/post/clim-${year1}-${year2}
-
-below it.
-  
+The R scripts account for these paths and differ between the two versions. 
+It is easy to convert from one directory structure to another one, and user
+should not have a problem comparing ensembles when sharing their results.

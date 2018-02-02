@@ -36,11 +36,11 @@ usage() {
 
 while getopts :d:p:s OPT; do
     case $OPT in
-	d) CLIMDIR=$OPTARG ;;
+        d) CLIMDIR=$OPTARG ;;
         p) PLOTDIR=$OPTARG ;;
         s) skipice=1 ;;
-	*) usage
-	   exit 2
+        *) usage
+            exit 2
     esac
 done
 shift $(( OPTIND - 1 ))
