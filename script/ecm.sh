@@ -19,22 +19,25 @@ usage()
    echo "   -p          : account for (P)rimavera complicated output"
 }
 
-set -e
+set -ue
 
 # -- default option
 account=$ECE3_POSTPROC_ACCOUNT
+ALT_RUNDIR=""
+checkit=0
+options=""
 
 while getopts "hcr:a:py" opt; do
     case "$opt" in
         h)  usage
             exit 0
             ;;
-        r)  theoptions="${theoptions} -r $OPTARG"
+        r)  options="${options} -r $OPTARG"
             ALT_RUNDIR=$OPTARG
             ;;
-        p)  theoptions="${theoptions} -p"
+        p)  options="${options} -p"
             ;;
-        y)  theoptions="${theoptions} -y"
+        y)  options="${options} -y"
             ;;
         c)  checkit=1
             ;;
@@ -118,7 +121,7 @@ sed -i "s/<JOBID>/ecm/" $tgt_script
 sed -i "s/<Y1>/$2/" $tgt_script
 sed -i "s|<OUT>|$OUT|" $tgt_script
 
-echo ../ECmean/EC-mean.sh ${theoptions} $1 $2 $3 >> $tgt_script
+echo ../ECmean/EC-mean.sh ${options} $1 $2 $3 >> $tgt_script
 
 ${submit_cmd} $tgt_script
 

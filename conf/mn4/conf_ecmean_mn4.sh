@@ -1,21 +1,21 @@
 #!/bin/bash
 
 # Required programs, including compression options
-module -s load cdo
+module load netcdf hdf5 CDO
 
 export cdo=cdo
 export cdozip="$cdo -f nc4c -z zip"
 export cdonc="$cdo -f nc"
 
 # job scheduler submit command
-submit_cmd="qsub"
+submit_cmd="sbatch"
 
 # preferred type of CDO interpolation (curvilinear grids are obliged to use bilinear)
 export remap="remapcon2"
+#export remap="remapbil"
 
 # Where to save the table produced. Tables will be in the ${OUTDIR}/${exp} dir
-export OUTDIR=${HOME}/EC-Earth3/diag/table
-#export OUTDIR=${HOME}/ECEARTH/diag/table
+export OUTDIR=${HOME}/ecearth3/diag/table
 
 # Where to save the climatology (769M AMIP, ??? NEMO). 
 # By default, if this is commented or empty, it is in you rundir next to hiresclim2 monthly means output:

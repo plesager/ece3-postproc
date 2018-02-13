@@ -44,8 +44,8 @@ mifse.chck4f(cf_Q)
 
 f_Q_in = Dataset(cf_Q)
 
-vlev     = f_Q_in.variables['lev'][:]
-cunt_lev = f_Q_in.variables['lev'].units
+vlev     = f_Q_in.variables['plev'][:]
+cunt_lev = f_Q_in.variables['plev'].units
 
 nk = len(vlev)
 
@@ -149,15 +149,15 @@ f_out = Dataset(cf_R, 'w', format='NETCDF3_CLASSIC')
 # Dimensions:
 f_out.createDimension('lon', ni)
 f_out.createDimension('lat', nj)
-f_out.createDimension('lev', nk)
+f_out.createDimension('plev', nk)
 f_out.createDimension('time', None)
 
 # Variables
 id_lon = f_out.createVariable('lon' ,'f4',('lon', ))
 id_lat = f_out.createVariable('lat' ,'f4',('lat', ))
-id_lev = f_out.createVariable('lev' ,'f4',('lev', ))
+id_lev = f_out.createVariable('plev' ,'f4',('plev', ))
 id_tim = f_out.createVariable('time','f4',('time',))
-id_R   = f_out.createVariable(cv_R  ,'f4',('time','lev','lat','lon',))
+id_R   = f_out.createVariable(cv_R  ,'f4',('time','plev','lat','lon',))
 
 # Attributes
 

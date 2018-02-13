@@ -133,7 +133,7 @@ then
     rm icmgg2d_${year}??.grb icmgg3d_${year}??.grb icmgg2df_${year}?? icmgg3df_${year}??
 
     $cdozip -r -R -t $ecearth_table splitvar \
-        -selvar,uas,vas,tas,ci,sstk,sd,tds,tcc,lcc,mcc,hcc,tclw,tciw,tcwv,msl,fal,uas,vas \
+        -selvar,uas,vas,tas,ci,sstk,sd,tds,tcc,lcc,mcc,hcc,tclw,tciw,tcwv,msl,fal \
         icmgg_${year}.grb ${out}_
 
     $cdozip -r -R -t $ecearth_table selvar,q  icmgg3d_${year}.grb ${out}_q.nc
@@ -157,7 +157,7 @@ else
     rm -f icmgg_${year}??.grb
 
     $cdozip -r -R -t $ecearth_table splitvar \
-        -selvar,uas,vas,tas,ci,sstk,sd,tds,tcc,lcc,mcc,hcc,tclw,tciw,tcwv,msl,q,fal,uas,vas \
+        -selvar,uas,vas,tas,ci,sstk,sd,tds,tcc,lcc,mcc,hcc,tclw,tciw,tcwv,msl,q,fal \
         icmgg_${year}.grb ${out}_
 
     #  post-processing timestep in seconds from first month

@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+
+#SBATCH -J <JOBID>_<EXPID>_<Y1>
+#SBATCH --qos debug
+#SBATCH -A <ACCOUNT>
+#SBATCH -n 1
+#SBATCH -t 02:00:00
+#SBATCH -o <OUT>/log/<JOBID>_<EXPID>_<Y1>.out
+
+mkdir -p <OUT>/log || true
+
+set -e
+
+cd $ECE3_POSTPROC_TOPDIR/script
+

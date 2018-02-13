@@ -1,6 +1,6 @@
 #/bin/bash
 
-set -e
+set -xuve
 
 if [ "$#" -lt 1 ]; then
     echo "Usage: timeseries.sh EXP [ALT_RUNDIR]"
@@ -10,9 +10,10 @@ if [ "$#" -lt 1 ]; then
 fi
 
 exp=$1
+ALT_RUNDIR=""
 
 # load cdo, netcdf and dir for results and mesh files
-. $ECE3_POSTPROC_TOPDIR/conf/conf_timeseries_$ECE3_POSTPROC_MACHINE.sh
+. $ECE3_POSTPROC_TOPDIR/conf/$ECE3_POSTPROC_MACHINE/conf_timeseries_$ECE3_POSTPROC_MACHINE.sh
 
 if [ "$#" -eq 2 ]; then           # optional alternative top rundir 
     ALT_RUNDIR=$2
@@ -35,8 +36,10 @@ fi
 
 
 # test if it was a coupled run, and find resolution
-
-check=$( ls $DATADIR/Post_*/*sosaline* )
+# TODO use same checks in hiresclim2, ECMean and timeseries
+check=$( ls $DATADIR/Post_*/*sosaline* 2>/dev/null || true )
+NEMOCONFIG=""
+do_ocean=0
 if [[ -n $check ]]
 then 
     do_ocean=1

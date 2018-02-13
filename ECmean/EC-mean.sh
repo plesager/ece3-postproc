@@ -8,7 +8,7 @@
 # Paolo Davini (ISAC-CNR) - <p.davini@isac.cnr.it> - December 2014
 #   22 May 2017 - Ph. Le Sager
 
-set -e
+set -ue
 
 usage()
 {
@@ -24,6 +24,7 @@ usage()
 
 lp=0
 ly=0
+ALT_RUNDIR=""
 
 while getopts "h?py" opt; do
     case "$opt" in
@@ -69,7 +70,7 @@ mkdir -p $TABLEDIR
 # TEMP dirs
 ############################################################
 # Where to store the 2x2 climatologies
-[[ -z $CLIMDIR ]] && CLIMDIR=${ECE3_POSTPROC_RUNDIR}/${exp}/post/clim-${year1}-${year2}
+[[ -z "${CLIMDIR:-}" ]] && CLIMDIR=${ECE3_POSTPROC_RUNDIR}/${exp}/post/clim-${year1}-${year2}
 export CLIMDIR
 mkdir -p $CLIMDIR
 
@@ -99,7 +100,7 @@ export do_ocean
 # -- mask files
 
 # first, find IFS horizontal resolution from one of the processed output
-fname=$(ls -1 $DATADIR/Post_$year1/*t.nc | tail -1)
+fname=$(ls -1 $DATADIR/Post_$year1/*tas.nc | tail -1)
 res=$(cdo griddes $fname | sed -rn "s/ysize.*= ([0-9]+)/\1/p")
 (( res-=1 ))
 
@@ -138,14 +139,15 @@ cd $PIDIR/scripts/
 printf "\n\n ----------------------------------- Post 2x2\n"
 ./post2x2.sh $exp $year1 $year2
 set -x
+
+if  (( do_3d_vars ))
+then
+
 printf "\n\n ----------------------------------- old PI2\n"
 ./oldPI2.sh $exp $year1 $year2 $lp
 
 printf "\n\n----------------------------------- PI3\n"
 ./PI3.sh $exp $year1 $year2 $lp
-
-printf "\n\n----------------------------------- Global Mean\n"
-./global_mean.sh $exp $year1 $year2
 
 # Rearranging in a single table the PI from the old and the new versions
 cat $TABLEDIR/PIold_RK08_${exp}_${year1}_${year2}.txt $TABLEDIR/PI2_RK08_${exp}_${year1}_${year2}.txt > $TMPDIR/out.txt
@@ -154,8 +156,21 @@ mv $TMPDIR/out.txt $TABLEDIR/PI2_RK08_${exp}_${year1}_${year2}.txt
 #not needed rm -rf $TMPDIR
 #not needed  
 
+fi #do_3d_vars
+
+printf "\n\n----------------------------------- Global Mean\n"
+./global_mean.sh $exp $year1 $year2
+
 # TODO - avoid interceding update of these 3 files
 cd $TABLEDIR/..
+
+# produce tables
+# do we need to produce globtable_cs.txt file since we can import globtable.txt into excel anyway?
+[[ ! -e globtable.txt ]] && \
+    echo "                | TOAnet SW | TOAnet LW | Net TOA | Sfc Net SW | Sfc Net LW | SH Fl. | LH Fl. | SWCF | LWCF | NetSfc* | TOA-SFC | t2m | TCC | LCC | MCC | HCC | TP | P-E |" >> globtable.txt
+[[ ! -e globtable_cs.txt ]] && \
+    echo '"               " "TOAnet SW" "TOAnet LW" "Net TOA" "Sfc Net SW" "Sfc Net LW" "SH Fl." "LH Fl." "SWCF" "LWCF" "NetSfc*" "TOA-SFC" "t2m" "TCC" "LCC" "MCC" "HCC" "TP" "P-E"' >> globtable_cs.txt
+cat globtable.txt globtable_cs.txt
 #touch globtable.txt globtable_cs.txt
 $PIDIR/tab2lin_cs.sh $exp $year1 $year2 >> ./globtable_cs.txt
 $PIDIR/tab2lin.sh $exp $year1 $year2 >> ./globtable.txt

@@ -1,0 +1,23 @@
+#! /usr/bin/env bash
+
+
+#SBATCH -J hc_<EXPID>_<YEAR>
+#SBATCH --qos debug
+#SBATCH -A <ACCOUNT>
+#SBATCH -n <NPROCS>
+#SBATCH -t 02:00:00
+#SBATCH -o <OUT>/log/hiresclim_<EXPID>_<YEAR>.out
+
+#set -e
+set -xuve
+
+mkdir -p <OUT>/log || true
+
+cd $ECE3_POSTPROC_TOPDIR/script
+
+NPROCS=<NPROCS>
+export NEMO_NPROCS=$NPROCS
+export IFS_NPROCS=$NPROCS
+export OMP_NUM_THREADS=$NPROCS
+
+mpiexec -n 1 ../hiresclim2/master_hiresclim.sh <OPTIONS> <EXPID> <YEAR> <YREF>
