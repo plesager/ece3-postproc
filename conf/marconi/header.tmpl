@@ -10,8 +10,6 @@
 #SBATCH --partition=bdw_usr_prod
 
 set -ex
-###cd $PBS_O_WORKDIR
-###PBS -l select=1:ncpus=12:mpiprocs=1:mem=24GB
 
 # Where to find the user configuration file
 . $HOME/ecearth3/post/conf/conf_users.sh
