@@ -1,0 +1,27 @@
+#!/bin/bash
+#SBATCH --job-name <JOBID>_<EXPID>
+#SBATCH --time=<TOTTIME>
+#SBATCH --account=<ACCOUNT>
+#SBATCH -N 1
+#SBATCH -n<THREADS>
+#SBATCH --mem=<MEM>
+#SBATCH --output /marconi_scratch/userexternal/<USERme>/log/<JOBID>_<EXPID>.out
+#SBATCH --error /marconi_scratch/userexternal/<USERme>/log/<JOBID>_<EXPID>.err
+#SBATCH --partition=bdw_usr_prod
+
+set -ex
+###cd $PBS_O_WORKDIR
+###PBS -l select=1:ncpus=12:mpiprocs=1:mem=24GB
+
+# Where to find the user configuration file
+. $HOME/ecearth3/post/conf/conf_users.sh
+
+# Specific modules needed
+module unload cdo hdf5 netcdf python numpy
+module load  hdf5/1.8.17--intel--pe-xe-2017--binary netcdf/4.4.1--intel--pe-xe-2017--binary cdo  python/2.7.12 numpy/1.11.2--python--2.7.12 nco/4.6.7 
+
+# For hiresclim
+NEMO_NPROCS=<NEMO_PROCS>
+IFS_NPROCS=<IFS_PROCS>
+
+cd $SCRIPTDIR
