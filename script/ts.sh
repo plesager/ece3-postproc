@@ -15,10 +15,12 @@ usage()
     echo "                   that is RUNDIR/EXP/post must exists and be readable"
 }
 
-set -e
+set -ue
 
 # -- default option
 account=$ECE3_POSTPROC_ACCOUNT
+ALT_RUNDIR=""
+checkit=0
 
 while getopts "h?cr:a:" opt; do
     case "$opt" in
@@ -36,15 +38,19 @@ while getopts "h?cr:a:" opt; do
 done
 shift $((OPTIND-1))
 
-OUT=$SCRATCH/tmp_ecearth3_ts
-mkdir -p $OUT
-
-CONFDIR=${ECE3_POSTPROC_TOPDIR}/conf/${ECE3_POSTPROC_MACHINE}
-
 if [ "$#" -ne 1 ]; then
     usage 
     exit 0
 fi
+
+# -- Scratch dir (location of submit script and its log, and temporary files)
+OUT=$SCRATCH/tmp_ecearth3
+mkdir -p $OUT/log
+
+CONFDIR=${ECE3_POSTPROC_TOPDIR}/conf/${ECE3_POSTPROC_MACHINE}
+
+# -- get OUTDIR, submit command
+. ${CONFDIR}/conf_ecmean_${ECE3_POSTPROC_MACHINE}.sh
 
 # -- check input dir exist (from EC-mean.sh, repeated here for a "before submission" error catch)
 if [[ -n $ALT_RUNDIR ]]
@@ -61,7 +67,7 @@ fi
 # then
 #     echo "Checking ${HOME}/EC-Earth3/diag/table/globtable.txt..."
 #     grep $1.$2-$3. ${HOME}/EC-Earth3/diag/table/globtable.txt || \
-#             echo "*EE* check log at $SCRATCH/tmp_ecearth3_ts"
+#             echo "*EE* check log at $SCRATCH/tmp_ecearth3"
 #     exit
 # fi
 
@@ -79,9 +85,9 @@ sed -i "s/<JOBID>/ts/" $tgt_script
 sed -i "s/<Y1>//" $tgt_script
 sed -i "s|<OUT>|$OUT|" $tgt_script
 
-echo ./timeseries.sh $1 $ALT_RUNDIR >> $tgt_script
+echo ../timeseries/timeseries.sh $1 $ALT_RUNDIR >> $tgt_script
 
-qsub $tgt_script
-qstat -wu $USER
+${submit_cmd} $tgt_script
+#qstat -wu $USER
 
-echo; echo "*II* Launched timeseries analysis for experiment $1 of user $USERexp"; echo
+#echo; echo "*II* Launched timeseries analysis for experiment $1 of user $USERexp"; echo

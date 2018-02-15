@@ -10,14 +10,14 @@
 
 # Where to store produced time-series (<RUN>, if used, is replaced by the experiment 4-letter name)
 
-export EMOP_CLIM_DIR=${HOME}/EC-Earth3/diag/
+export EMOP_CLIM_DIR=${HOME}/ecearth3/diag/
 mkdir -p $EMOP_CLIM_DIR
 
 export DIR_TIME_SERIES="${EMOP_CLIM_DIR}/timeseries/<RUN>"
 
 
 # where to find mesh and mask files for NEMO. Files are expected in $MESHDIR_TOP/$NEMOCONFIG.
-export MESHDIR_TOP="/perm/ms/nl/nm6/ECE3-DATA/post-proc"
+export MESHDIR_TOP="/gpfs/projects/bsc32/bsc32051/ECE3-DATA/post-proc"
 
 # About web page, on remote server host:
 #     =>  set RHOST="" to disable this function...
@@ -30,7 +30,11 @@ export WWW_DIR_ROOT=""
 ############################
 
 #PLS module switch PrgEnv-cray PrgEnv-intel
-module load nco netcdf python cdo cdftools
+set +xuve
+module load netcdf hdf5 CDO udunits nco python/2.7.13
+module list
+set -xuve
+export CDFTOOLS_DIR=/gpfs/projects/bsc32/opt/cdftools-2.1/intel-13/bin
 
 # support for GRIB_API?
 # Set the directory where the GRIB_API tools are installed
@@ -43,8 +47,8 @@ module load nco netcdf python cdo cdftools
 export CDFTOOLS_BIN="${CDFTOOLS_DIR}/bin"
 
 # The rebuild_nemo (provided with NEMO), that somebody has built (relies on flio_rbld.exe):
-export RBLD_NEMO="${PERM}/r1902-merge-new-components/sources/nemo-3.6/TOOLS/REBUILD_NEMO/rebuild_nemo"
+export RBLD_NEMO="/gpfs/projects/bsc32/repository/apps/rebuild_nemo/rebuild_nemo"
 
 export PYTHON=python
 export cdo=cdo
-export NCAP=ncap2
+export NCAP=ncap

@@ -2,7 +2,7 @@
 
 # Must be called from timeseries.sh, where DATADIR (ie output from hiresclim2) is defined.
 
-set -e
+set -ue
 export HERE=`pwd`
 export PYTHONPATH=${HERE}/scripts/barakuda_modules
 
@@ -41,7 +41,8 @@ while getopts R:y:t:foeh option ; do
     esac
 done
 
-export TMPDIR_ROOT=$(mktemp -d $SCRATCH/tmp_ecearth3/timeseries_${RUN}_XXXXXX)
+mkdir -p $SCRATCH/tmp_ecearth3/tmp
+export TMPDIR_ROOT=$(mktemp -d $SCRATCH/tmp_ecearth3/tmp/ts_${RUN}_XXXXXX)
 export POST_DIR=$DATADIR
 export DIR_TIME_SERIES=`echo ${DIR_TIME_SERIES} | sed -e "s|<RUN>|${RUN}|g"`
 
@@ -221,7 +222,7 @@ if [ ${IPREPHTML} -eq 0 ]; then
 
                 rm -f tmp.nc tmp2.nc
 
-                echo "cdo -R -t -fldmean $DATADIR/Post_????/${RUN}_${jyear}_${cvar}.nc ${cf_out}"
+                echo "cdo -R -t -fldmean $DATADIR/Post_????/${RUN}_${jyear}_${cvar}.nc tmp0.nc"
                 cdo -R -fldmean $DATADIR/Post_????/${RUN}_${jyear}_${cvar}.nc tmp0.nc
                 echo
                 
@@ -230,8 +231,8 @@ if [ ${IPREPHTML} -eq 0 ]; then
                 # Creating time vector if first year:
                 if [ ${jv} -eq 0 ]; then
                     rm -f time_${jyear}.nc
-                    ncap2 -3 -h -O -s "time=(time/24.+15.5)/${nbday}" tmp.nc -o tmp0.nc
-                    ncap2 -3 -h -O -s "time=time-time(0)+${jyear}+15.5/${nbday}" \
+                    $NCAP -3 -h -O -s "time=(time/24.+15.5)/${nbday}" tmp.nc -o tmp0.nc
+                    $NCAP -3 -h -O -s "time=time-time(0)+${jyear}+15.5/${nbday}" \
                         -s "time@units=\"years\"" tmp0.nc -o tmp2.nc
                     ncks -3 -h -O -v time tmp2.nc -o time_${jyear}.nc
                     rm -f tmp0.nc tmp2.nc
@@ -239,7 +240,7 @@ if [ ${IPREPHTML} -eq 0 ]; then
 
                 # Creating correct time array:
                 ncks -3 -A -h -v time time_${jyear}.nc -o tmp.nc
-                ncap2 -3 -h -O -s "time=time+${jyear}" -s "time@units=\"years\"" tmp.nc -o tmp2.nc
+                $NCAP -3 -h -O -s "time=time+${jyear}" -s "time@units=\"years\"" tmp.nc -o tmp2.nc
                 rm -f tmp.nc
 
                 #if [ ! "${cvar}" = "${cvar_nc}" ]; then
@@ -260,7 +261,7 @@ if [ ${IPREPHTML} -eq 0 ]; then
 
             # Correcting water flux units, from kg/m^2/s to mm/day => *24*3600 = *86400
             for cv in "totp" "e"; do
-                ncap2 -3 -h -O -s "${cv}=86400.*${cv}" -s "${cv}@units=\"mm/day\"" ${SUPA_Y} -o ${SUPA_Y}
+                $NCAP -3 -h -O -s "${cv}=86400.*${cv}" -s "${cv}@units=\"mm/day\"" ${SUPA_Y} -o ${SUPA_Y}
             done
 
             # Correcting heat fluxes:
@@ -270,11 +271,11 @@ if [ ${IPREPHTML} -eq 0 ]; then
 
             # Pressure to hPa:
             cv='msl'
-            ncap2 -3 -h -O -s "${cv}=0.01*${cv}" -s "${cv}@units=\"hPa\"" ${SUPA_Y} -o ${SUPA_Y}
+            $NCAP -3 -h -O -s "${cv}=0.01*${cv}" -s "${cv}@units=\"hPa\"" ${SUPA_Y} -o ${SUPA_Y}
 
             # T2m to C:
             cv='tas'
-            ncap2 -3 -h -O -s "${cv}=${cv}-273.15" -s "${cv}@units=\"deg.C\"" ${SUPA_Y} -o ${SUPA_Y}
+            $NCAP -3 -h -O -s "${cv}=${cv}-273.15" -s "${cv}@units=\"deg.C\"" ${SUPA_Y} -o ${SUPA_Y}
 
 
 
@@ -283,30 +284,30 @@ if [ ${IPREPHTML} -eq 0 ]; then
             
             # Snowfall latent heat flux
             cv='sfhf'
-            ncap2 -3 -h -O -s "${cv}=-334000*sf" -s "${cv}@units=\"W/m^2\"" \
+            $NCAP -3 -h -O -s "${cv}=-334000*sf" -s "${cv}@units=\"W/m^2\"" \
                   -s "${cv}@long_name=\"Snowfall latent heat flux\""  ${SUPA_Y} -o ${SUPA_Y}
 
             # P-E
             cv="PminE"
-            ncap2 -3 -h -O -s "${cv}=totp+e" -s "${cv}@units=\"mm/day\""  -s "${cv}@long_name=\"P-E at the surface\"" \
+            $NCAP -3 -h -O -s "${cv}=totp+e" -s "${cv}@units=\"mm/day\""  -s "${cv}@long_name=\"P-E at the surface\"" \
                 ${SUPA_Y} -o tmp.nc
             ncks -3 -h -A -v ${cv}  tmp.nc -o ${SUPA_Y}
             rm -f tmp.nc
             
             cv="NetTOA"
-            ncap2 -3 -h -O -s "${cv}=tsr+ttr" -s "${cv}@units=\"W/m^2\"" -s "${cv}@long_name=\"TOA net heat flux\"" \
+            $NCAP -3 -h -O -s "${cv}=tsr+ttr" -s "${cv}@units=\"W/m^2\"" -s "${cv}@long_name=\"TOA net heat flux\"" \
                 ${SUPA_Y} -o tmp.nc
             ncks -3 -h -A -v ${cv}  tmp.nc -o ${SUPA_Y}
             rm -f tmp.nc
 
             cv="NetSFCs"
-            ncap2 -3 -h -O -s "${cv}=sshf+slhf+ssr+str+sfhf" -s "${cv}@units=\"W/m^2\""  -s "${cv}@long_name=\"Surface net heat flux with snowfall\"" \
+            $NCAP -3 -h -O -s "${cv}=sshf+slhf+ssr+str+sfhf" -s "${cv}@units=\"W/m^2\""  -s "${cv}@long_name=\"Surface net heat flux with snowfall\"" \
                 ${SUPA_Y} -o tmp.nc
             ncks -3 -h -A -v ${cv}  tmp.nc -o ${SUPA_Y}
             rm -f tmp.nc
 
             cv="NetSFC"
-            ncap2 -3 -h -O -s "${cv}=sshf+slhf+ssr+str" -s "${cv}@units=\"W/m^2\""  -s "${cv}@long_name=\"Surface net heat flux\"" \
+            $NCAP -3 -h -O -s "${cv}=sshf+slhf+ssr+str" -s "${cv}@units=\"W/m^2\""  -s "${cv}@long_name=\"Surface net heat flux\"" \
                 ${SUPA_Y} -o tmp.nc
             ncks -3 -h -A -v ${cv}  tmp.nc -o ${SUPA_Y}
             rm -f tmp.nc
@@ -340,7 +341,7 @@ if [ ${IPREPHTML} -eq 0 ]; then
     echo
 
     #Concatenate new and old files... 
-    if [[ ! -z ${BASE_YEAR_INI} ]] ; then
+    if [[ ! -z ${BASE_YEAR_INI:-} ]] ; then
          echo " Concatenate old and new netcdf files... " 
          ncrcat -h ${OLD_SUPA_FILE} ${SUPA_FILE} ${DIAG_D}/${RUN}_${BASE_YEAR_INI}_${YEAR_END}_time-series_atmo.nc
          rm ${OLD_SUPA_FILE} ${SUPA_FILE}
@@ -391,6 +392,3 @@ if [ ${IPREPHTML} -eq 1 ]; then
     echo; echo
 
 fi # [ ${IPREPHTML} -eq 1 ]
-
-
-rm -rf ${TMPD}

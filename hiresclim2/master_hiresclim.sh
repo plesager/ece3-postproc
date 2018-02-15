@@ -12,7 +12,7 @@
 # TODO: make the oft-used harcoded options either automatic if possible or
 # command line option??Ideally user should not have to edit his file.
 
-set -e
+set -ue
 
 usage()
 {
@@ -25,6 +25,7 @@ usage()
 #########################
 
 monthly_leg=0
+ALT_RUNDIR=""
 
 while getopts "h?mr:" opt; do
     case "$opt" in
@@ -65,7 +66,9 @@ echo "Rebuild 3D relative humidity: ${rh_build:=1}"
 # Flags: 0 is false, 1 is true
 # monthly flag for standard hiresclim
 # daily and 6hrs flag for u,v,t,z 3d field + tas,totp extraction
+# TODO add argument to script
 ifs_monthly=1
+ifs_monthly_mma=0
 ifs_daily=0
 ifs_6hrs=0
 
@@ -106,6 +109,7 @@ mkdir -p $OUTDIR0
 # test if it was a coupled run, and find resolution
 nemo=0
 cf=${BASERESULTS}/nemo
+NEMOCONFIG=""
 if [ -e ${cf} ]
 then 
     nemo=1
@@ -125,7 +129,9 @@ then
     esac
     
     export NEMOCONFIG
+    echo "*II* hiresclim2 accounts for nemo output"
 fi
+
 
 INFODIR=$OUTDIR0
 
@@ -141,6 +147,10 @@ cd $PROGDIR/script
     start1=$(date +%s)
     if [ $ifs_monthly == 1 ] ; then 
         . ./ifs_monthly.sh $expname $year $yref
+    fi
+
+    if [ $ifs_monthly_mma == 1 ] ; then 
+        . ./ifs_monthly_mma.sh $expname $year $yref
     fi
 
     if [ $ifs_daily == 1 ] ; then
@@ -169,7 +179,7 @@ cd $PROGDIR/script
         mkdir -p $INFODIR
         echo "$expname for $year has been postprocessed successfully" > $INFODIR/postcheck_${expname}_${year}.txt
         echo "Postprocessing lasted for $runtime sec (or $hh hrs)" >> $INFODIR/postcheck_${expname}_${year}.txt
-        echo "Configuration: MON: $ifs_monthly ; DAY: $ifs_daily ; 6HRS: $ifs_6hrs; CDX: $ifs_3hrs_cdx ; SMON: $ifs_smon ; NONLIN: $ifs_nonlinear"  >> $INFODIR/postcheck_${expname}_${year}.txt
+        echo "Configuration: MON: $ifs_monthly ; DAY: $ifs_daily ; 6HRS: $ifs_6hrs; "  >> $INFODIR/postcheck_${expname}_${year}.txt
                 echo $(date) >> $INFODIR/postcheck_${expname}_${year}.txt
     fi
 

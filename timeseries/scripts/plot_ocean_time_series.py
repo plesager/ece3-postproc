@@ -140,7 +140,14 @@ for jv in range(nbvar):
 
         
         
-    elif cv == 'votemper' or cv == 'vosaline':
+    #elif cv == 'votemper' or cv == 'vosaline':
+# TODO fix NaN in one level which causes this crash
+#  File "/home/bsc32/bsc32051/ecearth3/ece3-postproc/timeseries/scripts/plot_ocean_time_series.py", line 160, in <module>
+#    [ rmin, rmax, rdf ] = bt.get_min_max_df(ZY,40)
+#  File "/home/bsc32/bsc32051/ecearth3/ece3-postproc/timeseries/scripts/barakuda_modules/barakuda_tool.py", line 186, in get_min_max_df
+#    rmagn = 10.**(int(math.log10(zmax)))
+#ValueError: math domain error
+    elif False:
 
         if not l3d:
             print ' ERROR: '+sys.argv[0]+' => variable '+cv+' are here but '+cv_depth+' was not there!'

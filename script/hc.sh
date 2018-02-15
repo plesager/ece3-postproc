@@ -17,21 +17,29 @@ usage()
    echo "   -r RUNDIR   : fully qualified path to another user EC-Earth top RUNDIR"
    echo "                   that is RUNDIR/EXP/output must exists and be readable"
    echo "   -m          : run was performed with Monthly legs (yearly legs expected by default)"
+   echo "   -n numprocs : set number of processors to use (default is 12)"
 }
 
-set -e
+set -ue
 
 # -- default options
-account=$ECE3_POSTPROC_ACCOUNT
+account=""
+[[ -z "${ECE3_POSTPROC_ACCOUNT:-}"  ]] || account=$ECE3_POSTPROC_ACCOUNT
+ALT_RUNDIR=""
+checkit=0
+options=""
+nprocs=12
 
 # -- options
-while getopts "hcr:a:m" opt; do
+while getopts "hcr:a:mn:" opt; do
     case "$opt" in
         h)
             usage
             exit 0
             ;;
         m)  options=${options}" -m"
+            ;;
+        n)  nprocs=$OPTARG
             ;;
         r)  options=${options}" -r $OPTARG"
             ALT_RUNDIR="$OPTARG"
@@ -52,9 +60,9 @@ if [ $# -ne 4 ]; then
 fi
 
 # -- Sanity checks (from master_hiresclim.sh, repeated here for a "before submission" error catch)
-[[ -z $ECE3_POSTPROC_TOPDIR  ]] && echo "User environment not set. See ../README." && exit 1 
-[[ -z $ECE3_POSTPROC_RUNDIR  ]] && echo "User environment not set. See ../README." && exit 1 
-[[ -z $ECE3_POSTPROC_MACHINE ]] && echo "User environment not set. See ../README." && exit 1 
+[[ -z "${ECE3_POSTPROC_TOPDIR:-}"  ]] && echo "User environment not set. See ../README." && exit 1 
+[[ -z "${ECE3_POSTPROC_RUNDIR:-}"  ]] && echo "User environment not set. See ../README." && exit 1 
+[[ -z "${ECE3_POSTPROC_MACHINE:-}" ]] && echo "User environment not set. See ../README." && exit 1 
 
 # -- get submit command
 CONFDIR=${ECE3_POSTPROC_TOPDIR}/conf/${ECE3_POSTPROC_MACHINE}
@@ -77,14 +85,14 @@ then
     do 
         echo; echo "-- check $YEAR--"; echo
         cat ${ECE3_POSTPROC_RUNDIR}/$1/post/postcheck_$1_$YEAR.txt || \
-            echo "*EE* check log at $SCRATCH/tmp_ece3_hiresclim2"
+            echo "*EE* check log at $SCRATCH/tmp_ecearth3"
     done
     exit
 fi
 
 
 # -- Scratch dir (location of submit script and its log, and temporary files)
-OUT=$SCRATCH/tmp_ece3_hiresclim2
+OUT=$SCRATCH/tmp_ecearth3
 mkdir -p $OUT/log
 
 # -- Write and submit one script per year
@@ -96,6 +104,9 @@ do
     [[ -n $account ]] && \
         sed -i "s/<ACCOUNT>/$account/" $tgt_script || \
         sed -i "/<ACCOUNT>/ d" $tgt_script
+
+    # -- number of processors to use, default 12
+    sed -i "s/<NPROCS>/$nprocs/" $tgt_script
 
     sed -i "s/<YEAR>/$YEAR/" $tgt_script
     sed -i "s|<YREF>|$4|" $tgt_script
