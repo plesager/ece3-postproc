@@ -29,9 +29,9 @@ export WWW_DIR_ROOT=""
 # Required software   #
 ############################
 
-#PLS module switch PrgEnv-cray PrgEnv-intel
 set +xuve
-module load netcdf hdf5 CDO udunits nco python/2.7.13
+# must use cdo 1.7.2 since default module version (1.8.2) creates files with plev instead of lev
+module load netcdf hdf5 CDO/1.7.2 udunits nco python/2.7.13
 module list
 set -xuve
 export CDFTOOLS_DIR=/gpfs/projects/bsc32/opt/cdftools-2.1/intel-13/bin
