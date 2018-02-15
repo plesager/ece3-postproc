@@ -78,6 +78,9 @@ store=0
 # summary? save a postcheck file
 fstore=1
 
+# are you using standard file structure or ISAC-CNR file structure?
+ISAC_structure=1
+
 ############################################################
 # settings that depend only on the ECE3_POSTPROC_* variables
 ############################################################
@@ -100,6 +103,12 @@ fi
 # where to produce the results
 export OUTDIR0=${ECE3_POSTPROC_RUNDIR}/$expname/post
 mkdir -p $OUTDIR0
+
+if [[ ${ISAC_structure} -eq 1 ]] ; then
+    IFSRESULTS=$BASERESULTS/Output_*/IFS
+else
+    IFSRESULTS=$BASERESULTS/ifs/$(printf %03d $((year-${yref}+1)))
+fi
 
 ############################################################
 

@@ -24,7 +24,7 @@ WRKDIR=$(mktemp -d $SCRATCH/tmp_ece3_hiresclim2/post_hireclim2_XXXXXX) # use tem
 cd $WRKDIR
 
 # where to get the files, assuming yearly legs
-IFSRESULTS=$BASERESULTS/ifs/$(printf %03d $((year-${yref}+1)))
+# IFSRESULTS=$BASERESULTS/ifs/$(printf %03d $((year-${yref}+1)))
 
 NPROCS=${IFS_NPROCS}
 
