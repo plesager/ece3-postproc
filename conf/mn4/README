@@ -1,0 +1,9 @@
+This configuration os for the marenostrum4 (mn4) machine at BSC
+
+add these line to your $HOME/.bashrc on mn4
+
+export ECE3_POSTPROC_TOPDIR=$HOME/ecearth3/ece3-postproc #<dir where this file is>
+export ECE3_POSTPROC_RUNDIR=$SCRATCH/ecearth-runs/ #<top dir where your ecearth runs are located -see your config-run.xml>
+export ECE3_POSTPROC_DATADIR=/gpfs/projects/bsc32/bsc32051/ECE3-DATA/post-proc # <dir where your ecearth data are located -see your config-run.xml>  
+export ECE3_POSTPROC_MACHINE=mn4 #<name of your (HPC) machine>
+export ECE3_POSTPROC_ACCOUNT=bsc32 #<HPC account>

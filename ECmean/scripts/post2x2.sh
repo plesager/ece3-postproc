@@ -65,10 +65,14 @@ for (( year=$year1; year<=$year2; year++)); do
     $cdonc cat -$remap,$REFGRID ${FBASE}_nsss.nc $CLIMDIR/nsss_mon_2x2.nc
 
     # T, U, V, Q on p levels [units already ok]
+
+    if  (( do_3d_vars ))
+    then
     $cdonc cat -$remap,$REFGRID ${FBASE}_t.nc $CLIMDIR/T_mon_2x2.nc
     $cdonc cat -$remap,$REFGRID ${FBASE}_u.nc $CLIMDIR/U_mon_2x2.nc
     $cdonc cat -$remap,$REFGRID ${FBASE}_v.nc $CLIMDIR/V_mon_2x2.nc
     $cdonc cat -$remap,$REFGRID ${FBASE}_q.nc $CLIMDIR/Q_mon_2x2.nc
+    fi #do_3dvars
 
     if (( do_ocean ))
     then
@@ -89,12 +93,13 @@ for (( year=$year1; year<=$year2; year++)); do
 done
 
 # -- time mean for all fields
-if (( do_ocean ))
+if (( do_3d_vars ))
 then
-    vvars="t2m msl qnet tp ewss nsss T U V Q SST SSS SICE"
-else
     vvars="t2m msl qnet tp ewss nsss T U V Q"
+else
+    vvars="t2m msl qnet tp ewss nsss"
 fi
+if (( do_ocean )) ; then vvars=${vvars}" SST SSS SICE" ; fi
 
 for vv in ${vvars} ; do
     $cdonc timmean $CLIMDIR/${vv}_mon_2x2.nc $CLIMDIR/${vv}_mean_2x2.nc

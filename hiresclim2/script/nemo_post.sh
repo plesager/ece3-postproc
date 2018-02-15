@@ -22,7 +22,8 @@ then
 fi
 
 # temp working dir, within $TMPDIR so it is automatically removed or use XXXX template if debugging
-WRKDIR=$(mktemp -d $SCRATCH/tmp_ece3_hiresclim2/post_hireclim2_XXXXXX) 
+mkdir -p $SCRATCH/tmp_ecearth3/tmp
+WRKDIR=$(mktemp -d $SCRATCH/tmp_ecearth3/tmp/hireclim2_${expname}_XXXXXX) # use template if debugging
 cd $WRKDIR
 
 #where to get the files
@@ -65,7 +66,10 @@ case $NEMOCONFIG in
     depth_300_800='35 44'
     depth_800_bottom='45 75'
     # Nino3.4 region (in ij coordinates)
-    nino34_region='470 668 519 479'
+    nino34_region='470 668 519 479' 
+    # TODO NEED UPDATE WRONG INDICES !!! (at least with cdftools 3.0.1
+    # npiglo =          199  npjglo =          -39
+    skip_nino=1
     ;;
     ( ORCA025L75 )
     # depth layers for heat content (0-300m, 300-800m, 800m-bottom)
@@ -86,14 +90,24 @@ ln -s $MESHDIR/mesh_hgr.nc
 ln -s $MESHDIR/mesh_zgr.nc
 ln -s $MESHDIR/new_maskglo.nc
 
-# rebuild if necessary
+# rebuild or create yearly file from monthly legs if necessary
 for t in grid_T grid_U grid_V icemod SBC
 do
    if [ -f $NEMORESULTS/${froot}_${t}.nc ]
    then
       cp $NEMORESULTS/${froot}_${t}.nc .
    else
-       if (( $(ls $NEMORESULTS/${froot}_${t}* | wc -w) ))
+       if [[ $mlegs == 1 ]]
+       then
+           mfiles=""
+           # build list of monthly files, could be less selective in the file list syntax
+           for m in $(seq 1 12)
+           do
+               m0=`printf "%02d" $m`
+               mfiles=$mfiles" "$BASERESULTS/nemo/$(printf %03d $(( (year-${yref})*12+m)))/${expname}_1m_${year}${m0}01_${year}${m0}??_${t}.nc
+           done
+           ncrcat -3 $mfiles ${froot}_${t}.nc
+       elif (( $(ls $NEMORESULTS/${froot}_${t}* | wc -w) ))
        then
            ln -s $NEMORESULTS/${froot}_${t}* .
            $rbld -t $NOMP ${froot}_$t  $(ls ${froot}_${t}_????.nc | wc -w)
@@ -129,18 +143,22 @@ nm_sst="tos"         ; # SST (2D)
 nm_sss="sos"         ; # SS salinity (2D)
 nm_ssh="zos"         ; # sea surface height (2D)
 nm_iceconc="siconc"  ; # Ice concentration as in icemod file (2D)
-nm_icethic="sithick" ; # Ice thickness as in icemod file (2D)
+#nm_icethic="sithick" ; # Ice thickness as in icemod file (2D)
+nm_icethic="sithic"  ; # Ice thickness as in icemod file (2D)
 nm_tpot="thetao"     ; # pot. temperature (3D)
 nm_s="so"            ; # salinity (3D)
 nm_u="uo"            ; # X current (3D)
 nm_v="vo"            ; # Y current (3D)
 
-if [ "${nm_sst}"  != "sosstsst" ];  then ncrename -v ${nm_sst},sosstsst  ${froot}_grid_T.nc ; fi
-if [ "${nm_sss}"  != "sosaline" ];  then ncrename -v ${nm_sss},sosaline  ${froot}_grid_T.nc ; fi
-if [ "${nm_ssh}"  != "sossheig" ];  then ncrename -v ${nm_ssh},sossheig  ${froot}_grid_T.nc ; fi
+# do all ncrename operations for grid_T in one step
+rename_str=""
+if [ "${nm_sst}"  != "sosstsst" ];  then rename_str=$rename_str" -v ${nm_sst},sosstsst" ; fi
+if [ "${nm_sss}"  != "sosaline" ];  then rename_str=$rename_str" -v ${nm_sss},sosaline" ; fi
+if [ "${nm_ssh}"  != "sossheig" ];  then rename_str=$rename_str" -v ${nm_ssh},sossheig" ; fi
+if [ "${nm_tpot}" != "votemper" ];  then rename_str=$rename_str" -v ${nm_tpot},votemper"; fi
+if [ "${nm_s}"    != "vosaline" ];  then rename_str=$rename_str" -v ${nm_s},vosaline"   ; fi
+if [ "${rename_str}" != "" ];  then ncrename $rename_str ${froot}_grid_T.nc ; fi
 if [ "${nm_wfo}"  != "sowaflup" ];  then ncrename -v ${nm_wfo},sowaflup  ${froot}_${SBC}.nc ; fi
-if [ "${nm_tpot}" != "votemper" ];  then ncrename -v ${nm_tpot},votemper ${froot}_grid_T.nc ; fi
-if [ "${nm_s}"    != "vosaline" ];  then ncrename -v ${nm_s},vosaline    ${froot}_grid_T.nc ; fi
 if [ ${iuf} -eq 1 ]; then
     if [ "${nm_u}"   != "vozocrtx" ];  then ncrename -v ${nm_u},vozocrtx    ${froot}_grid_U.nc ; fi
 fi
@@ -151,13 +169,13 @@ fi
 # ICE
 if (( $newercdftools ))         # auxilliary file for newer CDFtools (4.0 master retrieved on 06-09-2017)
 then
-    if [ "${nm_iceconc}" != "sithic" ]; then
-        ncrename -v ${nm_iceconc},sithic  ${froot}_icemod.nc  ${froot}_icemod_cdfnew.nc
+    if [ "${nm_iceconc}" != "siconc" ]; then
+        ncrename -v ${nm_iceconc},siconc  ${froot}_icemod.nc  ${froot}_icemod_cdfnew.nc
     else
         cp ${froot}_icemod.nc  ${froot}_icemod_cdfnew.nc
     fi
-    if [ "${nm_icethic}" != "siconc" ]; then
-        ncrename -v ${nm_icethic},siconc  ${froot}_icemod_cdfnew.nc
+    if [ "${nm_icethic}" != "sithic" ]; then
+        ncrename -v ${nm_icethic},sithic  ${froot}_icemod_cdfnew.nc
     fi
 fi
 if [ "${nm_iceconc}" != "iiceconc" ]; then ncrename -v ${nm_iceconc},iiceconc  ${froot}_icemod.nc ; fi
@@ -173,7 +191,7 @@ $cdo showdate ${froot}_icemod.nc | tr '[:blank:]' '\n' | \
 #    remove piping and do it in two steps. Used to be:
 #     $cdozip splitvar -selvar,sosstsst,sosaline,sossheig,sowaflup ${froot}_grid_T.nc ${out}_
 #    Now:
-tempf=$(mktemp $SCRATCH/tmp_ece3_hiresclim2/post_hireclim2_nemo_XXXXXX)
+tempf=$(mktemp $SCRATCH/tmp_ecearth3/tmp/hireclim2_nemo_XXXXXX)
 $cdo selvar,sosstsst,sosaline,sossheig ${froot}_grid_T.nc $tempf
 $cdozip selvar,sowaflup ${froot}_${SBC}.nc ${out}_sowaflup
 $cdozip splitvar $tempf ${out}_
@@ -207,7 +225,7 @@ done
 
 # ** ice diagnostics
 
-tempf=$(mktemp $SCRATCH/tmp_ece3_hiresclim2/post_hireclim2_ice_XXXXXX)
+tempf=$(mktemp $SCRATCH/tmp_ecearth3/tmp/hireclim2_nemo_XXXXXX)
 $cdo selvar,iiceconc,iicethic ${froot}_icemod.nc $tempf
 $cdozip splitvar $tempf ${out}_
 rm -f $tempf
@@ -222,7 +240,8 @@ done
 tmpstring=tmpdate
 for l in 0_300 300_800 800_bottom
 do
-    if (( $newercdftools ))
+    # when running cdftools 3.0.1, this is the only part where a newer syntax is required
+    if (( $newercdftools2 ))
     then
         eval "${cdftoolsbin}/cdfheatc -f ${froot}_grid_T.nc -zoom 0 0 0 0 \$depth_$l" | \
             awk '/Total Heat content        :/ {print $5}' > tmp_$l
@@ -270,8 +289,12 @@ else
     $cdozip copy psi.nc ${out}_psi.nc
 
     # mixed layer depth
-    $cdftoolsbin/cdfmxl ${froot}_grid_T.nc
-    $cdozip copy mxl.nc ${out}_mxl.nc
+# TODO fix this (crashes with cdftools 3.0.1)
+#  File bathy_level.nc is missing 
+# Read mbathy in mesh_zgr.nc ...
+#forrtl: error (73): floating divide by zero
+    #$cdftoolsbin/cdfmxl ${froot}_grid_T.nc
+    #$cdozip copy mxl.nc ${out}_mxl.nc
 
     # ice diagnostics
     $cdozip selvar,iiceconc,iicethic ${froot}_icemod.nc ${out}_ice.nc

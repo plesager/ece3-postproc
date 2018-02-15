@@ -19,12 +19,12 @@ f=$exp/Global_Mean_Table_${exp}_${y1}_${y2}.txt
 
 for row in 1 2 3 4 5 6 7 8 9 11 13
 do
-echo -n $(getcell $f $row ) "|"
+echo -n $(getcell $f $row ) "| "
 done
 
 for row in 1 3 4 5 6 7 11
 do
-echo -n $(getcell2 $f $row ) "|"
+echo -n $(getcell2 $f $row ) "| "
 done
 echo
 

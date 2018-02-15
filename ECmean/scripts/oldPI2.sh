@@ -28,7 +28,8 @@ primavera=$4
 OBSDIR=$ECE3_POSTPROC_TOPDIR/ECmean/Climate_netcdf
 outfile=${OUTDIR}/${exp}/PIold_RK08_${exp}_${year1}_${year2}.txt
 
-TMPDIR=$(mktemp -d $SCRATCH/tmp_ecearth3.XXXXXX)
+mkdir -p $SCRATCH/tmp_ecearth3/tmp
+TMPDIR=$(mktemp -d $SCRATCH/tmp_ecearth3/tmp/ecmean_${exp}_XXXXXX)
 
 #initializing array for PIs
 pilong=(1 2 3 4 5 6 7 8 9 10 11 12 13); ii=0

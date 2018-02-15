@@ -26,7 +26,8 @@ TABLEDIR=${OUTDIR}/${exp}
 ############################################
 # No need to touch below this line/
 ############################################
-WRKDIR=$(mktemp -d $SCRATCH/tmp_ecearth3_ecmean.XXXXXX)
+mkdir -p $SCRATCH/tmp_ecearth3/tmp
+WRKDIR=$(mktemp -d $SCRATCH/tmp_ecearth3/tmp/ecmean_${exp}_XXXXXX)
 nyears=$((year2-year1))
 
 # -- ATMOSPHERE

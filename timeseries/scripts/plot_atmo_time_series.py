@@ -57,9 +57,14 @@ XX = nmp.zeros(nbvar*nbr) ; XX.shape = [nbvar, nbr]
 for jv in range(nbvar):
     print ' **** reading '+v_var_names[jv]
     XX[jv,:] = id_clim.variables[v_var_names[jv]][:]
-    #TODO add check for non-existent units & long_name
-    v_var_units[jv] = id_clim.variables[v_var_names[jv]].units
-    v_var_lngnm[jv] = id_clim.variables[v_var_names[jv]].long_name
+    try:
+        v_var_units[jv] = id_clim.variables[v_var_names[jv]].units
+    except AttributeError:
+        v_var_units[jv] = ""
+    try:
+        v_var_lngnm[jv] = id_clim.variables[v_var_names[jv]].long_name
+    except AttributeError:
+        v_var_lngnm[jv] = v_var_names[jv]
 
 id_clim.close()
 
