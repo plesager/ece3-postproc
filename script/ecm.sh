@@ -78,7 +78,7 @@ then
 fi
 
 # -- Scratch dir (location of submit script and its log, and temporary files)
-OUT=$SCRATCH/tmp_ece3_ecmean
+OUT=$SCRATCH/tmp_ecearth3
 mkdir -p $OUT/log
 
 CONFDIR=${ECE3_POSTPROC_TOPDIR}/conf/${ECE3_POSTPROC_MACHINE}
@@ -102,7 +102,7 @@ if (( checkit ))
 then
     echo; echo "Checking ${OUTDIR}/globtable.txt ..."
     grep $1.$2-$3. ${OUTDIR}/globtable.txt || \
-        echo "*EE* check log at $SCRATCH/tmp_ece3_ecmean"
+        echo "*EE* check log at $SCRATCH/tmp_ecearth3"
     grep $1.$2-$3. ${OUTDIR}/gregory.txt || true
     exit
 fi

@@ -37,7 +37,7 @@ submit_cmd="sbatch"
 # required programs, including compression options
 module load gsl grib netcdf hdf5 CDO udunits nco python/2.7.13
 module list
-export CDFTOOLS_DIR=/gpfs/projects/bsc32/opt/cdftools-2.1/intel-13/bin
+export CDFTOOLS_DIR=/gpfs/projects/bsc32/opt/cdftools-3.1/intel-2017.4
 
 cdo=cdo
 cdozip="$cdo -f nc4c -z zip"
@@ -45,6 +45,8 @@ rbld="/gpfs/projects/bsc32/repository/apps/rebuild_nemo/rebuild_nemo"
 
 cdftoolsbin="${CDFTOOLS_DIR}/bin"
 #cdftoolsbin="/home/ms/nl/nm6/ECEARTH/postproc/barakuda/cdftools_light/bin"
+newercdftools=0
+newercdftools2=1
 python=python
 
 # number of parallel procs for IFS (max 12) and NEMO rebuild. Default to 12.

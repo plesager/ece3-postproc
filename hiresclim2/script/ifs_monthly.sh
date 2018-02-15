@@ -20,7 +20,8 @@ then
 fi
 
 # temp working dir, within $TMPDIR so it is automatically removed
-WRKDIR=$(mktemp -d $SCRATCH/tmp_ece3_hiresclim2/post_hireclim2_XXXXXX) # use template if debugging
+mkdir -p $SCRATCH/tmp_ecearth3/tmp
+WRKDIR=$(mktemp -d $SCRATCH/tmp_ecearth3/tmp/hireclim2_${expname}_XXXXXX) # use template if debugging
 cd $WRKDIR
 
 # where to get the files, assuming yearly legs

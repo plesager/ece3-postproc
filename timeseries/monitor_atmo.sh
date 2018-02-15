@@ -2,7 +2,7 @@
 
 # Must be called from timeseries.sh, where DATADIR (ie output from hiresclim2) is defined.
 
-set -e
+set -ue
 export HERE=`pwd`
 export PYTHONPATH=${HERE}/scripts/barakuda_modules
 
@@ -41,7 +41,8 @@ while getopts R:y:t:foeh option ; do
     esac
 done
 
-export TMPDIR_ROOT=$(mktemp -d $SCRATCH/tmp_ecearth3_ts/ts_${RUN}_XXXXXX)
+mkdir -p $SCRATCH/tmp_ecearth3/tmp
+export TMPDIR_ROOT=$(mktemp -d $SCRATCH/tmp_ecearth3/tmp/ts_${RUN}_XXXXXX)
 export POST_DIR=$DATADIR
 export DIR_TIME_SERIES=`echo ${DIR_TIME_SERIES} | sed -e "s|<RUN>|${RUN}|g"`
 
@@ -221,7 +222,7 @@ if [ ${IPREPHTML} -eq 0 ]; then
 
                 rm -f tmp.nc tmp2.nc
 
-                echo "cdo -R -t -fldmean $DATADIR/Post_????/${RUN}_${jyear}_${cvar}.nc ${cf_out}"
+                echo "cdo -R -t -fldmean $DATADIR/Post_????/${RUN}_${jyear}_${cvar}.nc tmp0.nc"
                 cdo -R -fldmean $DATADIR/Post_????/${RUN}_${jyear}_${cvar}.nc tmp0.nc
                 echo
                 
@@ -340,7 +341,7 @@ if [ ${IPREPHTML} -eq 0 ]; then
     echo
 
     #Concatenate new and old files... 
-    if [[ ! -z ${BASE_YEAR_INI} ]] ; then
+    if [[ ! -z ${BASE_YEAR_INI:-} ]] ; then
          echo " Concatenate old and new netcdf files... " 
          ncrcat -h ${OLD_SUPA_FILE} ${SUPA_FILE} ${DIAG_D}/${RUN}_${BASE_YEAR_INI}_${YEAR_END}_time-series_atmo.nc
          rm ${OLD_SUPA_FILE} ${SUPA_FILE}
@@ -391,6 +392,3 @@ if [ ${IPREPHTML} -eq 1 ]; then
     echo; echo
 
 fi # [ ${IPREPHTML} -eq 1 ]
-
-
-rm -rf ${TMPD}

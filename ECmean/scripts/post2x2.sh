@@ -99,7 +99,7 @@ then
 else
     vvars="t2m msl qnet tp ewss nsss"
 fi
-if (( do_ocean )) ; then vvars=${vvars}"SST SSS SICE" ; fi
+if (( do_ocean )) ; then vvars=${vvars}" SST SSS SICE" ; fi
 
 for vv in ${vvars} ; do
     $cdonc timmean $CLIMDIR/${vv}_mon_2x2.nc $CLIMDIR/${vv}_mean_2x2.nc

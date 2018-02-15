@@ -44,7 +44,7 @@ if [ "$#" -ne 1 ]; then
 fi
 
 # -- Scratch dir (location of submit script and its log, and temporary files)
-OUT=$SCRATCH/tmp_ecearth3_ts
+OUT=$SCRATCH/tmp_ecearth3
 mkdir -p $OUT/log
 
 CONFDIR=${ECE3_POSTPROC_TOPDIR}/conf/${ECE3_POSTPROC_MACHINE}
@@ -67,7 +67,7 @@ fi
 # then
 #     echo "Checking ${HOME}/EC-Earth3/diag/table/globtable.txt..."
 #     grep $1.$2-$3. ${HOME}/EC-Earth3/diag/table/globtable.txt || \
-#             echo "*EE* check log at $SCRATCH/tmp_ecearth3_ts"
+#             echo "*EE* check log at $SCRATCH/tmp_ecearth3"
 #     exit
 # fi
 
@@ -87,7 +87,7 @@ sed -i "s|<OUT>|$OUT|" $tgt_script
 
 echo ../timeseries/timeseries.sh $1 $ALT_RUNDIR >> $tgt_script
 
-echo ${submit_cmd} $tgt_script
+${submit_cmd} $tgt_script
 #qstat -wu $USER
 
 #echo; echo "*II* Launched timeseries analysis for experiment $1 of user $USERexp"; echo

@@ -74,7 +74,9 @@ mkdir -p $TABLEDIR
 export CLIMDIR
 mkdir -p $CLIMDIR
 
-TMPDIR=$(mktemp -d) # $SCRATCH/tmp_ecearth3_ecmean.XXXXXX)
+#TMPDIR=$(mktemp -d) # $SCRATCH/tmp_ecearth3_ecmean.XXXXXX)
+mkdir -p $SCRATCH/tmp_ecearth3/tmp
+export TMPDIR=$(mktemp -d $SCRATCH/tmp_ecearth3/tmp/ecmean_${exp}_XXXXXX)
 
 ############################################################
 # Checking settings dependent only on the ECE3_POSTPROC_* variables, i.e. env
@@ -178,7 +180,7 @@ $PIDIR/tab2lin.sh $exp $year1 $year2 >> ./globtable.txt
 [[ ! -e gregory.txt ]] && \
     echo "                  net TOA, net Sfc, t2m[tas], SST" > gregory.txt
 $PIDIR/gregory.sh $exp $year1 $year2 >> ./gregory.txt
-
+cat ./gregory.txt
 
 # finalizing
 cd -

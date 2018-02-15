@@ -19,6 +19,7 @@ cdftoolsbin="/nfs/home/users/sager/installed/CDFTOOLS/bin"
 # Set this to 1 if a newer syntax is used ("cdfmean -f file ..." instead
 # of "cdfmean file ..."). 
 newercdftools=1
+newercdftools2=1
 
 # number of parallel procs for IFS (max 12) and NEMO rebuild. Default to 12.
 if [ -z $IFS_NPROCS ] ; then

@@ -85,14 +85,14 @@ then
     do 
         echo; echo "-- check $YEAR--"; echo
         cat ${ECE3_POSTPROC_RUNDIR}/$1/post/postcheck_$1_$YEAR.txt || \
-            echo "*EE* check log at $SCRATCH/tmp_ece3_hiresclim2"
+            echo "*EE* check log at $SCRATCH/tmp_ecearth3"
     done
     exit
 fi
 
 
 # -- Scratch dir (location of submit script and its log, and temporary files)
-OUT=$SCRATCH/tmp_ece3_hiresclim2
+OUT=$SCRATCH/tmp_ecearth3
 mkdir -p $OUT/log
 
 # -- Write and submit one script per year
@@ -112,5 +112,5 @@ do
     sed -i "s|<YREF>|$4|" $tgt_script
     sed -i "s|<OUT>|$OUT|" $tgt_script
     sed -i "s|<OPTIONS>|${options}|" $tgt_script
-    echo ${submit_cmd} $tgt_script
+    ${submit_cmd} $tgt_script
 done

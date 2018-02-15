@@ -37,6 +37,7 @@ fi
 
 # test if it was a coupled run, and find resolution
 # TODO use same checks in hiresclim2, ECMean and timeseries
+# TODO test with real 2 year data, in my (Etienne) tests with faked 2 year data the plots were very wrong
 check=$( ls $DATADIR/Post_*/*sosaline* 2>/dev/null || true )
 NEMOCONFIG=""
 do_ocean=0
