@@ -160,39 +160,147 @@ The code has been ported on /cca (ECMWF)/ and /rhino (KNMI)/. See the
     written in R. Few R packages are needed: /s2dverification, ncdf4,
     RColorBrewer/. If you do not control your environment and R and/or
     the packages are missing, it may be easier to work on another
-    machine where you can easy installed the packages for example:
+    machine where you can easy installed the packages. For example:
     : # define a personal R library location,
     : mkdir /usr/people/sager/Rlib
     : # and make sure that R is aware of it (put that one in your ~/.bashrc): 
     : export R_LIBS=/usr/people/sager/Rlib/
     : 
-    : # in R, install:
+    : # within R, install:
     : install.packages("s2dverification", lib="/usr/people/sager/Rlib/")
     : install.packages("ncdf4", lib="/usr/people/sager/Rlib/")
     : install.packages("RColorBrewer", lib="/usr/people/sager/Rlib/")
 
 *** Experiment design
     You must run 5 experiments for 20 years with perturbed initial
-    conditions. For AMIP runs, you can create these initial conditions on the
-    fly, by adding a call to the perturbation script in your
-    /classic/ece-*.sh.tmpl/, i.e. by replacing:
-    : ln -s \
-    : ${ini_data_dir}/ifs/${ifs_grid}/${leg_start_date_yyyymmdd}/ICMSHECE3INIT \
-    :                                                     ICMSH${exp_name}INIT
-    with
-    : # apply AMIP perturbation to 3D temperature
-    : ${ECE3_POSTPROC_TOPDIR}/reproducibility/perturb_ifs_ic.py -s t \
-    :     ${ini_data_dir}/ifs/${ifs_grid}/${leg_start_date_yyyymmdd}/ICMSHECE3INIT \
-    :                                                         ICMSH${exp_name}INIT
+    conditions. Your experiments name should be made of *3 characters
+    (the stem) followed by a number from 1-to-5*. For example: /cca1,
+    cca2, cca3, cca4, cca5/. The stem uniquely defines your ensemble.
+    If you do not follow this format, collecting the R&K indices in a
+    format suitable for the comparison scripts will be slightly more
+    complicated but still feasible (see below). Your runs will differ
+    by their initial conditions, which require some setup.
 
-    For CMIP, you need to have the perturbed ocean restart ready. TO BE CONTINUED.
-    
-    Your experiments name should be made of *3 characters (the stem) followed
-    by a number from 1-to-5*. For example: /cca1, cca2, cca3, cca4, cca5/. The
-    stem uniquely defines your ensemble. If you do not follow this
-    format, collecting the R&K indices in a format suitable for the
-    comparison scripts will be slightly more complicated but still
-    feasible (see below).
+**** For AMIP runs
+     you can create these initial conditions on the fly, by adding a
+     call to the perturbation script in your /classic/ece-*.sh.tmpl/,
+     i.e. by replacing:
+     : ln -s \
+     : ${ini_data_dir}/ifs/${ifs_grid}/${leg_start_date_yyyymmdd}/ICMSHECE3INIT \
+     :                                                     ICMSH${exp_name}INIT
+     with
+     : # apply AMIP perturbation to 3D temperature
+     : ${ECE3_POSTPROC_TOPDIR}/reproducibility/perturb_ifs_ic.py -s t \
+     :     ${ini_data_dir}/ifs/${ifs_grid}/${leg_start_date_yyyymmdd}/ICMSHECE3INIT \
+     :                                                         ICMSH${exp_name}INIT
+
+**** For CMIP runs
+     A perturbation script is also available for ocean restart but has
+     not been tested yet. But you can used perturbed ocean restarts
+     already prepared beforehand. For example, with the following 1950
+     initial conditions provided by BSC, which are available through
+     ftp, see https://dev.ec-earth.org/issues/447#note-1, and look
+     like this once unpacked:
+     :  ic
+     :  ├── atmos
+     :  │   ├── ICMGGa0raINIT
+     :  │   ├── ICMGGa0raINIUA
+     :  │   └── ICMSHa0raINIT
+     :  ├── ice
+     :  │   └── a0ra_fc0_19491231_restart_ice.nc
+     :  └── ocean
+     :      ├── a0ra_fc0_19491231_restart.nc
+     :      ├── a0ra_fc1_19491231_restart.nc
+     :      ├── a0ra_fc2_19491231_restart.nc
+     :      ├── a0ra_fc3_19491231_restart.nc
+     :      └── a0ra_fc4_19491231_restart.nc
+     You just need to submit 5 runs that start from these different
+     restarts. What follows is some tips to help you streamline the
+     process. Start by reorganizing the initial conditions so you can
+     use the same script template in all your runtime dirs. For
+     example, you can:
+     : cd ic/ocean/
+     : mkdir {01..05}
+     : for k in {1..5}; do cd 0$k; ln -s ../a0ra_fc$((k-1))_19491231_restart.nc restart_oce.nc ; cd - ; done
+     : for k in {1..5}; do cd 0$k; ln -s ../../ice/a0ra_fc0_19491231_restart_ice.nc restart_ice.nc ; cd - ; done
+     which gives you:
+     : [2041] >>> tree ic
+     : ic
+     : ├── atmos
+     : │   ├── ICMGGa0raINIT
+     : │   ├── ICMGGa0raINIUA
+     : │   └── ICMSHa0raINIT
+     : ├── ice
+     : │   └── a0ra_fc0_19491231_restart_ice.nc
+     : └── ocean
+     :     ├── 01
+     :     │   ├── restart_ice.nc -> ../../ice/a0ra_fc0_19491231_restart_ice.nc
+     :     │   └── restart_oce.nc -> ../a0ra_fc0_19491231_restart.nc
+     :     ├── 02
+     :     │   ├── restart_ice.nc -> ../../ice/a0ra_fc0_19491231_restart_ice.nc
+     :     │   └── restart_oce.nc -> ../a0ra_fc1_19491231_restart.nc
+     :     ├── 03
+     :     │   ├── restart_ice.nc -> ../../ice/a0ra_fc0_19491231_restart_ice.nc
+     :     │   └── restart_oce.nc -> ../a0ra_fc2_19491231_restart.nc
+     :     ├── 04
+     :     │   ├── restart_ice.nc -> ../../ice/a0ra_fc0_19491231_restart_ice.nc
+     :     │   └── restart_oce.nc -> ../a0ra_fc3_19491231_restart.nc
+     :     ├── 05
+     :     │   ├── restart_ice.nc -> ../../ice/a0ra_fc0_19491231_restart_ice.nc
+     :     │   └── restart_oce.nc -> ../a0ra_fc4_19491231_restart.nc
+     :     ├── a0ra_fc0_19491231_restart.nc
+     :     ├── a0ra_fc1_19491231_restart.nc
+     :     ├── a0ra_fc2_19491231_restart.nc
+     :     ├── a0ra_fc3_19491231_restart.nc
+     :     └── a0ra_fc4_19491231_restart.nc
+     
+     Then you modify your /ece-esm.sh.tmpl/ template script to account
+     for that data tree as follow (just 5 lines to change):
+
+     : Index: ece-esm.sh.tmpl
+     : ===================================================================
+     : --- ece-esm.sh.tmpl      (revision 5029)
+     : +++ ece-esm.sh.tmpl      (working copy)
+     : @@ -25,7 +25,7 @@
+     :  #     config="ifs nemo lim3 rnfmapper xios:detached oasis lpjg:fdbck"           # "Veg"     : GCM+LPJ-Guess
+     :  #     config="ifs nemo lim3 rnfmapper xios:detached oasis tm5:chem,o3,ch4,aero" # "AerChem" : GCM+TM5
+     :  
+     : -config="ifs nemo lim3 rnfmapper xios:detached oasis lpjg:fdbck tm5:co2"
+     : +config="ifs nemo:start_from_restart lim3 rnfmapper xios:detached oasis"
+     :  
+     :  # minimum sanity
+     :  has_config amip nemo && error "Cannot have both nemo and amip in config!!"
+     : @@ -189,7 +189,7 @@
+     :  
+     :  # This is only needed if the experiment is started from an existing set of NEMO
+     :  # restart files
+     : -nem_restart_file_path=${start_dir}/nemo-rst
+     : +nem_restart_file_path="<full-path-to-your-ic-dir>/ocean/0${exp_name:3}"
+     :  
+     :  nem_restart_offset=0
+     :  
+     : @@ -450,13 +450,13 @@
+     :  
+     :          # Initial data
+     :          ln -s \
+     : -        ${ini_data_dir}/ifs/${ifs_grid}/${leg_start_date_yyyymmdd}/ICMGGECE3INIUA \
+     : +        <full-path-to-your-ic-dir>/atmos/ICMGGa0raINIUA \
+     :                                                              ICMGG${exp_name}INIUA
+     :          ln -s \
+     : -        ${ini_data_dir}/ifs/${ifs_grid}/${leg_start_date_yyyymmdd}/ICMSHECE3INIT \
+     : +        <full-path-to-your-ic-dir>/atmos/ICMSHa0raINIT \
+     :                                                              ICMSH${exp_name}INIT
+     :          rm -f ICMGG${exp_name}INIT
+     : -        cp ${ini_data_dir}/ifs/${ifs_grid}/${leg_start_date_yyyymmdd}/ICMGGECE3INIT \
+     : +        cp <full-path-to-your-ic-dir>/atmos/ICMGGa0raINIT \
+     :                                                              ICMGG${exp_name}INIT
+     :  
+     :          # add bare_soil_albedo to ICMGG*INIT
+     :      
+     
+     Then, using your favorite method, run 5 experiments with a name
+     that ends with 1,...,5.
+     
 
 *** Postprocessing steps
     For each of your 5 experiments, you need to run /hireclim2/ followed by
