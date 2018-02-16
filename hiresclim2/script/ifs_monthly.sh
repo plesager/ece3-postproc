@@ -33,16 +33,15 @@ fi
 
 NPROCS=${IFS_NPROCS}
 
+# where to save (archive) the results
+OUTDIR=$OUTDIR0/mon/Post_$year
+mkdir -p $OUTDIR || exit -1
+
 echo --- Analyzing monthly output -----
 echo Temporary directory is $WRKDIR
 echo Data directory is $IFSRESULTS
 echo Postprocessing with $NPROCS cores
-
-
-# where to save (archive) the results
-OUTDIR=$OUTDIR0/mon/Post_$year
-echo $OUTDIR
-mkdir -p $OUTDIR || exit -1
+echo Postprocessed data directori is $OUTDIR
 
 # output filename root
 out=$OUTDIR/${expname}_${year}

@@ -1,38 +1,42 @@
 #!/bin/bash
+set -e
 
 #reading args
 expname=$1
 year=$2
+yref=$3
 
 #usage
-if [ $# -lt 2 ]
+if [ $# -lt 3 ]
 then
-  echo "Usage:   ./ifs_6hrs.sh EXP YEAR"
-  echo "Example: ./ifs_6hrs.sh io01 1990"
+  echo "Usage:   ./ifs_6hrs.sh EXP YEAR YREF"
+  echo "Example: ./ifs_6hrs.sh io01 1990 1990"
   exit 1
 fi
 
 
-if [ $# -ne 3 ]; then 
-# definition of variables is done in config.sh
-. ../config.sh
-else 
-. $3
-fi
-
-#go to the tempdir
-cd $TMPDIR
+# temp working dir, within $TMPDIR so it is automatically removed
+mkdir -p $SCRATCH/tmp_ecearth3/tmp
+WRKDIR=$(mktemp -d $SCRATCH/tmp_ecearth3/tmp/hireclim2_${expname}_XXXXXX) # use template if debugging
+cd $WRKDIR
 
 # where to get the files, assuming yearly legs (options for ISAC file structure)
 if [[ -n ${ECE3_POSTPROC_ISAC_STRUCTURE} ]] ; then
-    IFSRESULTS=$BASERESULTS/Output_*/IFS
+    IFSRESULTS=$BASERESULTS/Output_${year}/IFS
 else
     IFSRESULTS=$BASERESULTS/ifs/$(printf %03d $((year-${yref}+1)))
 fi
 
+NPROCS=${IFS_NPROCS}
 # where to save (archive) the results
 OUTDIR=$OUTDIR0/6hrs/Post_$year
 mkdir -p $OUTDIR || exit -1
+
+echo --- Analyzing 6hrs output -----
+echo Temporary directory is $WRKDIR
+echo Data directory is $IFSRESULTS
+echo Postprocessing with $NPROCS cores
+echo Postprocessed data directori is $OUTDIR
 
 # output filename root
 out=$OUTDIR/${expname}_${year}
@@ -87,10 +91,22 @@ done
 pptime=$($cdo showtime -seltimestep,1,2 $IFSRESULTS/ICMGG${expname}+${year}01 | \
    tr -s ' ' ':' | awk -F: '{print ($5-$2)*3600+($6-$3)*60+($7-$4)}' )
 
+# check timestep
+if [ $pptime -le 0 ]
+then
+    pptime=21600 # default 6-hr output timestep
+fi
+echo Timestep is $pptime
+
 # precip and evap and runoff in kg m-2 s-1
    $cdo -b F32 -t $ecearth_table setparam,228.128 -mulc,1000 -divc,$pptime -add lsp_6hrs.grb cp_6hrs.grb tmp_totp_6hrs.grb
    $cdozip -r -R -t $ecearth_table copy tmp_totp_6hrs.grb ${out}_totp_6hrs.nc
 
-rm $TMPDIR/*.grb
+# change file suffices
+( cd $OUTDIR ; for f in $(ls *.nc4); do mv $f ${f/.nc4/.nc}; done )
+
+set -x
+rm $WRKDIR/*.grb
 cd -
-rmdir $TMPDIR
+rmdir $WRKDIR
+set +x

@@ -67,7 +67,7 @@ echo "Rebuild 3D relative humidity: ${rh_build:=1}"
 # monthly flag for standard hiresclim
 # daily and 6hrs flag for u,v,t,z 3d field + tas,totp extraction
 # TODO add argument to script
-ifs_monthly=0
+ifs_monthly=1
 ifs_monthly_mma=0
 ifs_daily=0
 ifs_6hrs=0
@@ -108,7 +108,6 @@ mkdir -p $OUTDIR0
 ############################################################
 
 # test if it was a coupled run, and find resolution
-<<<<<<< HEAD
 nemo=0
 if [[ -n ${ECE3_POSTPROC_ISAC_STRUCTURE} ]] ; then
     cf=${BASERESULTS}/Output_${year}/NEMO/
@@ -116,9 +115,7 @@ else
     cf=${BASERESULTS}/nemo
 fi
 
-=======
 cf=${BASERESULTS}/nemo
->>>>>>> upstream/master
 NEMOCONFIG=""
 if [[ -e ${cf} && $nemo == 1 ]]
 then 
@@ -173,7 +170,7 @@ cd $PROGDIR/script
     fi
 
     if [ $ifs_6hrs == 1 ] ; then
-        . ./ifs_6hrs.sh $expname $year
+        . ./ifs_6hrs.sh $expname $year $yref
     fi
 
     if [ $nemo == 1 ] ; then
