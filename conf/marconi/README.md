@@ -1,4 +1,4 @@
-** CINECA Marconi configuration 
+**CINECA Marconi configuration**
 
 This configuration os for the Marconi machine at CINECA (defined by ISAC-CNR)
 
