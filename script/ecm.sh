@@ -12,7 +12,7 @@ usage()
    echo 
    echo "Options are:"
    echo "   -c          : check if processing was successful"
-   echo "   -a account  : specify a different special project for accounting (default $ECE3_POSTPROC_ACCOUNT)"
+   echo "   -a account  : specify a different special project for accounting (default: ${ECE3_POSTPROC_ACCOUNT-})"
    echo "   -r RUNDIR   : fully qualified path to another user EC-Earth top RUNDIR"
    echo "                   that is RUNDIR/EXP/post must exists and be readable"
    echo "   -y          : (Y)early global mean are added to "
@@ -22,7 +22,7 @@ usage()
 set -ue
 
 # -- default option
-account=$ECE3_POSTPROC_ACCOUNT
+account=${ECE3_POSTPROC_ACCOUNT-}
 ALT_RUNDIR=""
 checkit=0
 options=""

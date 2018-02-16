@@ -304,7 +304,7 @@ fi
 
 
 # TODO : add case for newer cdftools syntax    
-if [ $nemo_extra == 1 && $newercdftools == 0] ; then
+if [[ $nemo_extra == 1 && $newercdftools == 0 ]] ; then
 
     #compute potential and in situ density
     $cdftoolsbin/cdfsiginsitu ${froot}_grid_T.nc

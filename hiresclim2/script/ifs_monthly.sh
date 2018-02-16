@@ -38,7 +38,7 @@ mkdir -p $OUTDIR || exit -1
 out=$OUTDIR/${expname}_${year}
 
 # ICMSH
-if [ -n "$FILTERSH" ]
+if [ -n "${FILTERSH-}" ]
 then
     echo "$FILTERSH" > filtsh.txt
     for m1 in $(seq 1 $NPROCS 12)
@@ -88,7 +88,7 @@ rm temp_lnsp.nc
 
 
 # ICMGG
-if [ -n "$FILTERGG2D" ]
+if [ -n "${FILTERGG2D-}" ]
 then
     echo "$FILTERGG2D" > filtgg2d.txt
     for m1 in $(seq 1 $NPROCS 12)

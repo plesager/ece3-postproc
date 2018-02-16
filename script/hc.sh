@@ -12,7 +12,7 @@ usage()
    echo "Submitted scripts and logs are in $SCRATCH/tmp_ecearth3"
    echo
    echo "Options are:"
-   echo "   -a ACCOUNT  : specify a different special project for accounting (default $ECE3_POSTPROC_ACCOUNT)"
+   echo "   -a ACCOUNT  : specify a different special project for accounting (default: ${ECE3_POSTPROC_ACCOUNT-})"
    echo "   -c          : check for success"
    echo "   -r RUNDIR   : fully qualified path to another user EC-Earth top RUNDIR"
    echo "                   that is RUNDIR/EXP/output must exists and be readable"
@@ -23,8 +23,7 @@ usage()
 set -ue
 
 # -- default options
-account=""
-[[ -z "${ECE3_POSTPROC_ACCOUNT:-}"  ]] || account=$ECE3_POSTPROC_ACCOUNT
+account="${ECE3_POSTPROC_ACCOUNT-}"
 ALT_RUNDIR=""
 checkit=0
 options=""
