@@ -73,7 +73,8 @@ ifs_daily=0
 ifs_6hrs=0
 #NEMO postproc will only be done if requested AND nemo output is present
 nemo=1
-# NEMO extra-fields; extra-fields require NCO
+
+# NEMO extra-fields; extra-fields require NCO 
 nemo_extra=0
 
 # copy monthly results in a second folder
@@ -107,25 +108,33 @@ mkdir -p $OUTDIR0
 
 ############################################################
 
-# test if it was a coupled run, and find resolution
-nemo=0
+#start to condense support to ISAC file into a single place
+
 if [[ -n ${ECE3_POSTPROC_ISAC_STRUCTURE} ]] ; then
-    cf=${BASERESULTS}/Output_${year}/NEMO/
+	export IFSRESULTS=$BASERESULTS/Output_${year}/IFS
+	export NEMORESULTS=$BASERESULTS/Output_${year}/NEMO
+	#cf=${BASERESULTS}/Output_${year}/NEMO/
+	#a_file=$(ls -1 ${BASERESULTS}/Output_${year}/NEMO/*grid_V* | head -n1)
+
+#still need to integrate support for monthly legs here
 else
-    cf=${BASERESULTS}/nemo
+	#cf=${BASERESULTS}/nemo
+	#a_file=$(ls -1 ${BASERESULTS}/nemo/001/*grid_V* | head -n1)
+	export IFSRESULTS=$BASERESULTS/ifs/$(printf %03d $((year-${yref}+1)))
+	export NEMORESULTS=$BASERESULTS/nemo/$(printf %03d $((year-${yref}+1)))
 fi
 
-cf=${BASERESULTS}/nemo
+###########################################################
+
+# test if it was a coupled run, and find resolution
+
 NEMOCONFIG=""
-if [[ -e ${cf} && $nemo == 1 ]]
+#if [[ -e ${cf} && $nemo == 1 ]]
+if [[ -e ${NEMORESULTS} && $nemo == 1 ]]
 then 
     nemo=1
-   
-    if [[ -n ${ECE3_POSTPROC_ISAC_STRUCTURE} ]] ; then
-	a_file=$(ls -1 ${BASERESULTS}/Output_${year}/NEMO/*grid_V* | head -n1)
-    else
-    	a_file=$(ls -1 ${BASERESULTS}/nemo/001/*grid_V* | head -n1)
-    fi
+  
+    a_file=$(ls -1 ${NEMORESULTS}/*grid_V* | head -n1) 
     ysize=$(cdo griddes $a_file | grep ysize | awk '{print $3}')
 
     case $ysize in
@@ -166,7 +175,7 @@ cd $PROGDIR/script
     fi
 
     if [ $ifs_daily == 1 ] ; then
-        . ./ifs_daily.sh $expname $year
+        . ./ifs_daily.sh $expname $year $yref
     fi
 
     if [ $ifs_6hrs == 1 ] ; then
@@ -192,7 +201,7 @@ cd $PROGDIR/script
         echo "$expname for $year has been postprocessed successfully" > $INFODIR/postcheck_${expname}_${year}.txt
         echo "Postprocessing lasted for $runtime sec (or $hh hrs)" >> $INFODIR/postcheck_${expname}_${year}.txt
         echo "Configuration: MON: $ifs_monthly ; DAY: $ifs_daily ; 6HRS: $ifs_6hrs; "  >> $INFODIR/postcheck_${expname}_${year}.txt
-                echo $(date) >> $INFODIR/postcheck_${expname}_${year}.txt
+        echo $(date) >> $INFODIR/postcheck_${expname}_${year}.txt
     fi
 
 # copy monthly data

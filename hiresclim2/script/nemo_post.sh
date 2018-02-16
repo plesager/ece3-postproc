@@ -26,13 +26,6 @@ mkdir -p $SCRATCH/tmp_ecearth3/tmp
 WRKDIR=$(mktemp -d $SCRATCH/tmp_ecearth3/tmp/hireclim2_${expname}_XXXXXX) # use template if debugging
 cd $WRKDIR
 
-#where to get the files
-if [[ -n ${ECE3_POSTPROC_ISAC_STRUCTURE} ]] ; then
-    NEMORESULTS=$BASERESULTS/Output_${year}/NEMO
-else
-    NEMORESULTS=$BASERESULTS/nemo/$(printf %03d $((year-${yref}+1)))
-fi
-
 NOMP=${NEMO_NPROCS}
 
 # Nemo output filenames start with...
