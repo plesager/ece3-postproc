@@ -44,8 +44,8 @@ mifse.chck4f(cf_Q)
 
 f_Q_in = Dataset(cf_Q)
 
-vlev     = f_Q_in.variables['plev'][:]
-cunt_lev = f_Q_in.variables['plev'].units
+vlev     = f_Q_in.variables['lev'][:]
+cunt_lev = f_Q_in.variables['lev'].units
 
 nk = len(vlev)
 

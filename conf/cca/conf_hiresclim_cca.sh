@@ -1,11 +1,15 @@
 #!/bin/bash
 
-# -- Filter IFS output (to be applied through a grib_filter call)
+# -- Filter IFS output (to be applied through a grib_filter call) - Leave empty if not used
 # Useful when there are output with different timestep.
 # Comment if no filtering/change for different output
 #FILTERGG2D="if ( (!(typeOfLevel is \"isobaricInhPa\") && !(typeOfLevel is \"isobaricInPa\") && !(typeOfLevel is \"potentialVorticity\" ))) { write; }"
 #FILTERGG3D="if ( ((typeOfLevel is \"isobaricInhPa\") || (typeOfLevel is \"isobaricInPa\") )) { write; }"
 #FILTERSH="if ( ((dataTime == 0000) || (dataTime == 0600) || (dataTime == 1200)  || (dataTime == 1800) )) { write; }"
+
+FILTERGG2D=
+FILTERGG3D=
+FILTERSH=
 
 #PLS  # where is the IFS, NEMO output and logs located (change based on your directory structure)
 #PLS  # 1) ISAC-CNR dir structure
@@ -45,10 +49,10 @@ cdftoolsbin="${CDFTOOLS_DIR}/bin"
 #cdftoolsbin="/home/ms/nl/nm6/ECEARTH/postproc/barakuda/cdftools_light/bin"
 python=python
 
-# number of parallel procs for IFS (max 12) and NEMO rebuild. Default to 12.
-if [ -z $IFS_NPROCS ] ; then
-    IFS_NPROCS=12; NEMO_NPROCS=12
-fi
+#--set in the calling script-- # number of parallel procs for IFS (max 12) and NEMO rebuild. Default to 12.
+#--set in the calling script-- if [ -z $IFS_NPROCS ] ; then
+#--set in the calling script--     IFS_NPROCS=12; NEMO_NPROCS=12
+#--set in the calling script-- fi
 
 # where to find mesh and mask files for NEMO. Files are expected in $MESHDIR_TOP/$NEMOCONFIG.
 export MESHDIR_TOP="/perm/ms/nl/nm6/ECE3-DATA/post-proc"

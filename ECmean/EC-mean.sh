@@ -17,7 +17,7 @@ usage()
     echo "Options are:"
     echo "   -r ALT_RUNDIR : fully qualified path to another user EC-Earth top RUNDIR"
     echo "                   that is RUNDIR/EXP/post must exists and be readable"
-    echo "   -y          : (Y)early global mean are added to "
+    echo "   -y          : (Y)early global mean are added to 'OUTDIR/yearly_fldmean_EXP.txt'"
     echo "   -p          : account for (P)rimavera complicated output"
 }
 
@@ -128,10 +128,10 @@ if [ $ly -eq 1 ]; then
         cd $PIDIR/scripts/ 
         ./global_mean.sh $exp $iy $iy
         cd $TABLEDIR/..
-        $PIDIR/tab2lin_cs.sh $exp $iy $iy > $TABLEDIR/globtable_cs_$exp_$iy-$iy.txt
-        $PIDIR/tab2lin.sh $exp $iy $iy    > $TABLEDIR/globtable_$exp_$iy-$iy.txt
-        cat $TABLEDIR/globtable_cs_$exp_$iy-$iy.txt >> $TABLEDIR/yearly_fldmean_${exp}.txt
-        rm -f $TABLEDIR/globtable_cs_$exp_$iy-$iy.txt $TABLEDIR/globtable_$exp_$iy-$iy.txt
+        $PIDIR/tab2lin_cs.sh $exp $iy $iy > $TABLEDIR/globtable_cs_${exp}_$iy-$iy.txt
+        $PIDIR/tab2lin.sh $exp $iy $iy    > $TABLEDIR/globtable_${exp}_$iy-$iy.txt
+        cat $TABLEDIR/globtable_cs_${exp}_$iy-$iy.txt >> $TABLEDIR/yearly_fldmean_${exp}.txt
+        rm -f $TABLEDIR/globtable_cs_${exp}_$iy-$iy.txt $TABLEDIR/globtable_${exp}_$iy-$iy.txt
         $PIDIR/gregory.sh $exp $iy $iy >> $TABLEDIR/gregory_${exp}.txt        
     done
 fi
@@ -145,35 +145,33 @@ set -x
 if  (( do_3d_vars ))
 then
 
-printf "\n\n ----------------------------------- old PI2\n"
-./oldPI2.sh $exp $year1 $year2 $lp
+    printf "\n\n ----------------------------------- old PI2\n"
+    ./oldPI2.sh $exp $year1 $year2 $lp
 
-printf "\n\n----------------------------------- PI3\n"
-./PI3.sh $exp $year1 $year2 $lp
+    printf "\n\n----------------------------------- PI3\n"
+    ./PI3.sh $exp $year1 $year2 $lp
 
-# Rearranging in a single table the PI from the old and the new versions
-cat $TABLEDIR/PIold_RK08_${exp}_${year1}_${year2}.txt $TABLEDIR/PI2_RK08_${exp}_${year1}_${year2}.txt > $TMPDIR/out.txt
-rm $TABLEDIR/PI2_RK08_${exp}_${year1}_${year2}.txt $TABLEDIR/PIold_RK08_${exp}_${year1}_${year2}.txt
-mv $TMPDIR/out.txt $TABLEDIR/PI2_RK08_${exp}_${year1}_${year2}.txt 
-#not needed rm -rf $TMPDIR
-#not needed  
-
-fi #do_3d_vars
+    # Rearranging in a single table the PI from the old and the new versions
+    cat $TABLEDIR/PIold_RK08_${exp}_${year1}_${year2}.txt $TABLEDIR/PI2_RK08_${exp}_${year1}_${year2}.txt > $TMPDIR/out.txt
+    rm $TABLEDIR/PI2_RK08_${exp}_${year1}_${year2}.txt $TABLEDIR/PIold_RK08_${exp}_${year1}_${year2}.txt
+    mv $TMPDIR/out.txt $TABLEDIR/PI2_RK08_${exp}_${year1}_${year2}.txt 
+    
+    # rm -rf $TMPDIR
+fi
 
 printf "\n\n----------------------------------- Global Mean\n"
 ./global_mean.sh $exp $year1 $year2
 
-# TODO - avoid interceding update of these 3 files
+# TODO - avoid interceding update of these 3 files in case of parallel runs
 cd $TABLEDIR/..
 
 # produce tables
-# do we need to produce globtable_cs.txt file since we can import globtable.txt into excel anyway?
 [[ ! -e globtable.txt ]] && \
     echo "                | TOAnet SW | TOAnet LW | Net TOA | Sfc Net SW | Sfc Net LW | SH Fl. | LH Fl. | SWCF | LWCF | NetSfc* | TOA-SFC | t2m | TCC | LCC | MCC | HCC | TP | P-E |" >> globtable.txt
 [[ ! -e globtable_cs.txt ]] && \
     echo '"               " "TOAnet SW" "TOAnet LW" "Net TOA" "Sfc Net SW" "Sfc Net LW" "SH Fl." "LH Fl." "SWCF" "LWCF" "NetSfc*" "TOA-SFC" "t2m" "TCC" "LCC" "MCC" "HCC" "TP" "P-E"' >> globtable_cs.txt
 cat globtable.txt globtable_cs.txt
-#touch globtable.txt globtable_cs.txt
+
 $PIDIR/tab2lin_cs.sh $exp $year1 $year2 >> ./globtable_cs.txt
 $PIDIR/tab2lin.sh $exp $year1 $year2 >> ./globtable.txt
 

@@ -71,7 +71,8 @@ ifs_monthly=0
 ifs_monthly_mma=0
 ifs_daily=0
 ifs_6hrs=0
-
+#NEMO postproc will only be done if requested AND nemo output is present
+nemo=1
 # NEMO extra-fields; extra-fields require NCO
 nemo_extra=0
 
@@ -107,6 +108,7 @@ mkdir -p $OUTDIR0
 ############################################################
 
 # test if it was a coupled run, and find resolution
+<<<<<<< HEAD
 nemo=0
 if [[ -n ${ECE3_POSTPROC_ISAC_STRUCTURE} ]] ; then
     cf=${BASERESULTS}/Output_${year}/NEMO/
@@ -114,8 +116,11 @@ else
     cf=${BASERESULTS}/nemo
 fi
 
+=======
+cf=${BASERESULTS}/nemo
+>>>>>>> upstream/master
 NEMOCONFIG=""
-if [ -e ${cf} ]
+if [[ -e ${cf} && $nemo == 1 ]]
 then 
     nemo=1
    
@@ -139,8 +144,9 @@ then
     
     export NEMOCONFIG
     echo "*II* hiresclim2 accounts for nemo output"
+else
+    nemo=0
 fi
-
 
 INFODIR=$OUTDIR0
 

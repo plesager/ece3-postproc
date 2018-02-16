@@ -35,7 +35,7 @@ submit_cmd="sbatch"
 
 
 # required programs, including compression options
-module load gsl grib netcdf hdf5 CDO udunits nco python/2.7.13
+module load gsl grib netcdf hdf5 CDO/1.7.2 udunits nco python/2.7.13
 module list
 export CDFTOOLS_DIR=/gpfs/projects/bsc32/opt/cdftools-3.1/intel-2017.4
 
