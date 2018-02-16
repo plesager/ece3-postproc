@@ -12,7 +12,7 @@
 # TODO: make the oft-used harcoded options either automatic if possible or
 # command line option??Ideally user should not have to edit his file.
 
-set -ue
+set -e
 
 usage()
 {
@@ -67,7 +67,7 @@ echo "Rebuild 3D relative humidity: ${rh_build:=1}"
 # monthly flag for standard hiresclim
 # daily and 6hrs flag for u,v,t,z 3d field + tas,totp extraction
 # TODO add argument to script
-ifs_monthly=1
+ifs_monthly=0
 ifs_monthly_mma=0
 ifs_daily=0
 ifs_6hrs=0
@@ -80,9 +80,6 @@ store=0
 
 # summary? save a postcheck file
 fstore=1
-
-# are you using standard file structure or ISAC-CNR file structure?
-ISAC_structure=1
 
 ############################################################
 # settings that depend only on the ECE3_POSTPROC_* variables
@@ -107,23 +104,26 @@ fi
 export OUTDIR0=${ECE3_POSTPROC_RUNDIR}/$expname/post
 mkdir -p $OUTDIR0
 
-if [[ ${ISAC_structure} -eq 1 ]] ; then
-    IFSRESULTS=$BASERESULTS/Output_*/IFS
-else
-    IFSRESULTS=$BASERESULTS/ifs/$(printf %03d $((year-${yref}+1)))
-fi
-
 ############################################################
 
 # test if it was a coupled run, and find resolution
 nemo=0
-cf=${BASERESULTS}/nemo
+if [[ -n ${ECE3_POSTPROC_ISAC_STRUCTURE} ]] ; then
+    cf=${BASERESULTS}/Output_${year}/NEMO/
+else
+    cf=${BASERESULTS}/nemo
+fi
+
 NEMOCONFIG=""
 if [ -e ${cf} ]
 then 
     nemo=1
-    
-    a_file=$(ls -1 ${BASERESULTS}/nemo/001/*grid_V* | head -n1)
+   
+    if [[ -n ${ECE3_POSTPROC_ISAC_STRUCTURE} ]] ; then
+	a_file=$(ls -1 ${BASERESULTS}/Output_${year}/NEMO/*grid_V* | head -n1)
+    else
+    	a_file=$(ls -1 ${BASERESULTS}/nemo/001/*grid_V* | head -n1)
+    fi
     ysize=$(cdo griddes $a_file | grep ysize | awk '{print $3}')
 
     case $ysize in

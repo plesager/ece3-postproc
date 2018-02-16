@@ -27,7 +27,11 @@ WRKDIR=$(mktemp -d $SCRATCH/tmp_ecearth3/tmp/hireclim2_${expname}_XXXXXX) # use 
 cd $WRKDIR
 
 #where to get the files
-NEMORESULTS=$BASERESULTS/nemo/$(printf %03d $((year-${yref}+1)))
+if [[ -n ${ECE3_POSTPROC_ISAC_STRUCTURE} ]] ; then
+    NEMORESULTS=$BASERESULTS/Output_${year}/NEMO
+else
+    NEMORESULTS=$BASERESULTS/nemo/$(printf %03d $((year-${yref}+1)))
+fi
 
 NOMP=${NEMO_NPROCS}
 
@@ -157,7 +161,9 @@ if [ "${nm_sss}"  != "sosaline" ];  then rename_str=$rename_str" -v ${nm_sss},so
 if [ "${nm_ssh}"  != "sossheig" ];  then rename_str=$rename_str" -v ${nm_ssh},sossheig" ; fi
 if [ "${nm_tpot}" != "votemper" ];  then rename_str=$rename_str" -v ${nm_tpot},votemper"; fi
 if [ "${nm_s}"    != "vosaline" ];  then rename_str=$rename_str" -v ${nm_s},vosaline"   ; fi
+
 if [ "${rename_str}" != "" ];  then ncrename $rename_str ${froot}_grid_T.nc ; fi
+
 if [ "${nm_wfo}"  != "sowaflup" ];  then ncrename -v ${nm_wfo},sowaflup  ${froot}_${SBC}.nc ; fi
 if [ ${iuf} -eq 1 ]; then
     if [ "${nm_u}"   != "vozocrtx" ];  then ncrename -v ${nm_u},vozocrtx    ${froot}_grid_U.nc ; fi

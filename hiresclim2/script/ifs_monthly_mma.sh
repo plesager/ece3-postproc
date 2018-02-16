@@ -24,9 +24,14 @@ mkdir -p $SCRATCH/tmp_ecearth3/tmp
 WRKDIR=$(mktemp -d $SCRATCH/tmp_ecearth3/tmp/hireclim2_${expname}_XXXXXX) # use template if debugging
 cd $WRKDIR
 
-# where to get the files, assuming yearly legs
-IFSRESULTS=$BASERESULTS/ifs/$(printf %03d $((year-${yref}+1)))
-#IFSRESULTS=$BASERESULTS
+# where to get the files, assuming yearly legs (options for ISAC file structure)
+if [[ -n ${ECE3_POSTPROC_ISAC_STRUCTURE} ]] ; then
+    IFSRESULTS=$BASERESULTS/Output_*/IFS
+else
+    IFSRESULTS=$BASERESULTS/ifs/$(printf %03d $((year-${yref}+1)))
+fi
+
+#IFSRESULTS=$BASERESULTS/ifs/$(printf %03d $((year-${yref}+1)))
 
 NPROCS=${IFS_NPROCS}
 

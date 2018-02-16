@@ -24,10 +24,20 @@ mkdir -p $SCRATCH/tmp_ecearth3/tmp
 WRKDIR=$(mktemp -d $SCRATCH/tmp_ecearth3/tmp/hireclim2_${expname}_XXXXXX) # use template if debugging
 cd $WRKDIR
 
-# where to get the files, assuming yearly legs
-# IFSRESULTS=$BASERESULTS/ifs/$(printf %03d $((year-${yref}+1)))
+# where to get the files, assuming yearly legs (options for ISAC file structure)
+if [[ -n ${ECE3_POSTPROC_ISAC_STRUCTURE} ]] ; then
+    IFSRESULTS=$BASERESULTS/Output_${year}/IFS
+else
+    IFSRESULTS=$BASERESULTS/ifs/$(printf %03d $((year-${yref}+1)))
+fi
 
 NPROCS=${IFS_NPROCS}
+
+echo --- Analyzing monthly output -----
+echo Temporary directory is $WRKDIR
+echo Data directory is $IFSRESULTS
+echo Postprocessing with $NPROCS cores
+
 
 # where to save (archive) the results
 OUTDIR=$OUTDIR0/mon/Post_$year
@@ -59,6 +69,7 @@ then
         wait
         rm icmsh_??????
     done
+    rm filtsh.txt
 else
     for m1 in $(seq 1 $NPROCS 12)
     do
@@ -138,6 +149,7 @@ then
         icmgg_${year}.grb ${out}_
 
     $cdozip -r -R -t $ecearth_table selvar,q  icmgg3d_${year}.grb ${out}_q.nc
+    rm filtgg2d.txt filtgg3d.txt
 
 else
 

@@ -8,22 +8,13 @@
 #---standard definitions---#
 ############################
 
-JOBMAXHOURS=24
-
 # Comment if no filtering/change for different output
 FILTERGG2D="if ( (!(typeOfLevel is \"isobaricInhPa\") && !(typeOfLevel is \"isobaricInPa\") && !(typeOfLevel is \"potentialVorticity\" ))) { write; }"
 FILTERGG3D="if ( ((typeOfLevel is \"isobaricInhPa\") || (typeOfLevel is \"isobaricInPa\") )) { write; }"
 FILTERSH="if ( ((dataTime == 0000) || (dataTime == 0600) || (dataTime == 1200)  || (dataTime == 1800) )) { write; }"
 
-#ROOT=/marconi/home/userexternal/$USER0
-#program folder
-#if [ -z $PROGDIR ] ; then
-#PROGDIR=$ROOT/ecearth3/post/hiresclim2
-#fi
-
+#scheduler
 submit_cmd="sbatch"
-
-
 
 # required programs, including compression options
 module unload netcdf hdf5
@@ -45,17 +36,17 @@ cdftoolsbin="$WORK/cdftools/3.0/bin"
 python=python
 
 # number of parallel procs for IFS (max 12) and NEMO rebuild
-if [ -z $IFS_NPROCS ] ; then
+if [[ -z $IFS_NPROCS ]] ; then
     IFS_NPROCS=12; NEMO_NPROCS=12
 fi
 
 # NEMO resolution
 #if [ -z $NEMOCONFIG ] ; then
-#export NEMOCONFIG="ORCA1L75"
+#Export NEMOCONFIG="ORCA1L75"
 #fi
 
 # where to find mesh and mask files 
-export MESHDIR=$ROOT/ecearth3/nemo/$NEMOCONFIG
+export MESHDIR_TOP=/marconi_work/Pra13_3311/ecearth3/nemo
 
 # where to find the results from the EC-EARTH experiment
 # On our machine Nemo and IFS results are in separate directories
@@ -80,17 +71,6 @@ export nm_u="uo"           ; # X current (3D)
 export nm_v="vo"           ; # Y current (3D)
 
 
-# where to produce the results
-#export OUTDIR0=/marconi_scratch/userexternal/$USERme/ece3/$expname/post
-#mkdir -p $OUTDIR0
-
-#where to archive the monthly results (daily are kept in scratch)
-#STOREDIR=/home/hpc/pr45de/di56bov/work/ecearth3/post/hiresclim/${expname}
-#mkdir -p $STOREDIR || exit -1
-
-# create a temporary directory
-#export TMPDIR=/marconi_scratch/userexternal/$USERme/tmp/post_${expname}_$RANDOM
-#mkdir -p $TMPDIR || exit -1
 
 #echo Script is running in $PROGDIR
 #echo Temporary files are in $TMPDIR

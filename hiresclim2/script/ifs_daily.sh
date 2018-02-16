@@ -22,8 +22,12 @@ fi
 #go to temp directory
 cd $TMPDIR
 
-#where to get the files
-IFSRESULTS=$BASERESULTS/Output_$year/IFS
+# where to get the files, assuming yearly legs (options for ISAC file structure)
+if [[ -n ${ECE3_POSTPROC_ISAC_STRUCTURE} ]] ; then
+    IFSRESULTS=$BASERESULTS/Output_*/IFS
+else
+    IFSRESULTS=$BASERESULTS/ifs/$(printf %03d $((year-${yref}+1)))
+fi
 
 # where to save (archive) the results
 OUTDIR=$OUTDIR0/day/Post_$year
