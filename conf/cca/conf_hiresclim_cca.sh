@@ -1,15 +1,12 @@
 #!/bin/bash
 
-# -- Filter IFS output (to be applied through a grib_filter call) - Leave empty if not used
+# -- Filter IFS output (to be applied through a grib_filter call)
 # Useful when there are output with different timestep.
 # Comment if no filtering/change for different output
 #FILTERGG2D="if ( (!(typeOfLevel is \"isobaricInhPa\") && !(typeOfLevel is \"isobaricInPa\") && !(typeOfLevel is \"potentialVorticity\" ))) { write; }"
 #FILTERGG3D="if ( ((typeOfLevel is \"isobaricInhPa\") || (typeOfLevel is \"isobaricInPa\") )) { write; }"
 #FILTERSH="if ( ((dataTime == 0000) || (dataTime == 0600) || (dataTime == 1200)  || (dataTime == 1800) )) { write; }"
 
-FILTERGG2D=
-FILTERGG3D=
-FILTERSH=
 
 #PLS  # where is the IFS, NEMO output and logs located (change based on your directory structure)
 #PLS  # 1) ISAC-CNR dir structure
@@ -49,10 +46,13 @@ cdftoolsbin="${CDFTOOLS_DIR}/bin"
 #cdftoolsbin="/home/ms/nl/nm6/ECEARTH/postproc/barakuda/cdftools_light/bin"
 python=python
 
-#--set in the calling script-- # number of parallel procs for IFS (max 12) and NEMO rebuild. Default to 12.
-#--set in the calling script-- if [ -z $IFS_NPROCS ] ; then
-#--set in the calling script--     IFS_NPROCS=12; NEMO_NPROCS=12
-#--set in the calling script-- fi
+# Set this to 1 if a newer syntax is used ("cdfmean -f file ..." instead
+# of "cdfmean file ..."). Set both to 1 if using version 4 of cdftools, only the second if using 3.0.1. 
+newercdftools=0
+newercdftools2=0
+
+# Set to 0 for not to rebuild 3D relative humidity
+rh_build=1
 
 # where to find mesh and mask files for NEMO. Files are expected in $MESHDIR_TOP/$NEMOCONFIG.
 export MESHDIR_TOP="/perm/ms/nl/nm6/ECE3-DATA/post-proc"
@@ -60,6 +60,11 @@ export MESHDIR_TOP="/perm/ms/nl/nm6/ECE3-DATA/post-proc"
 # Base dir to archive (ie just make a copy of) the monthly results. Daily results, if any, are left in scratch. 
 STOREDIR=/home/hpc/pr45de/di56bov/work/ecearth3/post/hiresclim/
 
+# ---------- NEMO VAR/FILES MANGLING ----------------------
+
+# NEMO 'wfo' variable can be in the SBC files instead of T files, then
+# set this flag to 1
+export use_SBC=0
 
 # # NEMO files
 # export NEMO_SAVED_FILES="grid_T grid_U grid_V icemod grid_W" ; # which files are saved / we care for?
@@ -75,8 +80,3 @@ STOREDIR=/home/hpc/pr45de/di56bov/work/ecearth3/post/hiresclim/
 # export nm_s="so"           ; # salinity (3D)
 # export nm_u="uo"           ; # X current (3D)
 # export nm_v="vo"           ; # Y current (3D)
-
-
-
-
-# TODO: implement a true backup on ECFS
