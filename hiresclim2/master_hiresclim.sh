@@ -109,19 +109,19 @@ mkdir -p $OUTDIR0
 ############################################################
 
 #start to condense support to ISAC file into a single place
-
+# define folders that will be evaluted in each script in order to use the correct file structure
 if [[ -n ${ECE3_POSTPROC_ISAC_STRUCTURE} ]] ; then
-	export IFSRESULTS=$BASERESULTS/Output_${year}/IFS
-	export NEMORESULTS=$BASERESULTS/Output_${year}/NEMO
-	#cf=${BASERESULTS}/Output_${year}/NEMO/
-	#a_file=$(ls -1 ${BASERESULTS}/Output_${year}/NEMO/*grid_V* | head -n1)
+	export IFSRESULTS0=$BASERESULTS/Output_${year}/IFS
+	export NEMORESULTS0=$BASERESULTS/Output_${year}/NEMO
 
-#still need to integrate support for monthly legs here
 else
-	#cf=${BASERESULTS}/nemo
-	#a_file=$(ls -1 ${BASERESULTS}/nemo/001/*grid_V* | head -n1)
-	export IFSRESULTS=$BASERESULTS/ifs/$(printf %03d $((year-${yref}+1)))
-	export NEMORESULTS=$BASERESULTS/nemo/$(printf %03d $((year-${yref}+1)))
+	if [[ ${monthly_leg} -eq 1 ]] ; then 
+		export IFSRESULTS0=$BASERESULTS/ifs/$(printf %03d $(( (year-${yref})*12+m)))
+		export NEMORESULTS0=$BASERESULTS/nemo/$(printf %03d $(( (year-${yref})*12+m)))
+	else
+		export IFSRESULTS0=$BASERESULTS/ifs/$(printf %03d $((year-${yref}+1)))
+		export NEMORESULTS0=$BASERESULTS/nemo/$(printf %03d $((year-${yref}+1)))
+	fi
 fi
 
 ###########################################################
@@ -129,7 +129,8 @@ fi
 # test if it was a coupled run, and find resolution
 
 NEMOCONFIG=""
-#if [[ -e ${cf} && $nemo == 1 ]]
+
+NEMORESULTS=$(eval echo $NEMORESULTS0)
 if [[ -e ${NEMORESULTS} && $nemo == 1 ]]
 then 
     nemo=1
