@@ -32,7 +32,7 @@ done
 cdo=cdo
 cdozip="$cdo -f nc4c -z zip"
 rbld="$WORK/ecearth3/rebuild_nemo/rebuild_nemo"
-cdftoolsbin="$WORK/cdftools/3.0/bin"
+cdftoolsbin="$WORK/opt/bin"
 python=python
 
 # number of parallel procs for IFS (max 12) and NEMO rebuild

@@ -1,0 +1,14 @@
+#!/bin/bash
+#SBATCH --job-name <JOBID>_<EXPID>
+#SBATCH --time=01:59:00
+#SBATCH --account=<ACCOUNT>
+#SBATCH -N 1
+#SBATCH -n 1
+#SBATCH --mem=24GB
+#SBATCH --output <OUT>/log/<JOBID>_<EXPID>.out
+#SBATCH --error <OUT>/log/<JOBID>_<EXPID>.err
+#SBATCH --partition=bdw_usr_prod
+
+set -ex
+
+cd $ECE3_POSTPROC_TOPDIR/script
