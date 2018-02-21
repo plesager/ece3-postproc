@@ -105,7 +105,7 @@ do
            for m in $(seq 1 12)
            do
                m0=`printf "%02d" $m`
-	       #additional evaluation for monthly files
+               #additional evaluation for monthly files
                NEMORESULTS=$(eval echo $NEMORESULTS0)
                mfiles=$mfiles" "$NEMORESULTS/${expname}_1m_${year}${m0}01_${year}${m0}??_${t}.nc
            done
@@ -367,11 +367,6 @@ if [[ $nemo_extra == 1 && $newercdftools == 0 ]] ; then
     mv fulloce.nc ${out}_fulloce.nc
 
 fi
-
-# rm $TMPDIR/nam_rebuild
-# rm $TMPDIR/*nc
-# rm $TMPDIR/tmp*
-# rm $TMPDIR/*txt
 
 
 cd -

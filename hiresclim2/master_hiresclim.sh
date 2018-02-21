@@ -12,7 +12,7 @@
 # TODO: make the oft-used harcoded options either automatic if possible or
 # command line option??Ideally user should not have to edit his file.
 
-set -e
+set -eu
 
 usage()
 {
@@ -59,7 +59,7 @@ export monthly_leg
 . $ECE3_POSTPROC_TOPDIR/conf/$ECE3_POSTPROC_MACHINE/conf_hiresclim_$ECE3_POSTPROC_MACHINE.sh
 
 # build 3D relative humidity; require python with netCDF4 module
-echo "Rebuild 3D relative humidity: ${rh_build:=1}"
+echo "*II* Rebuild 3D relative humidity: ${rh_build:=1}"
 
 ########## HARDCODED OPTIONS ###############
 
@@ -108,20 +108,21 @@ mkdir -p $OUTDIR0
 
 ############################################################
 
-#start to condense support to ISAC file into a single place
+# start to condense support to ISAC file into a single place
 # define folders that will be evaluted in each script in order to use the correct file structure
+
 if [[ -n ${ECE3_POSTPROC_ISAC_STRUCTURE} ]] ; then
-	export IFSRESULTS0=$BASERESULTS/Output_${year}/IFS
-	export NEMORESULTS0=$BASERESULTS/Output_${year}/NEMO
+    export IFSRESULTS0=$BASERESULTS/Output_${year}/IFS
+    export NEMORESULTS0=$BASERESULTS/Output_${year}/NEMO
 
 else
-	if [[ ${monthly_leg} -eq 1 ]] ; then 
-		export IFSRESULTS0=$BASERESULTS/ifs/$(printf %03d $(( (year-${yref})*12+m)))
-		export NEMORESULTS0=$BASERESULTS/nemo/$(printf %03d $(( (year-${yref})*12+m)))
-	else
-		export IFSRESULTS0=$BASERESULTS/ifs/$(printf %03d $((year-${yref}+1)))
-		export NEMORESULTS0=$BASERESULTS/nemo/$(printf %03d $((year-${yref}+1)))
-	fi
+    if [[ ${monthly_leg} -eq 1 ]] ; then 
+        export IFSRESULTS0=$BASERESULTS/ifs/'$(printf %03d $(( (year-${yref})*12+m)))'
+        export NEMORESULTS0=$BASERESULTS/nemo/'$(printf %03d $(( (year-${yref})*12+m)))'
+    else
+      export IFSRESULTS0=$BASERESULTS/ifs/$(printf %03d $((year-${yref}+1)))
+      export NEMORESULTS0=$BASERESULTS/nemo/$(printf %03d $((year-${yref}+1)))
+    fi
 fi
 
 ###########################################################
@@ -130,6 +131,7 @@ fi
 
 NEMOCONFIG=""
 
+m=1                             # default to month 1 for eval
 NEMORESULTS=$(eval echo $NEMORESULTS0)
 if [[ -e ${NEMORESULTS} && $nemo == 1 ]]
 then 
@@ -194,7 +196,7 @@ cd $PROGDIR/script
     end1=$(date +%s)
     runtime=$((end1-start1));
     hh=$(echo "scale=3; $runtime/3600" | bc)
-    echo "One year postprocessing runtime is $runtime sec (or $hh hrs) "
+    echo "*II* One year postprocessing runtime is $runtime sec (or $hh hrs) "
     echo; echo
 
     if [ $fstore == 1 ] ; then      
