@@ -28,9 +28,6 @@ cd $WRKDIR
 
 NOMP=${NEMO_NPROCS}
 
-# Nemo output filenames start with...
-froot=${expname}_1m_${year}0101_${year}1231
-
 # Check on use of SBC file - can be set in your ../../../conf/conf_hiresclim_<MACHINE-NAME>.sh
 echo "SBC file used: ${use_SBC:=0}"
 (( $use_SBC )) && SBC='SBC' || SBC='grid_T'
@@ -87,6 +84,13 @@ ln -s $MESHDIR/mesh_hgr.nc
 ln -s $MESHDIR/mesh_zgr.nc
 ln -s $MESHDIR/new_maskglo.nc
 
+#eval folder
+NEMORESULTS=$(eval echo $NEMORESULTS0)
+
+# Nemo output filenames start with...
+froot=${expname}_1m_${year}0101_${year}1231
+
+
 # rebuild or create yearly file from monthly legs if necessary
 for t in grid_T grid_U grid_V icemod SBC
 do
@@ -101,7 +105,9 @@ do
            for m in $(seq 1 12)
            do
                m0=`printf "%02d" $m`
-               mfiles=$mfiles" "$BASERESULTS/nemo/$(printf %03d $(( (year-${yref})*12+m)))/${expname}_1m_${year}${m0}01_${year}${m0}??_${t}.nc
+               #additional evaluation for monthly files
+               NEMORESULTS=$(eval echo $NEMORESULTS0)
+               mfiles=$mfiles" "$NEMORESULTS/${expname}_1m_${year}${m0}01_${year}${m0}??_${t}.nc
            done
            ncrcat -3 $mfiles ${froot}_${t}.nc
        elif (( $(ls $NEMORESULTS/${froot}_${t}* | wc -w) ))
@@ -361,11 +367,6 @@ if [[ $nemo_extra == 1 && $newercdftools == 0 ]] ; then
     mv fulloce.nc ${out}_fulloce.nc
 
 fi
-
-# rm $TMPDIR/nam_rebuild
-# rm $TMPDIR/*nc
-# rm $TMPDIR/tmp*
-# rm $TMPDIR/*txt
 
 
 cd -
