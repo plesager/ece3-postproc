@@ -12,7 +12,7 @@
 # TODO: make the oft-used harcoded options either automatic if possible or
 # command line option??Ideally user should not have to edit his file.
 
-set -ue
+set -e
 
 usage()
 {
@@ -73,7 +73,8 @@ ifs_daily=0
 ifs_6hrs=0
 #NEMO postproc will only be done if requested AND nemo output is present
 nemo=1
-# NEMO extra-fields; extra-fields require NCO
+
+# NEMO extra-fields; extra-fields require NCO 
 nemo_extra=0
 
 # copy monthly results in a second folder
@@ -107,14 +108,34 @@ mkdir -p $OUTDIR0
 
 ############################################################
 
+#start to condense support to ISAC file into a single place
+# define folders that will be evaluted in each script in order to use the correct file structure
+if [[ -n ${ECE3_POSTPROC_ISAC_STRUCTURE} ]] ; then
+	export IFSRESULTS0=$BASERESULTS/Output_${year}/IFS
+	export NEMORESULTS0=$BASERESULTS/Output_${year}/NEMO
+
+else
+	if [[ ${monthly_leg} -eq 1 ]] ; then 
+		export IFSRESULTS0=$BASERESULTS/ifs/$(printf %03d $(( (year-${yref})*12+m)))
+		export NEMORESULTS0=$BASERESULTS/nemo/$(printf %03d $(( (year-${yref})*12+m)))
+	else
+		export IFSRESULTS0=$BASERESULTS/ifs/$(printf %03d $((year-${yref}+1)))
+		export NEMORESULTS0=$BASERESULTS/nemo/$(printf %03d $((year-${yref}+1)))
+	fi
+fi
+
+###########################################################
+
 # test if it was a coupled run, and find resolution
-cf=${BASERESULTS}/nemo
+
 NEMOCONFIG=""
-if [[ -e ${cf} && $nemo == 1 ]]
+
+NEMORESULTS=$(eval echo $NEMORESULTS0)
+if [[ -e ${NEMORESULTS} && $nemo == 1 ]]
 then 
     nemo=1
-    
-    a_file=$(ls -1 ${BASERESULTS}/nemo/001/*grid_V* | head -n1)
+  
+    a_file=$(ls -1 ${NEMORESULTS}/*grid_V* | head -n1) 
     ysize=$(cdo griddes $a_file | grep ysize | awk '{print $3}')
 
     case $ysize in
@@ -155,11 +176,11 @@ cd $PROGDIR/script
     fi
 
     if [ $ifs_daily == 1 ] ; then
-        . ./ifs_daily.sh $expname $year
+        . ./ifs_daily.sh $expname $year $yref
     fi
 
     if [ $ifs_6hrs == 1 ] ; then
-        . ./ifs_6hrs.sh $expname $year
+        . ./ifs_6hrs.sh $expname $year $yref
     fi
 
     if [ $nemo == 1 ] ; then
@@ -181,7 +202,7 @@ cd $PROGDIR/script
         echo "$expname for $year has been postprocessed successfully" > $INFODIR/postcheck_${expname}_${year}.txt
         echo "Postprocessing lasted for $runtime sec (or $hh hrs)" >> $INFODIR/postcheck_${expname}_${year}.txt
         echo "Configuration: MON: $ifs_monthly ; DAY: $ifs_daily ; 6HRS: $ifs_6hrs; "  >> $INFODIR/postcheck_${expname}_${year}.txt
-                echo $(date) >> $INFODIR/postcheck_${expname}_${year}.txt
+        echo $(date) >> $INFODIR/postcheck_${expname}_${year}.txt
     fi
 
 # copy monthly data

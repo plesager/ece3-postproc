@@ -26,13 +26,7 @@ mkdir -p $SCRATCH/tmp_ecearth3/tmp
 WRKDIR=$(mktemp -d $SCRATCH/tmp_ecearth3/tmp/hireclim2_${expname}_XXXXXX) # use template if debugging
 cd $WRKDIR
 
-#where to get the files
-NEMORESULTS=$BASERESULTS/nemo/$(printf %03d $((year-${yref}+1)))
-
 NOMP=${NEMO_NPROCS}
-
-# Nemo output filenames start with...
-froot=${expname}_1m_${year}0101_${year}1231
 
 # Check on use of SBC file - can be set in your ../../../conf/conf_hiresclim_<MACHINE-NAME>.sh
 echo "SBC file used: ${use_SBC:=0}"
@@ -90,6 +84,13 @@ ln -s $MESHDIR/mesh_hgr.nc
 ln -s $MESHDIR/mesh_zgr.nc
 ln -s $MESHDIR/new_maskglo.nc
 
+#eval folder
+NEMORESULTS=$(eval echo $NEMORESULTS0)
+
+# Nemo output filenames start with...
+froot=${expname}_1m_${year}0101_${year}1231
+
+
 # rebuild or create yearly file from monthly legs if necessary
 for t in grid_T grid_U grid_V icemod SBC
 do
@@ -104,7 +105,9 @@ do
            for m in $(seq 1 12)
            do
                m0=`printf "%02d" $m`
-               mfiles=$mfiles" "$BASERESULTS/nemo/$(printf %03d $(( (year-${yref})*12+m)))/${expname}_1m_${year}${m0}01_${year}${m0}??_${t}.nc
+	       #additional evaluation for monthly files
+               NEMORESULTS=$(eval echo $NEMORESULTS0)
+               mfiles=$mfiles" "$NEMORESULTS/${expname}_1m_${year}${m0}01_${year}${m0}??_${t}.nc
            done
            ncrcat -3 $mfiles ${froot}_${t}.nc
        elif (( $(ls $NEMORESULTS/${froot}_${t}* | wc -w) ))
@@ -157,7 +160,9 @@ if [ "${nm_sss}"  != "sosaline" ];  then rename_str=$rename_str" -v ${nm_sss},so
 if [ "${nm_ssh}"  != "sossheig" ];  then rename_str=$rename_str" -v ${nm_ssh},sossheig" ; fi
 if [ "${nm_tpot}" != "votemper" ];  then rename_str=$rename_str" -v ${nm_tpot},votemper"; fi
 if [ "${nm_s}"    != "vosaline" ];  then rename_str=$rename_str" -v ${nm_s},vosaline"   ; fi
+
 if [ "${rename_str}" != "" ];  then ncrename $rename_str ${froot}_grid_T.nc ; fi
+
 if [ "${nm_wfo}"  != "sowaflup" ];  then ncrename -v ${nm_wfo},sowaflup  ${froot}_${SBC}.nc ; fi
 if [ ${iuf} -eq 1 ]; then
     if [ "${nm_u}"   != "vozocrtx" ];  then ncrename -v ${nm_u},vozocrtx    ${froot}_grid_U.nc ; fi

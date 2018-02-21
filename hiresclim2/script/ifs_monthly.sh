@@ -24,15 +24,17 @@ mkdir -p $SCRATCH/tmp_ecearth3/tmp
 WRKDIR=$(mktemp -d $SCRATCH/tmp_ecearth3/tmp/hireclim2_${expname}_XXXXXX) # use template if debugging
 cd $WRKDIR
 
-# where to get the files, assuming yearly legs
-IFSRESULTS=$BASERESULTS/ifs/$(printf %03d $((year-${yref}+1)))
-
 NPROCS=${IFS_NPROCS}
 
 # where to save (archive) the results
 OUTDIR=$OUTDIR0/mon/Post_$year
-echo $OUTDIR
 mkdir -p $OUTDIR || exit -1
+
+echo --- Analyzing monthly output -----
+echo Temporary directory is $WRKDIR
+echo Data directory is $(eval echo $IFSRESULTS0)
+echo Postprocessing with $NPROCS cores
+echo Postprocessed data directori is $OUTDIR
 
 # output filename root
 out=$OUTDIR/${expname}_${year}
@@ -46,6 +48,7 @@ then
         for m in $(seq $m1 $((m1+NPROCS-1)) )
         do
             ym=$(printf %04d%02d $year $m)
+	    IFSRESULTS=$(eval echo $IFSRESULTS0)  
             grib_filter -o icmsh_${ym} filtsh.txt $IFSRESULTS/ICMSH${expname}+$ym &
         done
         wait
@@ -59,13 +62,15 @@ then
         wait
         rm icmsh_??????
     done
+    rm filtsh.txt
 else
     for m1 in $(seq 1 $NPROCS 12)
     do
         for m in $(seq $m1 $((m1+NPROCS-1)) )
         do
             ym=$(printf %04d%02d $year $m)
-            (( $mlegs )) && IFSRESULTS=$BASERESULTS/ifs/$(printf %03d $(( (year-${yref})*12+m)))
+            #(( $mlegs )) && IFSRESULTS=$BASERESULTS/ifs/$(printf %03d $(( (year-${yref})*12+m)))
+	    IFSRESULTS=$(eval echo $IFSRESULTS0)		
             $cdo -b F64 -t $ecearth_table splitvar -sp2gpl \
                 -setdate,$year-$m-01 -settime,00:00:00 -timmean \
                 $IFSRESULTS/ICMSH${expname}+$ym icmsh_${ym}_ &
@@ -96,6 +101,7 @@ then
         for m in $(seq $m1 $((m1+NPROCS-1)) )
         do
             ym=$(printf %04d%02d $year $m)
+	    IFSRESULTS=$(eval echo $IFSRESULTS0)  
             grib_filter -o icmgg2df_${ym} filtgg2d.txt $IFSRESULTS/ICMGG${expname}+$ym &
         done
         wait
@@ -116,6 +122,7 @@ then
         for m in $(seq $m1 $((m1+NPROCS-1)) )
         do
             ym=$(printf %04d%02d $year $m)
+	    IFSRESULTS=$(eval echo $IFSRESULTS0)  
             grib_filter -o icmgg3df_${ym} filtgg3d.txt $IFSRESULTS/ICMGG${expname}+$ym &
         done
         wait
@@ -138,6 +145,7 @@ then
         icmgg_${year}.grb ${out}_
 
     $cdozip -r -R -t $ecearth_table selvar,q  icmgg3d_${year}.grb ${out}_q.nc
+    rm filtgg2d.txt filtgg3d.txt
 
 else
 
@@ -146,7 +154,8 @@ else
         for m in $(seq $m1 $((m1+NPROCS-1)) )
         do
             ym=$(printf %04d%02d $year $m)
-            (( $mlegs )) && IFSRESULTS=$BASERESULTS/ifs/$(printf %03d $(( (year-${yref})*12+m)))
+            #(( $mlegs )) && IFSRESULTS=$BASERESULTS/ifs/$(printf %03d $(( (year-${yref})*12+m)))
+	    IFSRESULTS=$(eval echo $IFSRESULTS0)  
             $cdo -b F64 setdate,$year-$m-01 -settime,00:00:00 -timmean \
                 $IFSRESULTS/ICMGG${expname}+$ym icmgg_${ym}.grb &
 
@@ -162,7 +171,8 @@ else
         icmgg_${year}.grb ${out}_
 
     #  post-processing timestep in seconds from first month
-    (( $mlegs )) && IFSRESULTS=$BASERESULTS/ifs/$(printf %03d $(( (year-${yref})*12 + 1)))
+    #(( $mlegs )) && IFSRESULTS=$BASERESULTS/ifs/$(printf %03d $(( (year-${yref})*12 + 1)))
+    IFSRESULTS=$(eval echo $IFSRESULTS0)  
     pptime=$($cdo showtime -seltimestep,1,2 $IFSRESULTS/ICMGG${expname}+${year}01 | \
         tr -s ' ' ':' | awk -F: '{print ($5-$2)*3600+($6-$3)*60+($7-$4)}' )
 

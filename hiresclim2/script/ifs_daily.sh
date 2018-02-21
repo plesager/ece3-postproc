@@ -12,25 +12,27 @@ then
   exit 1
 fi
 
-if [ $# -ne 3 ]; then
-# definition of variables is done in config.sh
-. ../config.sh
-else
-. $3
-fi
 
-#go to temp directory
-cd $TMPDIR
+# temp working dir, within $TMPDIR so it is automatically removed
+mkdir -p $SCRATCH/tmp_ecearth3/tmp
+WRKDIR=$(mktemp -d $SCRATCH/tmp_ecearth3/tmp/hireclim2_${expname}_XXXXXX) # use template if debugging
+cd $WRKDIR
 
-#where to get the files
-IFSRESULTS=$BASERESULTS/Output_$year/IFS
 
+NPROCS=${IFS_NPROCS}
 # where to save (archive) the results
 OUTDIR=$OUTDIR0/day/Post_$year
 mkdir -p $OUTDIR || exit -1
 
+echo --- Analyzing daily output -----
+echo Temporary directory is $WRKDIR
+echo Data directory is $IFSRESULTS
+echo Postprocessing with $NPROCS cores
+echo Postprocessed data directori is $OUTDIR
+
 # output filename root
 out=$OUTDIR/${expname}_${year}
+
 
 #spectral variables
 for m1 in $(seq 1 $NPROCS 12)
@@ -87,7 +89,11 @@ pptime=$($cdo showtime -seltimestep,1,2 $IFSRESULTS/ICMGG${expname}+${year}01 | 
    $cdo -b F32 -t $ecearth_table setparam,228.128 -mulc,1000 -divc,$pptime -add lsp_day.grb cp_day.grb tmp_totp_day.grb
    $cdozip -r -R -t $ecearth_table copy tmp_totp_day.grb ${out}_totp_day.nc
 
-rm $TMPDIR/*.grb
-cd -
-rmdir $TMPDIR
+# change file suffices
+( cd $OUTDIR ; for f in $(ls *.nc4); do mv $f ${f/.nc4/.nc}; done )
 
+set -x
+rm $WRKDIR/*.grb
+cd -
+rmdir $WRKDIR
+set +x

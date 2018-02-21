@@ -24,10 +24,6 @@ mkdir -p $SCRATCH/tmp_ecearth3/tmp
 WRKDIR=$(mktemp -d $SCRATCH/tmp_ecearth3/tmp/hireclim2_${expname}_XXXXXX) # use template if debugging
 cd $WRKDIR
 
-# where to get the files, assuming yearly legs
-IFSRESULTS=$BASERESULTS/ifs/$(printf %03d $((year-${yref}+1)))
-#IFSRESULTS=$BASERESULTS
-
 NPROCS=${IFS_NPROCS}
 
 # where to save (archive) the results
