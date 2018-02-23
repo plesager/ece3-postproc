@@ -11,13 +11,14 @@ export cdonc="$cdo -f nc"
 
 # job scheduler submit command
 submit_cmd="sbatch"
+#submit_cmd="bash"
 
 # preferred type of CDO interpolation (curvilinear grids are obliged to use bilinear)
 export remap="remapcon2"
 #export remap="remapbil"
 
 # Where to save the table produced. Tables will be in the ${OUTDIR}/${exp} dir
-export OUTDIR=${HOME}/ecearth3/diag/table
+#export OUTDIR=${HOME}/ecearth3/diag/table
 
 # Where to save the climatology (769M AMIP, ??? NEMO). 
 # By default, if this is commented or empty, it is in you rundir next to hiresclim2 monthly means output:

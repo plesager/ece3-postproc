@@ -40,7 +40,7 @@ while getopts "hcr:a:mn:" opt; do
             ;;
         n)  nprocs=$OPTARG
             ;;
-        r)  options=${options}" -r $OPTARG"
+        r)  options=${options}" -r '$OPTARG'"
             ALT_RUNDIR="$OPTARG"
             ;;
         c)  checkit=1
@@ -58,21 +58,24 @@ if [ $# -ne 4 ]; then
    exit 1
 fi
 
-# -- Sanity checks (from master_hiresclim.sh, repeated here for a "before submission" error catch)
-[[ -z "${ECE3_POSTPROC_TOPDIR:-}"  ]] && echo "User environment not set. See ../README." && exit 1 
-[[ -z "${ECE3_POSTPROC_RUNDIR:-}"  ]] && echo "User environment not set. See ../README." && exit 1 
-[[ -z "${ECE3_POSTPROC_MACHINE:-}" ]] && echo "User environment not set. See ../README." && exit 1 
-
+# check environment
+[[ -z "${ECE3_POSTPROC_TOPDIR:-}" ]] && echo "User environment not set. See ../README." && exit 1
+. ${ECE3_POSTPROC_TOPDIR}/functions.sh
+check_environment
+echo $?
 # -- get submit command
 CONFDIR=${ECE3_POSTPROC_TOPDIR}/conf/${ECE3_POSTPROC_MACHINE}
 
 . ${CONFDIR}/conf_hiresclim_${ECE3_POSTPROC_MACHINE}.sh
 
+# set variables which can be eval'd
+EXPID=$1
+
 if [[ -n $ALT_RUNDIR ]]
 then
-    outdir=$ALT_RUNDIR/$1/output
+    outdir=`eval echo $ALT_RUNDIR/output`
 else
-    outdir=${ECE3_POSTPROC_RUNDIR}/$1/output
+    outdir=`eval echo ${ECE3_POSTPROC_RUNDIR}/output`
 fi
 [[ ! -d $outdir ]] && echo "User experiment output $outdir does not exist!" && exit 1
 
@@ -83,7 +86,7 @@ then
     for YEAR in $(eval echo {$2..$3})
     do 
         echo; echo "-- check $YEAR--"; echo
-        cat ${ECE3_POSTPROC_RUNDIR}/$1/post/postcheck_$1_$YEAR.txt || \
+        cat `eval echo ${ECE3_POSTPROC_POSTDIR}`/postcheck_$1_$YEAR.txt || \
             echo "*EE* check log at $SCRATCH/tmp_ecearth3"
     done
     exit

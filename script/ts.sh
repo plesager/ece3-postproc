@@ -43,6 +43,9 @@ if [ "$#" -ne 1 ]; then
     exit 0
 fi
 
+# set variables which can be eval'd
+EXPID=$1
+
 # -- Scratch dir (location of submit script and its log, and temporary files)
 OUT=$SCRATCH/tmp_ecearth3
 mkdir -p $OUT/log
@@ -55,9 +58,9 @@ CONFDIR=${ECE3_POSTPROC_TOPDIR}/conf/${ECE3_POSTPROC_MACHINE}
 # -- check input dir exist (from EC-mean.sh, repeated here for a "before submission" error catch)
 if [[ -n $ALT_RUNDIR ]]
 then
-    indir=$ALT_RUNDIR/$1/post/mon/
+    indir=`eval echo ${ALT_RUNDIR}`/mon/
 else
-    indir="${ECE3_POSTPROC_RUNDIR}/$1/post/mon/"
+    indir=`eval echo ${ECE3_POSTPROC_POSTDIR}`/mon/
 fi
 [[ ! -d $indir ]] && echo "*EE* Experiment HiresClim2 output dir $indir does not exist!" && exit 1
 

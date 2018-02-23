@@ -16,7 +16,7 @@ set -eu
 
 usage()
 {
-  echo "Usage:   ./master_hiresclim.sh [-r rundir] [-m] EXP YEAR YREF"
+  echo "Usage:   ./master_hiresclim.sh [-r rundir] [-p postdir] [-m] EXP YEAR YREF"
   echo "Example: ./master_hiresclim.sh io01 1995 1990"
 }
 
@@ -26,6 +26,7 @@ usage()
 
 monthly_leg=0
 ALT_RUNDIR=""
+ALT_POSTDIR=""
 
 while getopts "h?mr:" opt; do
     case "$opt" in
@@ -51,11 +52,12 @@ year=$2
 yref=$3
 export monthly_leg
 
-# load user/machine specifics
-[[ -z $ECE3_POSTPROC_TOPDIR  ]] && echo "User environment not set. See ../README." && exit 1 
-[[ -z $ECE3_POSTPROC_RUNDIR  ]] && echo "User environment not set. See ../README." && exit 1 
-[[ -z $ECE3_POSTPROC_MACHINE ]] && echo "User environment not set. See ../README." && exit 1 
+# check environment
+[[ -z "${ECE3_POSTPROC_TOPDIR:-}" ]] && echo "User environment not set. See ../README." && exit 1
+. ${ECE3_POSTPROC_TOPDIR}/functions.sh
+check_environment
 
+# load user/machine specifics
 . $ECE3_POSTPROC_TOPDIR/conf/$ECE3_POSTPROC_MACHINE/conf_hiresclim_$ECE3_POSTPROC_MACHINE.sh
 
 # build 3D relative humidity; require python with netCDF4 module
@@ -93,17 +95,21 @@ PROGDIR=$ECE3_POSTPROC_TOPDIR/hiresclim2
 # cdo table for conversion GRIB parameter --> variable name
 export ecearth_table=$PROGDIR/script/ecearth.tab
 
+# set variables which can be eval'd
+EXPID=$expname
+
 # where to find the results from the EC-EARTH experiment
 if [[ -n $ALT_RUNDIR ]]
 then
-    export BASERESULTS=$ALT_RUNDIR/$expname/output
+    export BASERESULTS=`eval echo $ALT_RUNDIR/output`
 else
-    export BASERESULTS=${ECE3_POSTPROC_RUNDIR}/$expname/output
+    export BASERESULTS=`eval echo ${ECE3_POSTPROC_RUNDIR}/output`
 fi
 [[ ! -d $BASERESULTS ]] && echo "*EE* Experiment output dir $BASERESULTS does not exist!" && exit 1
 
 # where to produce the results
-export OUTDIR0=${ECE3_POSTPROC_RUNDIR}/$expname/post
+#export OUTDIR0=${ECE3_POSTPROC_RUNDIR}/$expname/post
+export OUTDIR0=`eval echo ${ECE3_POSTPROC_POSTDIR}`
 mkdir -p $OUTDIR0
 
 ############################################################
@@ -111,7 +117,7 @@ mkdir -p $OUTDIR0
 # start to condense support to ISAC file into a single place
 # define folders that will be evaluted in each script in order to use the correct file structure
 
-if [[ -n ${ECE3_POSTPROC_ISAC_STRUCTURE} ]] ; then
+if [[ ! -z ${ECE3_POSTPROC_ISAC_STRUCTURE:-} ]] ; then
     export IFSRESULTS0=$BASERESULTS/Output_${year}/IFS
     export NEMORESULTS0=$BASERESULTS/Output_${year}/NEMO
 

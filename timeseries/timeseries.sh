@@ -12,6 +12,14 @@ fi
 exp=$1
 ALT_RUNDIR=""
 
+# set variables which can be eval'd
+EXPID=$exp
+
+# check environment
+[[ -z "${ECE3_POSTPROC_TOPDIR:-}" ]] && echo "User environment not set. See ../README." && exit 1
+. ${ECE3_POSTPROC_TOPDIR}/functions.sh
+check_environment
+
 # load cdo, netcdf and dir for results and mesh files
 . $ECE3_POSTPROC_TOPDIR/conf/$ECE3_POSTPROC_MACHINE/conf_timeseries_$ECE3_POSTPROC_MACHINE.sh
 
@@ -28,12 +36,14 @@ do_trans=0
 # Base directory of HiresClim2 postprocessing outputs
 if [[ -n $ALT_RUNDIR ]]
 then
-    export DATADIR=$ALT_RUNDIR/${exp}/post/mon/
+    export DATADIR=`eval echo ${ALT_RUNDIR}`/mon/
 else
-    export DATADIR="${ECE3_POSTPROC_RUNDIR}/${exp}/post/mon/"
+    export DATADIR=`eval echo ${ECE3_POSTPROC_POSTDIR}`/mon/
 fi
 [[ ! -d $DATADIR ]] && echo "*EE* Experiment HiresClim2 output dir $DATADIR does not exist!" && exit 1
 
+#export DIR_TIME_SERIES=`echo ${DIR_TIME_SERIES} | sed -e "s|<RUN>|${RUN}|g"`
+export DIR_TIME_SERIES=`eval echo ${ECE3_POSTPROC_DIAGDIR}/timeseries`/$exp
 
 # test if it was a coupled run, and find resolution
 # TODO use same checks in hiresclim2, ECMean and timeseries

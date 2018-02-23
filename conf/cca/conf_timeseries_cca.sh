@@ -10,11 +10,9 @@
 
 # Where to store produced time-series (<RUN>, if used, is replaced by the experiment 4-letter name)
 
-export EMOP_CLIM_DIR=${HOME}/EC-Earth3/diag/
-mkdir -p $EMOP_CLIM_DIR
-
-export DIR_TIME_SERIES="${EMOP_CLIM_DIR}/timeseries/<RUN>"
-
+#export EMOP_CLIM_DIR=${HOME}/EC-Earth3/diag/
+#mkdir -p $EMOP_CLIM_DIR
+#export DIR_TIME_SERIES="${EMOP_CLIM_DIR}/timeseries/<RUN>"
 
 # where to find mesh and mask files for NEMO. Files are expected in $MESHDIR_TOP/$NEMOCONFIG.
 export MESHDIR_TOP="/perm/ms/nl/nm6/ECE3-DATA/post-proc"

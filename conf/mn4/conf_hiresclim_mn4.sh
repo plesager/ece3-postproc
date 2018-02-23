@@ -31,7 +31,8 @@ FILTERSH=""
 #    the following general user settings:
 #    ECE3_POSTPROC_TOPDIR, ECE3_POSTPROC_RUNDIR, or ECE3_POSTPROC_DATADIR
 
-submit_cmd="sbatch"
+#submit_cmd="sbatch"
+submit_cmd="bash"
 
 
 # required programs, including compression options
@@ -50,6 +51,9 @@ cdftoolsbin="${CDFTOOLS_DIR}/bin"
 newercdftools=0
 newercdftools2=1
 python=python
+
+#extension for IFS files, default ""
+GRB_EXT=".grb"
 
 # number of parallel procs for IFS (max 12) and NEMO rebuild. Default to 12.
 if [ -z "${IFS_NPROCS:-}" ] ; then

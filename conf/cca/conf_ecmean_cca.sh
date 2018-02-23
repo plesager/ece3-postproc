@@ -27,7 +27,7 @@ export do_3d_vars=1
 # [1] Where to save the table produced.
 #     Tables will be in the ${OUTDIR}/${exp} dir
 # 
-export OUTDIR=${HOME}/ECEARTH/diag/table
+#export OUTDIR=${HOME}/ECEARTH/diag/table
 
 # [2] Where to save the climatology (769M IFS, ??? NEMO). 
 #
