@@ -1,7 +1,9 @@
 #!/bin/bash
 
 # Required programs, including compression options
-module load netcdf hdf5 CDO/1.7.2
+module purge
+module load intel/2017.4 impi/2017.4 mkl/2017.4
+module load netcdf hdf5 CDO/1.8.2
 
 export cdo=cdo
 export cdozip="$cdo -f nc4c -z zip"

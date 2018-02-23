@@ -30,8 +30,9 @@ export WWW_DIR_ROOT=""
 ############################
 
 set +xuve
-# must use cdo 1.7.2 since default module version (1.8.2) creates files with plev instead of lev
-module load netcdf hdf5 CDO/1.7.2 udunits nco python/2.7.13
+module purge
+module load intel/2017.4 impi/2017.4 mkl/2017.4
+module load gsl netcdf hdf5 CDO/1.8.2 udunits nco python/2.7.13
 module list
 set -xuve
 export CDFTOOLS_DIR=/gpfs/projects/bsc32/opt/cdftools-2.1/intel-13/bin
