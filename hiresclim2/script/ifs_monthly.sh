@@ -36,6 +36,9 @@ echo "*II* Postprocessed data directory is $OUTDIR"
 # output filename root
 out=$OUTDIR/${expname}_${year}
 
+#grib filename extension, define in conf_hiresclim_xxx.sh (default "")
+[[ -z "${GRB_EXT:-}" ]] && grb_ext="" || grb_ext=".grb"
+
 # ICMSH
 if [ -n "${FILTERSH-}" ]
 then
@@ -46,7 +49,7 @@ then
         do
             ym=$(printf %04d%02d $year $m)
             IFSRESULTS=$(eval echo $IFSRESULTS0)  
-            grib_filter -o icmsh_${ym} filtsh.txt $IFSRESULTS/ICMSH${expname}+$ym &
+            grib_filter -o icmsh_${ym} filtsh.txt $IFSRESULTS/ICMSH${expname}+$ym${grb_ext} &
         done
         wait
         for m in $(seq $m1 $((m1+NPROCS-1)) )
@@ -69,7 +72,7 @@ else
             IFSRESULTS=$(eval echo $IFSRESULTS0)
             $cdo -b F64 -t $ecearth_table splitvar -sp2gpl \
                 -setdate,$year-$m-01 -settime,00:00:00 -timmean \
-                $IFSRESULTS/ICMSH${expname}+$ym icmsh_${ym}_ &
+                $IFSRESULTS/ICMSH${expname}+$ym${grb_ext} icmsh_${ym}_ &
         done
         wait
     done
@@ -97,7 +100,7 @@ then
         do
             ym=$(printf %04d%02d $year $m)
             IFSRESULTS=$(eval echo $IFSRESULTS0)  
-            grib_filter -o icmgg2df_${ym} filtgg2d.txt $IFSRESULTS/ICMGG${expname}+$ym &
+            grib_filter -o icmgg2df_${ym} filtgg2d.txt $IFSRESULTS/ICMGG${expname}+$ym${grb_ext} &
         done
         wait
         for m in $(seq $m1 $((m1+NPROCS-1)) )
@@ -118,7 +121,7 @@ then
         do
             ym=$(printf %04d%02d $year $m)
             IFSRESULTS=$(eval echo $IFSRESULTS0)  
-            grib_filter -o icmgg3df_${ym} filtgg3d.txt $IFSRESULTS/ICMGG${expname}+$ym &
+            grib_filter -o icmgg3df_${ym} filtgg3d.txt $IFSRESULTS/ICMGG${expname}+$ym${grb_ext} &
         done
         wait
         for m in $(seq $m1 $((m1+NPROCS-1)) )
@@ -150,7 +153,7 @@ else
             ym=$(printf %04d%02d $year $m)
             IFSRESULTS=$(eval echo $IFSRESULTS0)  
             $cdo -b F64 setdate,$year-$m-01 -settime,00:00:00 -timmean \
-                $IFSRESULTS/ICMGG${expname}+$ym icmgg_${ym}.grb &
+                $IFSRESULTS/ICMGG${expname}+$ym${grb_ext} icmgg_${ym}.grb &
         done
         wait
     done
@@ -164,7 +167,7 @@ else
 
     #  post-processing timestep in seconds from first month
     IFSRESULTS=$(eval echo $IFSRESULTS0)  
-    pptime=$($cdo showtime -seltimestep,1,2 $IFSRESULTS/ICMGG${expname}+${year}01 | \
+    pptime=$($cdo showtime -seltimestep,1,2 $IFSRESULTS/ICMGG${expname}+${year}01${grb_ext} | \
         tr -s ' ' ':' | awk -F: '{print ($5-$2)*3600+($6-$3)*60+($7-$4)}' )
 fi
 
