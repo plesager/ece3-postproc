@@ -73,11 +73,19 @@ ifs_monthly=1
 ifs_monthly_mma=0
 ifs_daily=0
 ifs_6hrs=0
+
 #NEMO postproc will only be done if requested AND nemo output is present
 nemo=1
-
-# NEMO extra-fields; extra-fields require NCO 
+# NEMO extra-fields; extra-fields require NCO
 nemo_extra=0
+# TODO add option to compute variables only needed for ECMean
+#nemo_basic=0
+
+# override default options with env. vars
+[[ -z ${ECE3_POSTPROC_HC_IFS_MONTHLY:-} ]] || ifs_monthly=${ECE3_POSTPROC_HC_IFS_MONTHLY}
+[[ -z ${ECE3_POSTPROC_HC_IFS_MONTHLY_MMA:-} ]] || ifs_monthly_mma=${ECE3_POSTPROC_HC_IFS_MONTHLY_MMA}
+[[ -z ${ECE3_POSTPROC_HC_NEMO:-} ]] || nemo=${ECE3_POSTPROC_HC_NEMO}
+[[ -z ${ECE3_POSTPROC_HC_NEMO_EXTRA:-} ]] || nemo_extra=${ECE3_POSTPROC_HC_NEMO_EXTRA}
 
 # copy monthly results in a second folder
 store=0
