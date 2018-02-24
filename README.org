@@ -19,29 +19,26 @@ The code has been ported on /cca (ECMWF)/ and /rhino (KNMI)/. See the
    the scripts on the command line.
 
    For this to work as intended, locations of the post-processing code,
-   of the EC-Earth model data, mrundir and post-processing dir, must be known.
+   of the EC-Earth model data, and post-processing dir, must be known.
    They are unlikely to change and set as environment variables, but
    can be overwritten at the command line if needed. In your shell rc
    file (bash.rc or similar):
 
    : export ECE3_POSTPROC_TOPDIR=<dir where this file is>
-   : export ECE3_POSTPROC_DATADIR=<dir where your ecearth data are located -see your config-run.xml>
-   : export ECE3_POSTPROC_RUNDIR=<dir of your ecearth run -see your config-run.xml>
-   : export ECE3_POSTPROC_POSTDIR=<dir to store temporary post-processed files (hiresclim2)>
+   : export ECE3_POSTPROC_DATADIR=<dir where your ecearth data are located>
+   : export ECE3_POSTPROC_POSTDIR=<dir to store post-processed data (monthly mean from hiresclim2 and climatology from EC-mean)>
    : export ECE3_POSTPROC_DIAGDIR=<dir to store the diagnostics (ECMean and timeseries)>
    : export ECE3_POSTPROC_MACHINE=<name of your (HPC) machine>
 
-   For defining the rundir, postdir and diagdir variables you can use the
-   following environment variables which will be expanded when running the
-   scripts, make sure you enclose the with single-quotes.
+   When defining the RUNDIR, POSTDIR and DIAGDIR variables, you can use any
+   environment variables. You can use (and *must* in the case of RUNDIR) the
+   $EXPID variable, make sure you enclose them with *single-quotes*.
 
    : EXPID : experiment id
 
    For example:
-
    : export ECE3_POSTPROC_RUNDIR='$SCRATCH/ecearth-runs/$EXPID'
    : export ECE3_POSTPROC_POSTDIR='$SCRATCH/ecearth-runs/$EXPID/post'
-   : export ECE3_POSTPROC_DIAGDIR='$SCRATCH/ecearth-runs/$EXPID/diag'
    : export ECE3_POSTPROC_DIAGDIR='$HOME/ecearth3/diag'
 
    The "_name of your (HPC) machine_" is used to retrieve the machine

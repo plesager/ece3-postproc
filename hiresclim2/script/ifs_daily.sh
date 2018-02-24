@@ -12,18 +12,18 @@ then
   exit 1
 fi
 
-
 # temp working dir, within $TMPDIR so it is automatically removed
 mkdir -p $SCRATCH/tmp_ecearth3/tmp
 WRKDIR=$(mktemp -d $SCRATCH/tmp_ecearth3/tmp/hireclim2_${expname}_XXXXXX) # use template if debugging
 cd $WRKDIR
 
+NPROCS=${IFS_NPROCS:-12}
 
-NPROCS=${IFS_NPROCS}
 # where to save (archive) the results
 OUTDIR=$OUTDIR0/day/Post_$year
 mkdir -p $OUTDIR || exit -1
 
+eval_dirs 1
 echo --- Analyzing daily output -----
 echo Temporary directory is $WRKDIR
 echo Data directory is $IFSRESULTS
@@ -40,9 +40,10 @@ do
    for m in $(seq $m1 $((m1+NPROCS-1)) )
    do
       ym=$(printf %04d%02d $year $m)
-                $cdo -t $ecearth_table -b F64 splitvar -sp2gpl \
-                   -settime,12:00:00 -daymean -sellevel,100000,85000,70000,50000,30000,10000,5000,1000 -selvar,t,u,v,z -shifttime,-1hour \
-                   $IFSRESULTS/ICMSH${expname}+$ym icmsh_${ym}_day_ &
+      eval_dirs $m
+      $cdo -t $ecearth_table -b F64 splitvar -sp2gpl \
+          -settime,12:00:00 -daymean -sellevel,100000,85000,70000,50000,30000,10000,5000,1000 -selvar,t,u,v,z -shifttime,-1hour \
+          $IFSRESULTS/ICMSH${expname}+$ym icmsh_${ym}_day_ &
    done
    wait
 done
@@ -62,9 +63,9 @@ for v in lsp cp tas ; do
      for m in $(seq $m1 $((m1+NPROCS-1)) )
      do
        ym=$(printf %04d%02d $year $m)
-
-         $cdo -t $ecearth_table -b F64 selvar,${v} -daymean -shifttime,-1hour \
-            $IFSRESULTS/ICMGG${expname}+$ym icmgg_${ym}_day_${v}.grb &
+       eval_dirs $m
+       $cdo -t $ecearth_table -b F64 selvar,${v} -daymean -shifttime,-1hour \
+           $IFSRESULTS/ICMGG${expname}+$ym icmgg_${ym}_day_${v}.grb &
    done
    wait
 done
@@ -82,12 +83,13 @@ for v in lsp cp ; do
 done
 
 #  post-processing timestep in seconds
+eval_dirs 1
 pptime=$($cdo showtime -seltimestep,1,2 $IFSRESULTS/ICMGG${expname}+${year}01 | \
    tr -s ' ' ':' | awk -F: '{print ($5-$2)*3600+($6-$3)*60+($7-$4)}' )
 
 # precip and evap and runoff in kg m-2 s-1
-   $cdo -b F32 -t $ecearth_table setparam,228.128 -mulc,1000 -divc,$pptime -add lsp_day.grb cp_day.grb tmp_totp_day.grb
-   $cdozip -r -R -t $ecearth_table copy tmp_totp_day.grb ${out}_totp_day.nc
+$cdo -b F32 -t $ecearth_table setparam,228.128 -mulc,1000 -divc,$pptime -add lsp_day.grb cp_day.grb tmp_totp_day.grb
+$cdozip -r -R -t $ecearth_table copy tmp_totp_day.grb ${out}_totp_day.nc
 
 # change file suffices
 ( cd $OUTDIR ; for f in $(ls *.nc4); do mv $f ${f/.nc4/.nc}; done )

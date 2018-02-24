@@ -9,14 +9,13 @@
 # Produces IFS postprocessing on monthly, daily and 6hrs basis
 # together with  monthly averages for NEMO
 
-# TODO: make the oft-used harcoded options either automatic if possible or
-# command line option??Ideally user should not have to edit his file.
+# Whatever option you add, the user should not have to edit his file.
 
 set -eu
 
 usage()
 {
-  echo "Usage:   ./master_hiresclim.sh [-r rundir] [-p postdir] [-m] EXP YEAR YREF"
+  echo "Usage:   ./master_hiresclim.sh [-r rundir] [-p postdir] [-m] [-f FREQ] EXP YEAR YREF"
   echo "Example: ./master_hiresclim.sh io01 1995 1990"
 }
 
@@ -24,17 +23,19 @@ usage()
 # options and arguments #
 #########################
 
-monthly_leg=0
+monthly_leg=12                  # nb of months per legs
 ALT_RUNDIR=""
 ALT_POSTDIR=""
 
-while getopts "h?mr:" opt; do
+while getopts "h?mf:r:" opt; do
     case "$opt" in
         h|\?)
             usage
             exit 0
             ;;
         r)  ALT_RUNDIR=$OPTARG
+            ;;
+        f)  monthly_leg=$OPTARG
             ;;
         m)  monthly_leg=1
             ;;
@@ -47,45 +48,47 @@ if [ $# -ne 3 ]; then
    exit 1
 fi
 
+if (( 12 % $monthly_leg ))
+then
+    echo "*EE* there is not a full number of legs in one year. Cannot process."
+    exit 1
+fi
+
 expname=$1
 year=$2
 yref=$3
 export monthly_leg
 
 # check environment
-[[ -z "${ECE3_POSTPROC_TOPDIR:-}" ]] && echo "User environment not set. See ../README." && exit 1
+[[ -z "${ECE3_POSTPROC_TOPDIR:-}" ]] && echo "User environment ECE3_POSTPROC_TOPDIR not set. See ../README." && exit 1
+
+ # load utilities
 . ${ECE3_POSTPROC_TOPDIR}/functions.sh
 check_environment
 
-# load user/machine specifics
+# load user and machine specifics
 . $ECE3_POSTPROC_TOPDIR/conf/$ECE3_POSTPROC_MACHINE/conf_hiresclim_$ECE3_POSTPROC_MACHINE.sh
 
-# build 3D relative humidity; require python with netCDF4 module
+########## POST-PROCESSING OPTIONS ###############
+
+# build 3D relative humidity; require python with netCDF4 module. [ON by default]
 echo "*II* Rebuild 3D relative humidity: ${rh_build:=1}"
 
-########## HARDCODED OPTIONS ###############
-
-# Flags: 0 is false, 1 is true
-# monthly flag for standard hiresclim
-# daily and 6hrs flag for u,v,t,z 3d field + tas,totp extraction
-# TODO add argument to script
-ifs_monthly=1
-ifs_monthly_mma=0
+# IFS monthly [ON by default]
+# IFS daily and 6hrs flag for u,v,t,z 3d field + tas, totp extraction [OFF by default]
+ifs_monthly=${ECE3_POSTPROC_HC_IFS_MONTHLY:-1}
+ifs_monthly_mma=${ECE3_POSTPROC_HC_IFS_MONTHLY_MMA:-0}
 ifs_daily=0
 ifs_6hrs=0
 
-#NEMO postproc will only be done if requested AND nemo output is present
-nemo=1
-# NEMO extra-fields; extra-fields require NCO
-nemo_extra=0
+# NEMO [ON by default (applied only if available), Extra (require nco) OFF by default]
+nemo=${ECE3_POSTPROC_HC_NEMO:-1}
+nemo_extra=${ECE3_POSTPROC_HC_NEMO_EXTRA:-0}
+
+########## HARDCODED OPTIONS ###############
+
 # TODO add option to compute variables only needed for ECMean
 #nemo_basic=0
-
-# override default options with env. vars
-[[ -z ${ECE3_POSTPROC_HC_IFS_MONTHLY:-} ]] || ifs_monthly=${ECE3_POSTPROC_HC_IFS_MONTHLY}
-[[ -z ${ECE3_POSTPROC_HC_IFS_MONTHLY_MMA:-} ]] || ifs_monthly_mma=${ECE3_POSTPROC_HC_IFS_MONTHLY_MMA}
-[[ -z ${ECE3_POSTPROC_HC_NEMO:-} ]] || nemo=${ECE3_POSTPROC_HC_NEMO}
-[[ -z ${ECE3_POSTPROC_HC_NEMO_EXTRA:-} ]] || nemo_extra=${ECE3_POSTPROC_HC_NEMO_EXTRA}
 
 # copy monthly results in a second folder
 store=0
@@ -103,50 +106,26 @@ PROGDIR=$ECE3_POSTPROC_TOPDIR/hiresclim2
 # cdo table for conversion GRIB parameter --> variable name
 export ecearth_table=$PROGDIR/script/ecearth.tab
 
-# set variables which can be eval'd
-EXPID=$expname
-
 # where to find the results from the EC-EARTH experiment
 if [[ -n $ALT_RUNDIR ]]
 then
-    export BASERESULTS=`eval echo $ALT_RUNDIR/output`
-else
-    export BASERESULTS=`eval echo ${ECE3_POSTPROC_RUNDIR}/output`
+    export IFSRESULTS0=$ALT_RUNDIR'/${expname}/output/ifs/$LEGNB'
+    export NEMORESULTS0=$ALT_RUNDIR'/${expname}/output/nemo/$LEGNB'
 fi
-[[ ! -d $BASERESULTS ]] && echo "*EE* Experiment output dir $BASERESULTS does not exist!" && exit 1
+
+# does experiment output exist?
+eval_dirs 1
+[[ ! -d $IFSRESULTS ]] && \
+    echo "*EE* IFS output dir ($IFSRESULTS) for experiment $expname does not exist!" &&  \
+    exit 1
 
 # where to produce the results
-#export OUTDIR0=${ECE3_POSTPROC_RUNDIR}/$expname/post
-export OUTDIR0=`eval echo ${ECE3_POSTPROC_POSTDIR}`
+export OUTDIR0=$(eval echo ${ECE3_POSTPROC_POSTDIR})
 mkdir -p $OUTDIR0
 
-############################################################
-
-# start to condense support to ISAC file into a single place
-# define folders that will be evaluted in each script in order to use the correct file structure
-
-if [[ ! -z ${ECE3_POSTPROC_ISAC_STRUCTURE:-} ]] ; then
-    export IFSRESULTS0=$BASERESULTS/Output_${year}/IFS
-    export NEMORESULTS0=$BASERESULTS/Output_${year}/NEMO
-
-else
-    if [[ ${monthly_leg} -eq 1 ]] ; then 
-        export IFSRESULTS0=$BASERESULTS/ifs/'$(printf %03d $(( (year-${yref})*12+m)))'
-        export NEMORESULTS0=$BASERESULTS/nemo/'$(printf %03d $(( (year-${yref})*12+m)))'
-    else
-      export IFSRESULTS0=$BASERESULTS/ifs/$(printf %03d $((year-${yref}+1)))
-      export NEMORESULTS0=$BASERESULTS/nemo/$(printf %03d $((year-${yref}+1)))
-    fi
-fi
-
-###########################################################
 
 # test if it was a coupled run, and find resolution
-
 NEMOCONFIG=""
-
-m=1                             # default to month 1 for eval
-NEMORESULTS=$(eval echo $NEMORESULTS0)
 if [[ -e ${NEMORESULTS} && $nemo == 1 ]]
 then 
     nemo=1

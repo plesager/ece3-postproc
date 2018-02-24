@@ -5,9 +5,15 @@ set -ex
  # To be called from ../master_hiresclim.sh #
  ############################################
 
-mlegs=${monthly_leg}  # env variable (1 if using monthly legs, 0 yearly)
+# Nemo output are yearly file:
+mlegs=${monthly_leg} # this is the number of months in a leg. Different from 12 not supported.
+if [[ $mlegs != 12 ]] 
+then
+    echo "*EE* only yearly leg supported in NEMO postprocessing"
+    exit 1
+fi
 
-#reading args
+# reading args
 expname=$1
 year=$2
 yref=$3
@@ -77,19 +83,17 @@ case $NEMOCONFIG in
     ( * ) echo Stop: NEMOCONFIG=$NEMOCONFIG not defined ; exit -1 ;;
 esac
 
-
 # mask and mesh files
 ln -s $MESHDIR/mask.nc
 ln -s $MESHDIR/mesh_hgr.nc
 ln -s $MESHDIR/mesh_zgr.nc
 ln -s $MESHDIR/new_maskglo.nc
 
-#eval folder
-NEMORESULTS=$(eval echo $NEMORESULTS0)
+# update NEMORESULTS
+eval_dirs 1
 
 # Nemo output filenames start with...
 froot=${expname}_1m_${year}0101_${year}1231
-
 
 # rebuild or create yearly file from monthly legs if necessary
 for t in grid_T grid_U grid_V icemod SBC
@@ -98,7 +102,7 @@ do
    then
       cp $NEMORESULTS/${froot}_${t}.nc .
    else
-       if [[ $mlegs == 1 ]]
+       if [[ $mlegs != 12 ]]
        then
            mfiles=""
            # build list of monthly files, could be less selective in the file list syntax
@@ -367,7 +371,6 @@ if [[ $nemo_extra == 1 && $newercdftools == 0 ]] ; then
     mv fulloce.nc ${out}_fulloce.nc
 
 fi
-
 
 cd -
 rm -rf $WRKDIR

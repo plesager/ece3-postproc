@@ -21,15 +21,16 @@ mkdir -p $SCRATCH/tmp_ecearth3/tmp
 WRKDIR=$(mktemp -d $SCRATCH/tmp_ecearth3/tmp/hireclim2_${expname}_XXXXXX) # use template if debugging
 cd $WRKDIR
 
-NPROCS=${IFS_NPROCS}
+NPROCS=${IFS_NPROCS:-12}
 
 # where to save (archive) the results
 OUTDIR=$OUTDIR0/mon/Post_$year
 mkdir -p $OUTDIR || exit -1
 
+eval_dirs 1
 echo "*II* --- Analyzing monthly output -----"
 echo "*II* Temporary directory is $WRKDIR"
-m=0; echo "*II* Data directory is $(eval echo $IFSRESULTS0)"
+echo "*II* Data directory is $IFSRESULTS"
 echo "*II* Postprocessing with $NPROCS cores"
 echo "*II* Postprocessed data directory is $OUTDIR"
 
@@ -48,7 +49,7 @@ then
         for m in $(seq $m1 $((m1+NPROCS-1)) )
         do
             ym=$(printf %04d%02d $year $m)
-            IFSRESULTS=$(eval echo $IFSRESULTS0)  
+            eval_dirs $m  
             grib_filter -o icmsh_${ym} filtsh.txt $IFSRESULTS/ICMSH${expname}+$ym${grb_ext} &
         done
         wait
@@ -69,7 +70,7 @@ else
         for m in $(seq $m1 $((m1+NPROCS-1)) )
         do
             ym=$(printf %04d%02d $year $m)
-            IFSRESULTS=$(eval echo $IFSRESULTS0)
+            eval_dirs $m
             $cdo -b F64 -t $ecearth_table splitvar -sp2gpl \
                 -setdate,$year-$m-01 -settime,00:00:00 -timmean \
                 $IFSRESULTS/ICMSH${expname}+$ym${grb_ext} icmsh_${ym}_ &
@@ -99,7 +100,7 @@ then
         for m in $(seq $m1 $((m1+NPROCS-1)) )
         do
             ym=$(printf %04d%02d $year $m)
-            IFSRESULTS=$(eval echo $IFSRESULTS0)  
+            eval_dirs $m  
             grib_filter -o icmgg2df_${ym} filtgg2d.txt $IFSRESULTS/ICMGG${expname}+$ym${grb_ext} &
         done
         wait
@@ -120,7 +121,7 @@ then
         for m in $(seq $m1 $((m1+NPROCS-1)) )
         do
             ym=$(printf %04d%02d $year $m)
-            IFSRESULTS=$(eval echo $IFSRESULTS0)  
+            eval_dirs $m  
             grib_filter -o icmgg3df_${ym} filtgg3d.txt $IFSRESULTS/ICMGG${expname}+$ym${grb_ext} &
         done
         wait
@@ -151,7 +152,7 @@ else
         for m in $(seq $m1 $((m1+NPROCS-1)) )
         do
             ym=$(printf %04d%02d $year $m)
-            IFSRESULTS=$(eval echo $IFSRESULTS0)  
+            eval_dirs $m  
             $cdo -b F64 setdate,$year-$m-01 -settime,00:00:00 -timmean \
                 $IFSRESULTS/ICMGG${expname}+$ym${grb_ext} icmgg_${ym}.grb &
         done
@@ -166,7 +167,7 @@ else
         icmgg_${year}.grb ${out}_
 
     #  post-processing timestep in seconds from first month
-    IFSRESULTS=$(eval echo $IFSRESULTS0)  
+    eval_dirs 1  
     pptime=$($cdo showtime -seltimestep,1,2 $IFSRESULTS/ICMGG${expname}+${year}01${grb_ext} | \
         tr -s ' ' ':' | awk -F: '{print ($5-$2)*3600+($6-$3)*60+($7-$4)}' )
 fi
