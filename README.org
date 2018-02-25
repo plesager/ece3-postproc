@@ -18,28 +18,14 @@ The code has been ported on /cca (ECMWF)/ and /rhino (KNMI)/. See the
    years to process (typically a range, say, YEAR1 YEAR2) as input to
    the scripts on the command line.
 
-   For this to work as intended, locations of the post-processing code,
-   of the EC-Earth model data, and post-processing dir, must be known.
-   They are unlikely to change and set as environment variables, but
-   can be overwritten at the command line if needed. In your shell rc
-   file (bash.rc or similar):
+   For this to work as intended, locations of the post-processing code, of the
+   EC-Earth model data, and your platform, must be known. They are unlikely to
+   change and set as environment variables, so in your shell rc file (bash.rc
+   or similar):
 
    : export ECE3_POSTPROC_TOPDIR=<dir where this file is>
    : export ECE3_POSTPROC_DATADIR=<dir where your ecearth data are located>
-   : export ECE3_POSTPROC_POSTDIR=<dir to store post-processed data (monthly mean from hiresclim2 and climatology from EC-mean)>
-   : export ECE3_POSTPROC_DIAGDIR=<dir to store the diagnostics (ECMean and timeseries)>
    : export ECE3_POSTPROC_MACHINE=<name of your (HPC) machine>
-
-   When defining the RUNDIR, POSTDIR and DIAGDIR variables, you can use any
-   environment variables. You can use (and *must* in the case of RUNDIR) the
-   $EXPID variable, make sure you enclose them with *single-quotes*.
-
-   : EXPID : experiment id
-
-   For example:
-   : export ECE3_POSTPROC_RUNDIR='$SCRATCH/ecearth-runs/$EXPID'
-   : export ECE3_POSTPROC_POSTDIR='$SCRATCH/ecearth-runs/$EXPID/post'
-   : export ECE3_POSTPROC_DIAGDIR='$HOME/ecearth3/diag'
 
    The "_name of your (HPC) machine_" is used to retrieve the machine
    configuration. The list of available platforms is: 
@@ -53,16 +39,8 @@ The code has been ported on /cca (ECMWF)/ and /rhino (KNMI)/. See the
    ECMWF, this is the 1st one in the list you get with the command (on
    ecgate only): "account -l $USER"
 
-   You may want to overwrite the location of the rundir (where to find
-   the EC-Earth output to process), because the output is not from one
-   of your runs or you moved the data around. Or you want to
-   temporarily change the HPC account you used. It is recommended *not*
-   to change the default settings, although you can. Instead, use the
-   command line options that let you do temporary changes.
-   _Particularly important_, the ECE3_POSTPROC_RUNDIR should remain
-   writable for you, since you will write processed output there when
-   processing data from an other user (whose output dir is probably not
-   writable for you).
+   If you want to temporarily change the HPC account, you can also use the
+   command line option when calling each tool.
 
    Finally, the code relies on $SCRATCH and $USER being defined. If
    not, define one. A lot of temporary data files, job scripts and
@@ -70,52 +48,65 @@ The code has been ported on /cca (ECMWF)/ and /rhino (KNMI)/. See the
    few job manager commands (SLURM or PBS), and should already be
    defined.
 
-*** Hacks
-    - the NEMO variables name expected by HIRESCLIM2 can be different
-      than those output by EC-Earth3. If needed, change the variable
-      name from EC-Earth in '/hiresclim2/script/nemo_post.sh' below:
-      : # NEMO variables as currently named in EC-Earth output
-    - Each tool has some specifics settings. If the code has already
-      been ported to your machine, you should not have to change
-      anything there. They define the needed executable/lib (cdo, nco,
-      netcdf,...), location of auxiliary data, and of final results.
-      For reference, the machine configurations are:
-      : "./conf/conf_hiresclim_<your-machine>.sh"
-      : "./conf/conf_ecmean_<your-machine>.sh"   
-      : "./conf/conf_amwg_<your-machine>.sh"     
-
 ** USAGE
 *** To use a job manager or not
     If you use a job scheduler (SLURM, PBSpro, ...), there is a set of
     wrappers that let you submit jobs in parallel. If not, you can still run
     the wrapped scripts. In all cases, the calls are made in the /script/
-    sub-directory of the package. The wrappers calls are described here.
+    sub-directory of the package [FIXME?]. The wrappers calls are described
+    here [TODO: add description for case without wrappers].
+
+*** Tools settings
+    Each tool has its specifics settings. If the code has already been ported
+    to your machine, you will have to change very little there, as described
+    hereafter. They define the needed executable/lib (cdo, nco, netcdf,...),
+    location of auxiliary data, and where to save the results. For reference,
+    the machine configurations are:
+
+    : ./conf/<your-machine>/conf_<tool>_<your-machine>.sh
 
 *** First, run HIRESCLIM2 to extract and average variables of interest:
 
     : cd ${ECE3_POSTPROC_TOPDIR}/script
-    : ./hc.sh [-a account] [-r rundir] [-m] [-c] EXP YEAR1 YEAR2 YREF
+    : ./hc.sh [-a account] [-r rundir] [-m months_per_leg] [-c] EXP YEAR1 YEAR2 YREF
 
-    This will create a set of netcdf files with monthly (default)
-    averages of variables of interest. The files are found in the
-    ${ECE3_POSTPROC_RUNDIR}/EXP/post directory.
+    This will create a set of netcdf files with monthly (default) averages of
+    variables of interest. The files are found in the
+    ${ECE3_POSTPROC_POSTDIR}/post directory.
 
     For more information about the script options, just call
 
     : ./hc.sh -h
 
-    If you specify an alternate "rundir" for input, the new data will still be
-    in your ${ECE3_POSTPROC_RUNDIR}/EXP/post (directory tree created as needed).
+    If you specify an alternate "rundir" to find the model output, the default
+    EC-Earth3 output structure is assumed and must be readable:
 
-    Upon success, ${ECE3_POSTPROC_RUNDIR}/EXP/post/postcheck_EXP_YYYY.txt files
+    : rundir/EXP/output/{ifs,nemo}/leg_number
+
+    Upon success, ${ECE3_POSTPROC_POSTDIR}/postcheck_EXP_YYYY.txt files
     are created with some basic information. By repeating the command with the
-    -c option, these files are printed. In case of problem or for more detailed
-    information, you can look at the submitted scripts and logs, which are in
-    your $SCRATCH/tmp_ece3_hiresclim2
+    -c option, these files are printed. In case of problem the location of the
+    log is printed.
 
-    There are few hardcoded options (if you want daily or 6h output on top of
-    the monthly one, or the nemo_extra output). In "./master_hiresclim.sh",
-    check the "hardcoded options" section.
+    In "./conf/<your-machine>/conf_hiresclim_<your-machine>.sh", you can set
+    some options (if you want daily or 6h output on top of the monthly one, or
+    the nemo_extra output for example). However the most important settings
+    that you may have to change are the templates for the model output and for
+    the results location. For example:
+    
+    : export IFSRESULTS0='/scratch/ms/nl/${USER}/ECEARTH-RUNS/${EXPID}/output/ifs/${LEGNB}'
+    : export NEMORESULTS0='/scratch/ms/nl/${USER}/ECEARTH-RUNS/${EXPID}/output/nemo/${LEGNB}'
+    : export ECE3_POSTPROC_POSTDIR='/scratch/ms/nl/${USER}/ECEARTH-RUNS/${EXPID}/post'
+    
+    They must include at least either the ${year} or the ${LEGNB} to find the
+    correct data, and must be *single-quoted*. The ${EXPID} will be expanded
+    to the EXP argument passed to the script.
+
+    The NEMO variable names expected by HIRESCLIM2 may differ from those found
+    in EC-Earth3 output. If needed, change the variable name from EC-Earth in
+    //hiresclim2/script/nemo_post.sh/ below:
+    
+    : # NEMO variables as currently named in EC-Earth output
 
 *** Then, you can compute the global mean fluxes with EC-MEAN:
 
@@ -125,20 +116,19 @@ The code has been ported on /cca (ECMWF)/ and /rhino (KNMI)/. See the
     : ./ecm.sh -h
 
     Output tables with Performance Indices and mean global fluxes are found in:
-    : ${OUTDIR}/${exp}
+    : ${ECE3_POSTPROC_DIAGDIR}/table/${EXPID}
     and one line summary is found:
-    : ${OUTDIR}/globtable_cs.txt
-    : ${OUTDIR}/globtable.txt
-    : ${OUTDIR}/gregory.txt
+    : ${ECE3_POSTPROC_DIAGDIR}/table/globtable.txt
+    : ${ECE3_POSTPROC_DIAGDIR}/table/gregory.txt
 
     If the option /-y/ was used, you also get yearly global means available
     in:
-    : ${OUDIR}/yearly_fldmean_${exp}.txt
+    : ${ECE3_POSTPROC_DIAGDIR}/table/yearly_fldmean_${exp}.txt
     and its subset
-    : ${OUDIR}/gregory_${exp}.txt
+    : ${ECE3_POSTPROC_DIAGDIR}/table/gregory_${exp}.txt
     which has only the three variables needed for a Gregory plot.
 
-    The default output directory ${OUTDIR} is set in the
+    The default output directory ${ECE3_POSTPROC_DIAGDIR} is set in the
     : $ECE3_POSTPROC_TOPDIR/conf/${ECE3_POSTPROC_MACHINE}/conf_ecmean_${ECE3_POSTPROC_MACHINE}.sh
     config file.
   
@@ -150,10 +140,9 @@ The code has been ported on /cca (ECMWF)/ and /rhino (KNMI)/. See the
     EC-Mean creates a climatology from the experiment to derive the
     performance indices. The climatology is by default in the same directory
     as the HIRESCLIM2 output:
-    : ${ECE3_POSTPROC_RUNDIR}/EXP/post/clim-${YEAR1}-${YEAR2}
+    : ${ECE3_POSTPROC_POSTDIR}/clim-${YEAR1}-${YEAR2}
     and not removed, since it can be use for other purposes (notably the
-    reproducibility test). You can overwrite this default location, but for
-    now script for the reproducibility test expect the default one.
+    reproducibility test).
       
 *** or/and produce the AMWG diagnostics:
     TODO
@@ -232,7 +221,7 @@ The code has been ported on /cca (ECMWF)/ and /rhino (KNMI)/. See the
      use the same script template in all your runtime dirs. For
      example, you can:
      : cd ic/ocean/
-     : mkdir {01..05}
+     : mkdir 0{1..5}
      : for k in {1..5}; do cd 0$k; ln -s ../a0ra_fc$((k-1))_19491231_restart.nc restart_oce.nc ; cd - ; done
      : for k in {1..5}; do cd 0$k; ln -s ../../ice/a0ra_fc0_19491231_restart_ice.nc restart_ice.nc ; cd - ; done
      which gives you:
@@ -424,10 +413,9 @@ The code has been ported on /cca (ECMWF)/ and /rhino (KNMI)/. See the
   
    Modified to work with default ecearth-3 output tree. Removed the
    possibility to run somebody else code (just clone it!) but can still
-   processed output from another user (as long as it is readable and
-   follows the default EC-Earth output tree/format).
+   processed output from another user.
 
    Improved the performance of HIRECLIM2 with parallelization over the
    years. Can process monthly legged runs. Catch all errors with "set -e"
    everywhere. Try to be smart in dealing with and cleaning up temporary dirs,
-   by using mktemp.
+   by using mktemp, ...

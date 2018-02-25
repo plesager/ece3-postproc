@@ -14,6 +14,12 @@ set -xuve
 export IFSRESULTS0='/scratch/ms/nl/$USER/ECEARTH-RUNS/${EXPID}/output/ifs/${LEGNB}'
 export NEMORESULTS0='/scratch/ms/nl/$USER/ECEARTH-RUNS/${EXPID}/output/nemo/${LEGNB}'
 
+# --- PATTERN TO DEFINE WHERE TO SAVE POST-PROCESSED DATA
+# 
+# Must include ${EXPID} and be single-quoted
+#
+export ECE3_POSTPROC_POSTDIR='/scratch/ms/nl/${USER}/ECEARTH-RUNS/${EXPID}/post'
+
 # --- PROCESSING TO PERFORM (uncomment to change default)
 # ECE3_POSTPROC_HC_IFS_MONTHL=1
 # ECE3_POSTPROC_HC_IFS_MONTHLY_MMA=0
@@ -36,7 +42,6 @@ FILTERSH=""
 
 #submit_cmd="sbatch"
 submit_cmd="bash"
-
 
 # required programs, including compression options
 module purge
@@ -69,23 +74,23 @@ export MESHDIR_TOP="/gpfs/projects/bsc32/bsc32051/ECE3-DATA/post-proc"
 # Base dir to archive (ie just make a copy of) the monthly results. Daily results, if any, are left in scratch. 
 STOREDIR=$SCRATCH/ecearth3/post/hiresclim/
 
+# ---------- NEMO VAR/FILES MANGLING ----------------------
 
-# # NEMO files
-# export NEMO_SAVED_FILES="grid_T grid_U grid_V icemod grid_W" ; # which files are saved / we care for?
+# NEMO 'wfo' variable can be in the SBC files instead of T files, then
+# set this flag to 1
+export use_SBC=0
 
-# # NEMO variables
-# export nm_wfo="wfo"        ; # water flux 
-# export nm_sst="tos"        ; # SST (2D)
-# export nm_sss="sos"        ; # SS salinity (2D)
-# export nm_ssh="zos"        ; # sea surface height (2D)
-# export nm_iceconc="siconc" ; # Ice concentration as in icemod file (2D)
-# export nm_icethic="sithic" ; # Ice thickness as in icemod file (2D)
-# export nm_tpot="thetao"    ; # pot. temperature (3D)
-# export nm_s="so"           ; # salinity (3D)
-# export nm_u="uo"           ; # X current (3D)
-# export nm_v="vo"           ; # Y current (3D)
+# NEMO files - which files are saved / we care for?
+NEMO_SAVED_FILES="grid_T grid_U grid_V icemod"
 
-
-
-
-# TODO: implement a true backup on ECFS
+# NEMO variables as currently named in EC-Earth output
+export nm_wfo="wfo"        ; # water flux 
+export nm_sst="tos"        ; # SST (2D)
+export nm_sss="sos"        ; # SS salinity (2D)
+export nm_ssh="zos"        ; # sea surface height (2D)
+export nm_iceconc="siconc" ; # Ice concentration as in icemod file (2D)
+export nm_icethic="sithic" ; # Ice thickness as in icemod file (2D)
+export nm_tpot="thetao"    ; # pot. temperature (3D)
+export nm_s="so"           ; # salinity (3D)
+export nm_u="uo"           ; # X current (3D)
+export nm_v="vo"           ; # Y current (3D)

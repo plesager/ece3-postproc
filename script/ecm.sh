@@ -89,14 +89,14 @@ CONFDIR=${ECE3_POSTPROC_TOPDIR}/conf/${ECE3_POSTPROC_MACHINE}
 # -- get OUTDIR, submit command
 . ${CONFDIR}/conf_ecmean_${ECE3_POSTPROC_MACHINE}.sh
 
-OUTDIR=`eval echo ${ECE3_POSTPROC_DIAGDIR}/table`
+OUTDIR=$(eval echo ${ECE3_POSTPROC_DIAGDIR}/table)
 
 # -- check input dir exist (from EC-mean.sh, repeated here for a "before submission" error catch)
 if [[ -n $ALT_RUNDIR ]]
 then
-    outdir=`eval echo $ALT_RUNDIR/output`
+    outdir=$ALT_RUNDIR/mon
 else
-    outdir=`eval echo ${ECE3_POSTPROC_RUNDIR}/output`
+    outdir=$(eval echo ${ECE3_POSTPROC_POSTDIR})/mon
 fi
 [[ ! -d $outdir ]] && echo "*EE* Experiment HiresClim2 output dir $outdir does not exist!" && exit 1
 

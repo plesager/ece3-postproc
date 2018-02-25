@@ -15,7 +15,7 @@ set -eu
 
 usage()
 {
-  echo "Usage:   ./master_hiresclim.sh [-r rundir] [-p postdir] [-m] [-f FREQ] EXP YEAR YREF"
+  echo "Usage:   ./master_hiresclim.sh [-r rundir] [-p postdir] [-m months_per_leg] EXP YEAR YREF"
   echo "Example: ./master_hiresclim.sh io01 1995 1990"
 }
 
@@ -23,11 +23,11 @@ usage()
 # options and arguments #
 #########################
 
-monthly_leg=12                  # nb of months per legs
+months_per_leg=12                  # nb of months per legs. Default: yearly legs.
 ALT_RUNDIR=""
 ALT_POSTDIR=""
 
-while getopts "h?mf:r:" opt; do
+while getopts "h?m:r:" opt; do
     case "$opt" in
         h|\?)
             usage
@@ -35,9 +35,7 @@ while getopts "h?mf:r:" opt; do
             ;;
         r)  ALT_RUNDIR=$OPTARG
             ;;
-        f)  monthly_leg=$OPTARG
-            ;;
-        m)  monthly_leg=1
+        m)  months_per_leg=$OPTARG
             ;;
     esac
 done
@@ -48,7 +46,7 @@ if [ $# -ne 3 ]; then
    exit 1
 fi
 
-if (( 12 % $monthly_leg ))
+if (( 12 % $months_per_leg ))
 then
     echo "*EE* there is not a full number of legs in one year. Cannot process."
     exit 1
@@ -57,7 +55,7 @@ fi
 expname=$1
 year=$2
 yref=$3
-export monthly_leg
+export months_per_leg
 
 # check environment
 [[ -z "${ECE3_POSTPROC_TOPDIR:-}" ]] && echo "User environment ECE3_POSTPROC_TOPDIR not set. See ../README." && exit 1
@@ -78,8 +76,8 @@ echo "*II* Rebuild 3D relative humidity: ${rh_build:=1}"
 # IFS daily and 6hrs flag for u,v,t,z 3d field + tas, totp extraction [OFF by default]
 ifs_monthly=${ECE3_POSTPROC_HC_IFS_MONTHLY:-1}
 ifs_monthly_mma=${ECE3_POSTPROC_HC_IFS_MONTHLY_MMA:-0}
-ifs_daily=0
-ifs_6hrs=0
+ifs_daily=${ECE3_POSTPROC_HC_IFS_DAILY:-0}
+ifs_6hrs=${ECE3_POSTPROC_HC_IFS_6HRS:-0}
 
 # NEMO [ON by default (applied only if available), Extra (require nco) OFF by default]
 nemo=${ECE3_POSTPROC_HC_NEMO:-1}
@@ -97,7 +95,7 @@ store=0
 fstore=1
 
 ############################################################
-# settings that depend only on the ECE3_POSTPROC_* variables
+# dirs and auxiliary files
 ############################################################
 
 # location
@@ -113,18 +111,18 @@ then
     export NEMORESULTS0=$ALT_RUNDIR'/${expname}/output/nemo/$LEGNB'
 fi
 
-# does experiment output exist?
+# get the experiment directories
 eval_dirs 1
+
+# create output dir for results
+mkdir -p $OUTDIR0
+
+# does IFS output exist?
 [[ ! -d $IFSRESULTS ]] && \
     echo "*EE* IFS output dir ($IFSRESULTS) for experiment $expname does not exist!" &&  \
     exit 1
 
-# where to produce the results
-export OUTDIR0=$(eval echo ${ECE3_POSTPROC_POSTDIR})
-mkdir -p $OUTDIR0
-
-
-# test if it was a coupled run, and find resolution
+# does NEMO output exist? if interested, find resolution
 NEMOCONFIG=""
 if [[ -e ${NEMORESULTS} && $nemo == 1 ]]
 then 
@@ -183,6 +181,7 @@ cd $PROGDIR/script
     fi
 
     if [ $rh_build == 1 ] ; then
+        export OUTDIR0
         $python ../rhbuild/build_RH_new.py $expname $year
     fi
 

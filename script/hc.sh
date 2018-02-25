@@ -3,7 +3,7 @@
 usage()
 {
    echo "Usage:"
-   echo "       hc.sh [-a account] [-r rundir] [-m] [-f freq]  EXP YEAR1 YEAR2 YREF"
+   echo "       hc.sh [-a account] [-r rundir] [-m months_per_leg]  EXP YEAR1 YEAR2 YREF"
    echo
    echo "Submit to a job scheduler an HIRESCLIM2 postprocessing of experiment EXP"
    echo " (started in YREF) from YEAR1 to YEAR2. For each year, the script makes a"
@@ -16,9 +16,8 @@ usage()
    echo "   -c          : check for success"
    echo "   -r RUNDIR   : fully qualified path to another user EC-Earth RUNDIR"
    echo "                   that is RUNDIR/EXP/output must exists and be readable (default output structure assumed)"
-   echo "   -m          : run was performed with Monthly legs (yearly legs expected by default)"
-   echo "   -f freq     : run was performed with freq-month legs (yearly legs expected by default)"
-   echo "   -n numprocs : set number of processors to use (default is 12)"
+   echo "   -m months_per_leg : run was performed with months_per_leg legs (yearly legs expected by default)"
+   echo "   -n numprocs       : set number of processors to use (default is 12)"
 }
 
 set -ue
@@ -31,17 +30,15 @@ options=""
 nprocs=12
 
 # -- options
-while getopts "hcf:r:a:mn:" opt; do
+while getopts "hcr:a:m:n:" opt; do
     case "$opt" in
         h)
             usage
             exit 0
             ;;
-        m)  options=${options}" -m"
-            ;;
         n)  nprocs=$OPTARG
             ;;
-        f)  options=${options}" -f $OPTARG"
+        m)  options=${options}" -m $OPTARG"
             ;;
         r)  options=${options}" -r '$OPTARG'"
             ALT_RUNDIR="$OPTARG"

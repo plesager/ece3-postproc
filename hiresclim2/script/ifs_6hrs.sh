@@ -21,16 +21,18 @@ cd $WRKDIR
 
 NPROCS=${IFS_NPROCS:-12}
 
+# update IFSRESULTS and get OUTDIR0
+eval_dirs 1
+
 # where to save (archive) the results
 OUTDIR=$OUTDIR0/6hrs/Post_$year
 mkdir -p $OUTDIR || exit -1
 
-eval_dirs 1
 echo --- Analyzing 6hrs output -----
 echo Temporary directory is $WRKDIR
 echo Data directory is $IFSRESULTS
 echo Postprocessing with $NPROCS cores
-echo Postprocessed data directori is $OUTDIR
+echo Postprocessed data directory is $OUTDIR
 
 # output filename root
 out=$OUTDIR/${expname}_${year}

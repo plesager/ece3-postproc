@@ -1,5 +1,12 @@
 #!/bin/bash
 
+# --- PATTERN TO FIND POST-PROCESSED DATA FROM HIRESCLIM2
+# 
+# Must include ${EXPID} and be single-quoted
+#
+export ECE3_POSTPROC_POSTDIR='/scratch/ms/nl/${USER}/ECEARTH-RUNS/${EXPID}/post'
+
+# --- TOOLS -----
 # Required programs, including compression options
 module purge
 module load intel/2017.4 impi/2017.4 mkl/2017.4
@@ -17,20 +24,39 @@ submit_cmd="sbatch"
 export remap="remapcon2"
 #export remap="remapbil"
 
-# Where to save the table produced. Tables will be in the ${OUTDIR}/${exp} dir
-#export OUTDIR=${HOME}/ecearth3/diag/table
 
-# Where to save the climatology (769M AMIP, ??? NEMO). 
-# By default, if this is commented or empty, it is in you rundir next to hiresclim2 monthly means output:
-# 
-#     CLIMDIR=${ECE3_POSTPROC_RUNDIR}/${exp}/post/clim-${year1}-${year2}
+# --- PROCESS -----
 #
-# where exp, year1 and year2 are your scritp argument.
-#     
-# Note that it is needed for reproducibility tests for example.
-
-#CLIMDIR=<my favorite path to store climatoloy data>
-
 # process 3D vars (most of which which are in SH files) ? 
 # set to 0 if you only want simple diags e.g. Gregory plots
 export do_3d_vars=1
+
+
+# --- OUTPUT -----
+#
+# [1] Where to save the diagnostics.
+#     Can include ${EXPID} and then must be single-quoted.
+#     
+#     Tables for one simulation will be in ${ECE3_POSTPROC_DIAGDIR}/table/${EXPID}
+#     Summary tables for several simulations will be in ${ECE3_POSTPROC_DIAGDIR}/table/
+#     
+export ECE3_POSTPROC_DIAGDIR='$HOME/ECEARTH/diag/'
+
+# [2] Where to save the climatology (769M IFS, 799M IFS+NEMO). 
+#
+# By default, if this is commented or empty, it is next to hiresclim2 monthly
+# means output in the "post" dir:
+# 
+#     CLIMDIR=${ECE3_POSTPROC_POSTDIR}/clim-${year1}-${year2}
+#
+# where year1 and year2 are your script argument.
+#
+#CLIMDIR0=<my favorite path to store climatoloy data>
+
+# [3] Where to save the extracted PIs for REPRODUCIBILITY tests
+#
+#     Can include ${STEMID} as ensemble ID.
+#     Must be single-quoted if to be evaluated later.
+#
+export ECE3_POSTPROC_PI4REPRO='$HOME/ecearth3/diag/${STEMID}'
+

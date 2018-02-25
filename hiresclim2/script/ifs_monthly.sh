@@ -23,11 +23,13 @@ cd $WRKDIR
 
 NPROCS=${IFS_NPROCS:-12}
 
+# update IFSRESULTS and get OUTDIR0
+eval_dirs 1
+
 # where to save (archive) the results
 OUTDIR=$OUTDIR0/mon/Post_$year
 mkdir -p $OUTDIR || exit -1
 
-eval_dirs 1
 echo "*II* --- Analyzing monthly output -----"
 echo "*II* Temporary directory is $WRKDIR"
 echo "*II* Data directory is $IFSRESULTS"

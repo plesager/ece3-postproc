@@ -5,11 +5,11 @@ set -ex
  # To be called from ../master_hiresclim.sh #
  ############################################
 
-# Nemo output are yearly file:
-mlegs=${monthly_leg} # this is the number of months in a leg. Different from 12 not supported.
+# This is the number of months in a leg. Different from 12 not tested yet.
+mlegs=${months_per_leg} 
 if [[ $mlegs != 12 ]] 
 then
-    echo "*EE* only yearly leg supported in NEMO postprocessing"
+    echo "*EE* only yearly leg has been tested in NEMO postprocessing. Please review."
     exit 1
 fi
 
@@ -38,10 +38,13 @@ NOMP=${NEMO_NPROCS}
 echo "SBC file used: ${use_SBC:=0}"
 (( $use_SBC )) && SBC='SBC' || SBC='grid_T'
 
-# Check if new or old version of CDFtools is used -  - can be set in
+# Check if new or old version of CDFtools is used - can be set in
 # your ../../../conf/conf_hiresclim_<MACHINE-NAME>.sh, but old syntax
 # is assumed if not set.
 echo "Use newer syntax for cdfmean: ${newercdftools:=0}"
+
+# update NEMORESULTS and get OUTDIR0
+eval_dirs 1
 
 # where to save (archive) the results
 OUTDIR=$OUTDIR0/mon/Post_$year
@@ -66,19 +69,17 @@ case $NEMOCONFIG in
     depth_300_800='35 44'
     depth_800_bottom='45 75'
     # Nino3.4 region (in ij coordinates)
-    nino34_region='470 668 519 479' 
-    # TODO NEED UPDATE WRONG INDICES !!! (at least with cdftools 3.0.1
-    # npiglo =          199  npjglo =          -39
-    skip_nino=1
+    nino34_region='119 168 133 161' 
+    skip_nino=0
     ;;
     ( ORCA025L75 )
     # depth layers for heat content (0-300m, 300-800m, 800m-bottom)
     depth_0_300='1 34'
     depth_300_800='35 44'
     depth_800_bottom='45 75'
-    # Nino3.4 region (in ij coordinates)
-    nino34_region='470 668 519 479' # TODO NEED UPDATE WRONG INDICES !!!
-    skip_nino=1
+    # Nino3.4 region (in ij coordinates for the 1442x1050 grid)
+    nino34_region='469 669 507 547'
+    skip_nino=0
     ;;
     ( * ) echo Stop: NEMOCONFIG=$NEMOCONFIG not defined ; exit -1 ;;
 esac
@@ -88,9 +89,6 @@ ln -s $MESHDIR/mask.nc
 ln -s $MESHDIR/mesh_hgr.nc
 ln -s $MESHDIR/mesh_zgr.nc
 ln -s $MESHDIR/new_maskglo.nc
-
-# update NEMORESULTS
-eval_dirs 1
 
 # Nemo output filenames start with...
 froot=${expname}_1m_${year}0101_${year}1231
@@ -127,35 +125,18 @@ do
 done
 
 # ** AVAILABILITY
+# 
+# NEMO_SAVED_FILES and variable names are defined in your "./conf/<your-machine>/conf_hiresclim_<your-machine>.sh"
 
-# NEMO files - TODO: should this be retrieved from a dir list, or
-# should exist for processing to go forward? These could be set from
-# the 'rebuild if necessary' loop above
-NEMO_SAVED_FILES="grid_T grid_U grid_V icemod"
-
-itf=1   # 1: means grid_T is available 
-iuf=1   # 1: means grid_U is available 
-ivf=1   # 1: means grid_V is available 
-iif=1   # 1: means icemod is available 
+[[ $NEMO_SAVED_FILES =~ grid_T ]] && itf=1 || itf=0   # 1: means grid_T is available 
+[[ $NEMO_SAVED_FILES =~ grid_U ]] && iuf=1 || iuf=0   # 1: means grid_U is available 
+[[ $NEMO_SAVED_FILES =~ grid_V ]] && ivf=1 || ivf=0   # 1: means grid_V is available 
+[[ $NEMO_SAVED_FILES =~ icemod ]] && iif=1 || iif=0   # 1: means icemod is available 
 
 if [ ${itf} -eq 0 -o ${iif} -eq 0 ]; then
     echo "*EE*  grid_T and icemod files required for nemo_post.sh"
     exit 1
 fi
-
-
-# NEMO variables as currently named in EC-Earth output
-nm_wfo="wfo"         ; # water flux 
-nm_sst="tos"         ; # SST (2D)
-nm_sss="sos"         ; # SS salinity (2D)
-nm_ssh="zos"         ; # sea surface height (2D)
-nm_iceconc="siconc"  ; # Ice concentration as in icemod file (2D)
-#nm_icethic="sithick" ; # Ice thickness as in icemod file (2D)
-nm_icethic="sithic"  ; # Ice thickness as in icemod file (2D)
-nm_tpot="thetao"     ; # pot. temperature (3D)
-nm_s="so"            ; # salinity (3D)
-nm_u="uo"            ; # X current (3D)
-nm_v="vo"            ; # Y current (3D)
 
 # do all ncrename operations for grid_T in one step
 rename_str=""
