@@ -26,6 +26,9 @@ cd $WRKDIR
 
 NPROCS=${IFS_NPROCS}
 
+# update IFSRESULTS and get OUTDIR0
+eval_dirs 1
+
 # where to save (archive) the results
 OUTDIR=$OUTDIR0/mon/Post_$year
 echo $OUTDIR

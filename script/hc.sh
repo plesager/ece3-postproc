@@ -3,21 +3,21 @@
 usage()
 {
    echo "Usage:"
-   echo "       hc.sh [-a account] [-r rundir] [-m] EXP YEAR1 YEAR2 YREF"
+   echo "       hc.sh [-a account] [-r rundir] [-m months_per_leg]  EXP YEAR1 YEAR2 YREF"
    echo
    echo "Submit to a job scheduler an HIRESCLIM2 postprocessing of experiment EXP"
-   echo " (started in YREF) from YEAR1 to YEAR2. The script makes a wrapper around"
-   echo " master_hiresclim.sh, and submit it through the job scheduler."
+   echo " (started in YREF) from YEAR1 to YEAR2. For each year, the script makes a"
+   echo " wrapper around master_hiresclim.sh, and submit it through the job scheduler."
    echo
    echo "Submitted scripts and logs are in $SCRATCH/tmp_ecearth3"
    echo
    echo "Options are:"
-   echo "   -a ACCOUNT  : specify a different special project for accounting (default: ${ECE3_POSTPROC_ACCOUNT-})"
+   echo "   -a ACCOUNT  : specify a different special project for accounting (default: ${ECE3_POSTPROC_ACCOUNT:-unknown})"
    echo "   -c          : check for success"
-   echo "   -r RUNDIR   : fully qualified path to another user EC-Earth top RUNDIR"
-   echo "                   that is RUNDIR/EXP/output must exists and be readable"
-   echo "   -m          : run was performed with Monthly legs (yearly legs expected by default)"
-   echo "   -n numprocs : set number of processors to use (default is 12)"
+   echo "   -r RUNDIR   : fully qualified path to another user EC-Earth RUNDIR"
+   echo "                   that is RUNDIR/EXP/output must exists and be readable (default output structure assumed)"
+   echo "   -m months_per_leg : run was performed with months_per_leg legs (yearly legs expected by default)"
+   echo "   -n numprocs       : set number of processors to use (default is 12)"
 }
 
 set -ue
@@ -30,17 +30,17 @@ options=""
 nprocs=12
 
 # -- options
-while getopts "hcr:a:mn:" opt; do
+while getopts "hcr:a:m:n:" opt; do
     case "$opt" in
         h)
             usage
             exit 0
             ;;
-        m)  options=${options}" -m"
-            ;;
         n)  nprocs=$OPTARG
             ;;
-        r)  options=${options}" -r $OPTARG"
+        m)  options=${options}" -m $OPTARG"
+            ;;
+        r)  options=${options}" -r '$OPTARG'"
             ALT_RUNDIR="$OPTARG"
             ;;
         c)  checkit=1
@@ -58,32 +58,25 @@ if [ $# -ne 4 ]; then
    exit 1
 fi
 
-# -- Sanity checks (from master_hiresclim.sh, repeated here for a "before submission" error catch)
-[[ -z "${ECE3_POSTPROC_TOPDIR:-}"  ]] && echo "User environment not set. See ../README." && exit 1 
-[[ -z "${ECE3_POSTPROC_RUNDIR:-}"  ]] && echo "User environment not set. See ../README." && exit 1 
-[[ -z "${ECE3_POSTPROC_MACHINE:-}" ]] && echo "User environment not set. See ../README." && exit 1 
+# check environment
+[[ -z "${ECE3_POSTPROC_TOPDIR:-}" ]] && echo "User environment not set. See ../README." && exit 1
+. ${ECE3_POSTPROC_TOPDIR}/functions.sh
+check_environment
 
 # -- get submit command
 CONFDIR=${ECE3_POSTPROC_TOPDIR}/conf/${ECE3_POSTPROC_MACHINE}
 
 . ${CONFDIR}/conf_hiresclim_${ECE3_POSTPROC_MACHINE}.sh
 
-if [[ -n $ALT_RUNDIR ]]
-then
-    outdir=$ALT_RUNDIR/$1/output
-else
-    outdir=${ECE3_POSTPROC_RUNDIR}/$1/output
-fi
-[[ ! -d $outdir ]] && echo "User experiment output $outdir does not exist!" && exit 1
-
 
 # -- check previous processing
 if (( checkit ))
 then
+    EXPID=$1                    # set variables which can be eval'd    
     for YEAR in $(eval echo {$2..$3})
     do 
         echo; echo "-- check $YEAR--"; echo
-        cat ${ECE3_POSTPROC_RUNDIR}/$1/post/postcheck_$1_$YEAR.txt || \
+        cat $(eval echo ${ECE3_POSTPROC_POSTDIR})/postcheck_$1_$YEAR.txt || \
             echo "*EE* check log at $SCRATCH/tmp_ecearth3"
     done
     exit

@@ -44,7 +44,6 @@ done
 mkdir -p $SCRATCH/tmp_ecearth3/tmp
 export TMPDIR_ROOT=$(mktemp -d $SCRATCH/tmp_ecearth3/tmp/ts_${RUN}_XXXXXX)
 export POST_DIR=$DATADIR
-export DIR_TIME_SERIES=`echo ${DIR_TIME_SERIES} | sed -e "s|<RUN>|${RUN}|g"`
 
 echo
 echo " *** TMPDIR_ROOT = ${TMPDIR_ROOT}"

@@ -4,14 +4,39 @@
 # add here machine dependent set up
 # It expects USER* variables defined in conf_users.sh
 
-############################
-#---standard definitions---#
-############################
+ ######################################
+ # Configuration file for HIRESCLIM2  #
+ ######################################
 
+# --- PATTERN TO FIND MODEL OUTPUT
+# 
+# Must include $EXPID and be single-quoted
+#
+# optional variable are $USER*, $LEGNB, $year
+export IFSRESULTS0='/marconi_scratch/userexternal/${USERexp}/ece3/${EXPID}/output/Output_${year}/IFS'
+export NEMORESULTS0='/marconi_scratch/userexternal/${USERexp}/ece3/${EXPID}/output/Output_${year}/NEMO'
+
+# --- PATTERN TO DEFINE WHERE TO SAVE POST-PROCESSED DATA
+# 
+# Must include ${EXPID} and be single-quoted
+#
+export ECE3_POSTPROC_POSTDIR='/marconi_scratch/userexternal/${USERme}/ece3/${EXPID}/post'
+
+# --- PROCESSING TO PERFORM (uncomment to change default)
+# ECE3_POSTPROC_HC_IFS_MONTHL=1
+# ECE3_POSTPROC_HC_IFS_MONTHLY_MMA=0
+# ECE3_POSTPROC_HC_IFS_DAILY=0
+# ECE3_POSTPROC_HC_IFS_6HRS=0
+# ECE3_POSTPROC_HC_NEMO=1         # applied only if available
+# ECE3_POSTPROC_HC_NEMO_EXTRA=0   # require nco
+
+# --- Filter IFS output (to be applied through a grib_filter call)
 # Comment if no filtering/change for different output
 FILTERGG2D="if ( (!(typeOfLevel is \"isobaricInhPa\") && !(typeOfLevel is \"isobaricInPa\") && !(typeOfLevel is \"potentialVorticity\" ))) { write; }"
 FILTERGG3D="if ( ((typeOfLevel is \"isobaricInhPa\") || (typeOfLevel is \"isobaricInPa\") )) { write; }"
 FILTERSH="if ( ((dataTime == 0000) || (dataTime == 0600) || (dataTime == 1200)  || (dataTime == 1800) )) { write; }"
+
+# --- TOOLS (required programs, including compression options) -----
 
 #scheduler
 submit_cmd="sbatch"
@@ -55,6 +80,8 @@ export MESHDIR_TOP=/marconi_work/Pra13_3311/ecearth3/nemo
 # cdo table for conversion GRIB parameter --> variable name
 #export ecearth_table=$PROGDIR/script/ecearth.tab
 
+# ---------- NEMO VAR/FILES MANGLING ----------------------
+
 # NEMO files
 export NEMO_SAVED_FILES="grid_T grid_U grid_V icemod grid_W" ; # which files are saved / we care for?
 
@@ -64,17 +91,9 @@ export nm_sst="tos"        ; # SST (2D)
 export nm_sss="sos"        ; # SS salinity (2D)
 export nm_ssh="zos"        ; # sea surface height (2D)
 export nm_iceconc="siconc" ; # Ice concentration as in icemod file (2D)
-export nm_icethic="sithick" ; # Ice thickness as in icemod file (2D)
+#export nm_icethic="sithick" ; # Ice thickness as in icemod file (2D)
+export nm_icethic="sithic" ; # Ice thickness as in icemod file (2D)
 export nm_tpot="thetao"    ; # pot. temperature (3D)
 export nm_s="so"           ; # salinity (3D)
 export nm_u="uo"           ; # X current (3D)
 export nm_v="vo"           ; # Y current (3D)
-
-
-
-#echo Script is running in $PROGDIR
-#echo Temporary files are in $TMPDIR
-#echo Output are placed in $OUTDIR0
-#echo IFS procs are $IFS_NPROCS and NEMO procs are $NEMO_NPROCS
-#echo 
-#echo

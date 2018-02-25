@@ -9,7 +9,7 @@ reproducibility test.
 # Content #
 ###########
 perturb_ifs_ic.py          : script to create perturbation of the atmosphere 3D temperature in IFS Initial Conditions.
-new_initial_conditions.py  : [not used] alternate script to perturb 3D temperature (uses pygrib instead of grib_script
+new_initial_conditions.py  : [not used] alternate script to perturb 3D temperature (uses pygrib instead of grib_api)  
 gener_perturb_restart.bash : script to create perturbation of NEMO restart. Write and call a R script.
 collect_ens.sh             : parse the performance indices table of EC-Mean and collect the climatology computed by EC-mean
 compare.sh                 : wrapper around R scripts that effectively compare two ensembles. Produces a PDF summary.

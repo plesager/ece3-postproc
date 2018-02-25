@@ -55,22 +55,27 @@ exp=$1
 year1=$2
 year2=$3
 
-# load cdo, netcdf and dir for results
+# check environment
+[[ -z "${ECE3_POSTPROC_TOPDIR:-}" ]] && echo "User environment not set. See ../README." && exit 1
+. ${ECE3_POSTPROC_TOPDIR}/functions.sh
+check_environment
+
+# load cdo, netcdf and dir template for results
 . $ECE3_POSTPROC_TOPDIR/conf/$ECE3_POSTPROC_MACHINE/conf_ecmean_${ECE3_POSTPROC_MACHINE}.sh
+
+# set variables which can be eval'd
+EXPID=$exp
+export OUTDIR=$(eval echo ${ECE3_POSTPROC_DIAGDIR})/table
 
 TABLEDIR=${OUTDIR}/${exp}
 mkdir -p $TABLEDIR
 
 ############################################################
-# HARDCODED OPTIONS
-############################################################
-# None
-
-############################################################
 # TEMP dirs
 ############################################################
 # Where to store the 2x2 climatologies
-[[ -z "${CLIMDIR:-}" ]] && CLIMDIR=${ECE3_POSTPROC_RUNDIR}/${exp}/post/clim-${year1}-${year2}
+[[ -z "${CLIMDIR0:-}" ]] && CLIMDIR=$(eval echo ${ECE3_POSTPROC_POSTDIR})/clim-${year1}-${year2} \
+    || CLIMDIR=$(eval $CLIMDIR0)
 export CLIMDIR
 mkdir -p $CLIMDIR
 
@@ -87,9 +92,9 @@ PIDIR=$ECE3_POSTPROC_TOPDIR/ECmean
 # Base directory of HiresClim2 postprocessing outputs
 if [[ -n $ALT_RUNDIR ]]
 then
-    export DATADIR=$ALT_RUNDIR/${exp}/post/mon/
+    export DATADIR=${ALT_RUNDIR}/mon
 else
-    export DATADIR="${ECE3_POSTPROC_RUNDIR}/${exp}/post/mon/"
+    export DATADIR=$(eval echo ${ECE3_POSTPROC_POSTDIR})/mon
 fi
 [[ ! -d $DATADIR ]] && echo "*EE* Experiment HiresClim2 output dir $DATADIR does not exist!" && exit 1
 
