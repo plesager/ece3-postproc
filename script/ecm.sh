@@ -70,7 +70,7 @@ then
 fi
 
 # check we have a 4-letter experiment
-if [[ ! $1 =~ ^[a-Z0-9_]{4}$ ]]
+if [[ ! $1 =~ ^[a-zA-Z0-9_]{4}$ ]]
 then
     echo; echo "*EE* argument EXP (=$1) should be a 4-letter string"; echo
     usage
