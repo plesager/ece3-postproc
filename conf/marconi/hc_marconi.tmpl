@@ -1,6 +1,7 @@
 #! /usr/bin/env bash
 #SBATCH --job-name=hc_<EXPID>_<YEAR>
-#SBATCH --partition=all
+#SBATCH --account=<ACCOUNT>
+#SBATCH --partition=bdw_usr_prod
 #SBATCH --nodes=1
 #SBATCH --cpus-per-task=<NPROCS>
 #SBATCH --share

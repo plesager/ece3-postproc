@@ -63,6 +63,14 @@ rbld="$WORK/ecearth3/rebuild_nemo/rebuild_nemo"
 cdftoolsbin="$WORK/opt/bin"
 python=python
 
+# Set this to 1 if a newer syntax is used ("cdfmean -f file ..." instead
+# of "cdfmean file ..."). Set both to 1 if using version 4 of cdftools, only the second if using 3.0.1. 
+newercdftools=0
+newercdftools2=0
+
+# Set to 0 for not to rebuild 3D relative humidity
+rh_build=1
+
 # number of parallel procs for IFS (max 12) and NEMO rebuild
 #if [[ -z $IFS_NPROCS ]] ; then
 IFS_NPROCS=12; NEMO_NPROCS=12
