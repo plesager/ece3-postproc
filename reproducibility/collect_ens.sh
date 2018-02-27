@@ -12,7 +12,7 @@
 #
 # P. Le Sager (Jan 2018) - added to and adapted for the ece3-postproc tools suite package 
 
-set -o errexit
+set -eu
 
 usage()
 {
@@ -87,23 +87,24 @@ nb=$2
 year1=$3
 year2=$4
 
-# --- Get location of the tables to parse 
+# --- Get location templates of the tables to parse, climatology, and output 
 . $ECE3_POSTPROC_TOPDIR/conf/$ECE3_POSTPROC_MACHINE/conf_ecmean_${ECE3_POSTPROC_MACHINE}.sh
 
-TABLEDIR=${OUTDIR}/${root}      # ensemble table dir
-mkdir -p $TABLEDIR
+STEMID=$root # to be eval'd
+REPRODIR=$(eval echo ${ECE3_POSTPROC_PI4REPRO}) # ensemble table dir
+mkdir -p $REPRODIR
 
-# --- Location of EC-mean 2x2 climatologies
+# --- Location of Tables and 2x2 climatologies from EC-mean
 
-if [[ -n $CLIMDIR ]] 
-then
-    echo "we may have a problem: not fully implemented"
-    exit 1
-else
-    # Assume default location for 2x2 climatology (See ECmean/EC-mean.sh), which is:
-    # CLIMDIR=${ECE3_POSTPROC_RUNDIR}/${root}[1-$nb]/post/clim-${year1}-${year2}
-    CLIMTOPDIR=${ECE3_POSTPROC_RUNDIR}
-fi
+eval_loc() {
+    # eval the general path definitions found in conf_ecmean_${ECE3_POSTPROC_MACHINE}.sh
+    ! (( $# == 1 )) && echo "*EE* eval_loc requires EXP argument" && exit 1
+    local EXPID=$1
+    TABLEXP=$(eval echo ${ECE3_POSTPROC_DIAGDIR})/table/$1
+    [[ -z "${CLIMDIR0:-}" ]] \
+        && CLIMDIR=$(eval echo ${ECE3_POSTPROC_POSTDIR})/clim-${year1}-${year2} \
+        || CLIMDIR=$(eval $CLIMDIR0)
+}
 
 # --- Extract PIs into one file per variable
 
@@ -113,9 +114,10 @@ for var in ${var2d}
 do
     for k in $(eval echo {1..$nb})
     do
-        cat ${TABLEDIR}${k}/PI2_RK08_${root}${k}_${year1}_${year2}.txt | grep "^${var} " | \
+        eval_loc ${root}${k}
+        cat ${TABLEXP}/PI2_RK08_${root}${k}_${year1}_${year2}.txt | grep "^${var} " | \
             tail -1  | \
-            awk {'print $2'} >> $TABLEDIR/${root}_${year1}_${year2}_${var}.txt
+            awk {'print $2'} >> $REPRODIR/${root}_${year1}_${year2}_${var}.txt
     done
 done
 
@@ -125,14 +127,25 @@ if (( do_tar ))
 then
     arch=$SCRATCH/reprod-${root}-${year1}-${year2}.tar
 
-    cd $OUTDIR
+    cd $REPRODIR/..
     tar -cvf $arch ${root}
 
-    cd $CLIMTOPDIR
-    if [[ -d ${root}1/post/clim-${year1}-${year2} ]]
-    then
-        tar --append -vf $arch ${root}[1-$nb]/post/clim-${year1}-${year2}
-    else
-        echo "*EE* 2x2 EC-mean climatology is missing!!"
-    fi
+    
+    for k in $(eval echo {1..$nb})
+    do
+        eval_loc ${root}${k}
+        
+        cd $CLIMDIR/../../..
+
+        # expected path, which limits what climdir can be in EC-Mean 
+        totar=${root}${k}/post/clim-${year1}-${year2}
+
+        if [[ -d $totar ]]
+        then
+            tar --append -vf $arch ${root}${k}/post/clim-${year1}-${year2}
+        else
+            echo "*EE* 2x2 EC-mean climatology $totar is missing!!"
+        fi
+    done
+    gzip $arch
 fi

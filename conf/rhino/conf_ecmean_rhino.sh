@@ -1,5 +1,12 @@
 #!/bin/bash
 
+# --- PATTERN TO FIND POST-PROCESSED DATA FROM HIRESCLIM2
+# 
+# Must include ${EXPID} and be single-quoted
+#
+export ECE3_POSTPROC_POSTDIR='/scratch/ms/nl/${USER}/ECEARTH-RUNS/${EXPID}/post'
+
+
 # --- TOOLS -----
 # Require cdo, including compression options
 export cdo=cdo
@@ -21,23 +28,30 @@ export do_3d_vars=1
 
 
 # --- OUTPUT -----
-
-# [1] Where to save the table produced.
-#     Tables will be in the ${OUTDIR}/${exp} dir
-# 
-export OUTDIR=${HOME}/EC-Earth/diag/table/
-
-# [2] Where to save the climatology (769M IFS, ??? NEMO). 
 #
-# By default, if this is commented or empty, it is in your rundir next to
-# hiresclim2 monthly means output:
-# 
-#     CLIMDIR=${ECE3_POSTPROC_RUNDIR}/${exp}/post/clim-${year1}-${year2}
-#
-# where exp, year1 and year2 are your scritp argument.
+# [1] Where to save the diagnostics.
+#     Can include ${EXPID} and then must be single-quoted.
 #     
-# Note that the clim data are used to derived the K&S indices, but can also be
-# used afterwards for reproducibility tests for example.
+#     Tables for one simulation will be in ${ECE3_POSTPROC_DIAGDIR}/table/${EXPID}
+#     Summary tables for several simulations will be in ${ECE3_POSTPROC_DIAGDIR}/table/
+#     
+export ECE3_POSTPROC_DIAGDIR='$HOME/ecearth3/diag/'
 
-#CLIMDIR=<my favorite path to store climatoloy data>
+# [2] Where to save the climatology (769M IFS, 799M IFS+NEMO). 
+#
+# By default, if this is commented or empty, it is next to hiresclim2 monthly
+# means output in the "post" dir:
+# 
+#     CLIMDIR=${ECE3_POSTPROC_POSTDIR}/clim-${year1}-${year2}
+#
+# where year1 and year2 are your script argument.
+#
+#CLIMDIR0=<my favorite path to store climatology data>
+
+# [3] Where to save the extracted PIs for REPRODUCIBILITY tests
+#
+#     Can include ${STEMID} as ensemble ID.
+#     Must be single-quoted if to be evaluated later.
+#
+export ECE3_POSTPROC_PI4REPRO='$HOME/ecearth3/diag/${STEMID}'
 

@@ -2,6 +2,32 @@
 
 set -xuve 
 
+ ######################################
+ # Configuration file for HIRESCLIM2  #
+ ######################################
+
+# --- PATTERN TO FIND MODEL OUTPUT
+# 
+# Must include $EXPID and be single-quoted
+#
+# optional variable are $USER, $LEGNB, $year
+export IFSRESULTS0='/scratch/ms/nl/$USER/ECEARTH-RUNS/${EXPID}/output/ifs/${LEGNB}'
+export NEMORESULTS0='/scratch/ms/nl/$USER/ECEARTH-RUNS/${EXPID}/output/nemo/${LEGNB}'
+
+# --- PATTERN TO DEFINE WHERE TO SAVE POST-PROCESSED DATA
+# 
+# Must include ${EXPID} and be single-quoted
+#
+export ECE3_POSTPROC_POSTDIR='/scratch/ms/nl/${USER}/ECEARTH-RUNS/${EXPID}/post'
+
+# --- PROCESSING TO PERFORM (uncomment to change default)
+# ECE3_POSTPROC_HC_IFS_MONTHL=1
+# ECE3_POSTPROC_HC_IFS_MONTHLY_MMA=0
+# ECE3_POSTPROC_HC_IFS_DAILY=0
+# ECE3_POSTPROC_HC_IFS_6HRS=0
+# ECE3_POSTPROC_HC_NEMO=1         # applied only if available
+# ECE3_POSTPROC_HC_NEMO_EXTRA=0   # require nco
+
 # -- Filter IFS output (to be applied through a grib_filter call)
 # Useful when there are output with different timestep.
 # Set to empty if no filtering/change for different output
@@ -12,30 +38,15 @@ FILTERGG2D=""
 FILTERGG3D=""
 FILTERSH=""
 
-#PLS  # where is the IFS, NEMO output and logs located (change based on your directory structure)
-#PLS  # 1) ISAC-CNR dir structure
-#PLS  IFSRESULTS=$BASERESULTS/output/Output_*/IFS
-#PLS  #ABNEMORESULTS=$BASERESULTS/output/Output_*/NEMO
-#PLS  NEMORESULTS=$BASERESULTS/output/Output_$year/NEMO
-#PLS  LOGSDIR=$BASERESULTS/log/Log_$year
-#PLS  # 2) Generic EC-Earth dir structure (year = leg) Keep the * !
-#PLS  #IFSRESULTS=$BASERESULTS/output/ifs/*
-#PLS  #NEMORESULTS=$BASERESULTS/output/nemo/*
-#PLS  #ABproposed change NEMORESULTS=$BASERESULTS/output/nemo/$year
-#PLS  #LOGSDIR=$BASERESULTS/log/$year
+# --- TOOLS (required programs, including compression options) -----
 
-
-# Configuration file for hiresclim script
-# 
-# Add here machine dependent set up that do NOT necessarily depends on any of
-#    the following general user settings:
-#    ECE3_POSTPROC_TOPDIR, ECE3_POSTPROC_RUNDIR, or ECE3_POSTPROC_DATADIR
-
-submit_cmd="sbatch"
-
+#submit_cmd="sbatch"
+submit_cmd="bash"
 
 # required programs, including compression options
-module load gsl grib netcdf hdf5 CDO/1.7.2 udunits nco python/2.7.13
+module purge
+module load intel/2017.4 impi/2017.4 mkl/2017.4
+module load gsl grib netcdf hdf5 CDO/1.8.2 udunits nco python/2.7.13
 module list
 export CDFTOOLS_DIR=/gpfs/projects/bsc32/opt/cdftools-3.1/intel-2017.4
 
@@ -49,6 +60,9 @@ newercdftools=0
 newercdftools2=1
 python=python
 
+#extension for IFS files, default ""
+GRB_EXT=".grb"
+
 # number of parallel procs for IFS (max 12) and NEMO rebuild. Default to 12.
 if [ -z "${IFS_NPROCS:-}" ] ; then
     IFS_NPROCS=12; NEMO_NPROCS=12
@@ -60,23 +74,23 @@ export MESHDIR_TOP="/gpfs/projects/bsc32/bsc32051/ECE3-DATA/post-proc"
 # Base dir to archive (ie just make a copy of) the monthly results. Daily results, if any, are left in scratch. 
 STOREDIR=$SCRATCH/ecearth3/post/hiresclim/
 
+# ---------- NEMO VAR/FILES MANGLING ----------------------
 
-# # NEMO files
-# export NEMO_SAVED_FILES="grid_T grid_U grid_V icemod grid_W" ; # which files are saved / we care for?
+# NEMO 'wfo' variable can be in the SBC files instead of T files, then
+# set this flag to 1
+export use_SBC=0
 
-# # NEMO variables
-# export nm_wfo="wfo"        ; # water flux 
-# export nm_sst="tos"        ; # SST (2D)
-# export nm_sss="sos"        ; # SS salinity (2D)
-# export nm_ssh="zos"        ; # sea surface height (2D)
-# export nm_iceconc="siconc" ; # Ice concentration as in icemod file (2D)
-# export nm_icethic="sithic" ; # Ice thickness as in icemod file (2D)
-# export nm_tpot="thetao"    ; # pot. temperature (3D)
-# export nm_s="so"           ; # salinity (3D)
-# export nm_u="uo"           ; # X current (3D)
-# export nm_v="vo"           ; # Y current (3D)
+# NEMO files - which files are saved / we care for?
+NEMO_SAVED_FILES="grid_T grid_U grid_V icemod"
 
-
-
-
-# TODO: implement a true backup on ECFS
+# NEMO variables as currently named in EC-Earth output
+export nm_wfo="wfo"        ; # water flux 
+export nm_sst="tos"        ; # SST (2D)
+export nm_sss="sos"        ; # SS salinity (2D)
+export nm_ssh="zos"        ; # sea surface height (2D)
+export nm_iceconc="siconc" ; # Ice concentration as in icemod file (2D)
+export nm_icethic="sithic" ; # Ice thickness as in icemod file (2D)
+export nm_tpot="thetao"    ; # pot. temperature (3D)
+export nm_s="so"           ; # salinity (3D)
+export nm_u="uo"           ; # X current (3D)
+export nm_v="vo"           ; # Y current (3D)
