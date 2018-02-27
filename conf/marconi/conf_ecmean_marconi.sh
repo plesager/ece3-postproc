@@ -9,7 +9,7 @@ module load  hdf5/1.8.17--intel--pe-xe-2017--binary netcdf/4.4.1--intel--pe-xe-2
 # 
 # Must include ${EXPID} and be single-quoted
 #
-export ECE3_POSTPROC_POSTDIR='/marconi_scratch/userexternal/${USERme}/ece3/${EXPID}/post'
+export ECE3_POSTPROC_POSTDIR='${CINECA_SCRATCH}/ece3/${EXPID}/post'
 
 
 # --- TOOLS -----
@@ -42,7 +42,7 @@ export do_3d_vars=1
 #     Tables for one simulation will be in ${ECE3_POSTPROC_DIAGDIR}/table/${EXPID}
 #     Summary tables for several simulations will be in ${ECE3_POSTPROC_DIAGDIR}/table/
 #     
-export ECE3_POSTPROC_DIAGDIR='/marconi/home/userexternal/${USERme}/ecearth3/diag'
+export ECE3_POSTPROC_DIAGDIR='$HOME/ecearth3/diag'
 
 # [2] Where to save the climatology (769M IFS, 799M IFS+NEMO). 
 #
@@ -54,7 +54,7 @@ export ECE3_POSTPROC_DIAGDIR='/marconi/home/userexternal/${USERme}/ecearth3/diag
 # where year1 and year2 are your script argument.
 #
 #CLIMDIR0=<my favorite path to store climatoloy data>
-CLIMDIR0='/marconi_scratch/userexternal/${USERme}/tmp/${EXPID}/post/model2x2_${year1}_${year2}'
+CLIMDIR0='${CINECA_SCRATCH}/tmp/${EXPID}/post/model2x2_${year1}_${year2}'
 
 
 # [3] Where to save the extracted PIs for REPRODUCIBILITY tests

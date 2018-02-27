@@ -107,8 +107,8 @@ export ecearth_table=$PROGDIR/script/ecearth.tab
 # where to find the results from the EC-EARTH experiment
 if [[ -n $ALT_RUNDIR ]]
 then
-    export IFSRESULTS0=$ALT_RUNDIR'/${expname}/output/ifs/$LEGNB'
-    export NEMORESULTS0=$ALT_RUNDIR'/${expname}/output/nemo/$LEGNB'
+    export IFSRESULTS0=$ALT_RUNDIR/${COREIFSDIR}
+    export NEMORESULTS0=$ALT_RUNDIR/${CORENEMODIR}
 fi
 
 # get the experiment directories
