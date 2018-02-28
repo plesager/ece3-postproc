@@ -1,10 +1,13 @@
 #!/bin/bash
 
+# For autosubmit these variables must be set elsewhere (in the calling script or .bashrc)
+# ECE3_POSTPROC_POSTDIR ECE3_POSTPROC_DIAGDIR
+
 # --- PATTERN TO FIND POST-PROCESSED DATA FROM HIRESCLIM2
 # 
 # Must include ${EXPID} and be single-quoted
 #
-export ECE3_POSTPROC_POSTDIR='/scratch/ms/nl/${USER}/ECEARTH-RUNS/${EXPID}/post'
+[[ -z ${ECE3_POSTPROC_POSTDIR:-} ]] && export ECE3_POSTPROC_POSTDIR='$SCRATCH/ECEARTH-RUNS/${EXPID}/post'
 
 # --- TOOLS -----
 # Required programs, including compression options
@@ -40,7 +43,7 @@ export do_3d_vars=1
 #     Tables for one simulation will be in ${ECE3_POSTPROC_DIAGDIR}/table/${EXPID}
 #     Summary tables for several simulations will be in ${ECE3_POSTPROC_DIAGDIR}/table/
 #     
-export ECE3_POSTPROC_DIAGDIR='$HOME/ECEARTH/diag/'
+[[ -z ${ECE3_POSTPROC_DIAGDIR:-} ]] && export ECE3_POSTPROC_DIAGDIR='$HOME/ecearth3/diag/'
 
 # [2] Where to save the climatology (769M IFS, 799M IFS+NEMO). 
 #

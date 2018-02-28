@@ -5,8 +5,6 @@ set -e
  # To be called from ../master_hiresclim.sh #
  ############################################
 
-mlegs=${monthly_leg}  # env variable (1 if using monthly legs, 0 yearly)
-
 expname=$1
 year=$2
 yref=$3
@@ -24,15 +22,20 @@ mkdir -p $SCRATCH/tmp_ecearth3/tmp
 WRKDIR=$(mktemp -d $SCRATCH/tmp_ecearth3/tmp/hireclim2_${expname}_XXXXXX) # use template if debugging
 cd $WRKDIR
 
-NPROCS=${IFS_NPROCS}
+NPROCS=${IFS_NPROCS:-1}
 
 # update IFSRESULTS and get OUTDIR0
 eval_dirs 1
 
 # where to save (archive) the results
 OUTDIR=$OUTDIR0/mon/Post_$year
-echo $OUTDIR
 mkdir -p $OUTDIR || exit -1
+
+echo "*II* --- Analyzing monthly output -----"
+echo "*II* Temporary directory is $WRKDIR"
+echo "*II* Data directory is $IFSRESULTS"
+echo "*II* Postprocessing with $NPROCS cores"
+echo "*II* Postprocessed data directory is $OUTDIR"
 
 # output filename root
 out=$OUTDIR/${expname}_${year}
@@ -46,7 +49,7 @@ out=$OUTDIR/${expname}_${year}
         for m in $(seq $m1 $((m1+NPROCS-1)) )
         do
             ym=$(printf %04d%02d $year $m)
-            (( $mlegs )) && IFSRESULTS=$BASERESULTS/ifs/$(printf %03d $(( (year-${yref})*12+m)))
+            eval_dirs $m  
             gunzip -c  $IFSRESULTS/MMA_${expname}_6h_SH_${ym}.nc.gz > MMA_${expname}_6h_SH_${ym}.nc
             $cdo -b F64 splitvar -sp2gpl \
                 -setdate,$year-$m-01 -settime,00:00:00 -timmean \
@@ -74,7 +77,7 @@ done
         for m in $(seq $m1 $((m1+NPROCS-1)) )
         do
             ym=$(printf %04d%02d $year $m)
-            (( $mlegs )) && IFSRESULTS=$BASERESULTS/ifs/$(printf %03d $(( (year-${yref})*12+m)))
+            eval_dirs $m  
             gunzip -c  $IFSRESULTS/MMA_${expname}_6h_GG_${ym}.nc.gz > MMA_${expname}_6h_GG_${ym}.nc
             $cdo -b F64 setdate,$year-$m-01 -settime,00:00:00 -timmean \
                 MMA_${expname}_6h_GG_${ym}.nc icmgg_${ym}.nc &
