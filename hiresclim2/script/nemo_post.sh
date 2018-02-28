@@ -5,11 +5,11 @@ set -ex
  # To be called from ../master_hiresclim.sh #
  ############################################
 
-# This is the number of months in a leg. Different from 12 not tested yet.
-mlegs=${months_per_leg} 
-if [[ $mlegs != 12 ]] 
+# This is the number of months in a leg. Only 1 and 12 tested yet.
+mlegs=${months_per_leg}
+if [[ $mlegs != 12 && $mlegs != 1 ]]
 then
-    echo "*EE* only yearly leg has been tested in NEMO postprocessing. Please review."
+    echo "*EE* only yearly or monthly leg has been tested in NEMO postprocessing. Please review."
     exit 1
 fi
 
@@ -100,7 +100,7 @@ do
    then
       cp $NEMORESULTS/${froot}_${t}.nc .
    else
-       if [[ $mlegs != 12 ]]
+       if [[ $mlegs == 1 ]]
        then
            mfiles=""
            # build list of monthly files, could be less selective in the file list syntax
