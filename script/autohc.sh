@@ -24,7 +24,6 @@ set -ue
 # -- default options
 account="${ECE3_POSTPROC_ACCOUNT-}"
 ALT_RUNDIR=""
-checkit=0
 options=""
 nprocs=12
 yref=""
@@ -68,40 +67,58 @@ CONFDIR=${ECE3_POSTPROC_TOPDIR}/conf/${ECE3_POSTPROC_MACHINE}
 
 . ${CONFDIR}/conf_hiresclim_${ECE3_POSTPROC_MACHINE}.sh
 
+# --alternative directory
 if [[ -n $ALT_RUNDIR ]]
 then
     export IFSRESULTS0=$ALT_RUNDIR/${COREIFSDIR}
 fi
 
-# Find first and last year
+# -- add here options for submit commands
+case "${submit_cmd}" in
+        sbatch) queue_cmd="squeue -u $USER  -o %.16j" ;;
+esac
+
+# -- Find first and last year
 year="*"
 YEAR_LAST=$( basename $(eval echo $IFSRESULTS0/ICMSH${EXPID}+????12 | rev | cut -f1 -d" " | rev) | cut -c11-14)
 YEAR_ZERO=$( basename $(eval echo $IFSRESULTS0/ICMSH${EXPID}+????12 | cut -f1 -d" ") | cut -c11-14)
+
+# -- exit if no years are found
+if [[ ${YEAR_ZERO} == "????" ]] || [[ ${YEAR_ZERO} == "????" ]] ; then 
+   echo "Experiment $EXPID not found in $IFSRESULTS0! Exiting!"
+   exit
+fi
+
+# -- on which years are we running
 echo "First year is ${YEAR_ZERO}"
 echo "Last year is ${YEAR_LAST}"
 
-# take yref from YEAR_ZERO
+# -- take yref from YEAR_ZERO (potentially can be used by other file structures)
 yref=${YEAR_ZERO}
 
 # -- Scratch dir (location of submit script and its log, and temporary files)
 OUT=$SCRATCH/tmp_ecearth3
 mkdir -p $OUT/log
 
+YEAR_LAST=1995
+
 # -- Write and submit one script per year
 for YEAR in $(seq ${YEAR_ZERO} ${YEAR_LAST})
 do 
     echo; echo ---- $YEAR -----
-    if [ -f  $(eval echo ${ECE3_POSTPROC_POSTDIR})/postcheck_$EXPID_$YEAR.txt ] 
+    # -- If postcheck exists plot it, then exit! 
+    if [ -f  $(eval echo ${ECE3_POSTPROC_POSTDIR})/postcheck_${EXPID}_$YEAR.txt ] 
     then
-	cat $(eval echo ${ECE3_POSTPROC_POSTDIR})/postcheck_$EXPID_$YEAR.txt
+	cat $(eval echo ${ECE3_POSTPROC_POSTDIR})/postcheck_${EXPID}_$YEAR.txt
     else
-	# check if postproc is already going on (only for slurm)
-	ll=$(echo $(squeue -u $USER  -o %.16j | grep "hc_${EXPID}_${YEAR}"))
+	# -- check if postproc is already, the exit
+	ll=$(echo $(${queue_cmd} | grep "hc_${EXPID}_${YEAR}"))
 	if [[ ! -z $ll ]] ; then
             echo "Hiresclim postprocessing for year $YEAR already going on..."
             continue
         fi
 	
+	# -- if files are missing, run master_hiresclim.sh fo each year
 	tgt_script=$OUT/hc_${EXPID}_${YEAR}.job
         sed "s/<EXPID>/$1/" < ${CONFDIR}/hc_$ECE3_POSTPROC_MACHINE.tmpl > $tgt_script
 
