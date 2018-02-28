@@ -108,9 +108,10 @@ do
            do
                m0=`printf "%02d" $m`
                #additional evaluation for monthly files
-               NEMORESULTS=$(eval echo $NEMORESULTS0)
+               eval_dirs $m
                mfiles=$mfiles" "$NEMORESULTS/${expname}_1m_${year}${m0}01_${year}${m0}??_${t}.nc
            done
+           eval_dirs 1
            ncrcat -3 $mfiles ${froot}_${t}.nc
        elif (( $(ls $NEMORESULTS/${froot}_${t}* | wc -w) ))
        then
