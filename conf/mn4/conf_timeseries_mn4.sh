@@ -15,7 +15,7 @@
 #export DIR_TIME_SERIES="${EMOP_CLIM_DIR}/timeseries/<RUN>"
 
 # where to find mesh and mask files for NEMO. Files are expected in $MESHDIR_TOP/$NEMOCONFIG.
-export MESHDIR_TOP="/gpfs/projects/bsc32/bsc32051/ECE3-DATA/post-proc"
+export MESHDIR_TOP="/gpfs/projects/bsc32/repository/ece3-postproc"
 
 # About web page, on remote server host:
 #     =>  set RHOST="" to disable this function...
