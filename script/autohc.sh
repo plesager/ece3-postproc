@@ -91,7 +91,7 @@ yref=${YEAR_ZERO}
 OUT=$SCRATCH/tmp_ecearth3
 mkdir -p $OUT/log
 
-YEAR_LAST=1995
+#YEAR_LAST=1995
 
 # -- Write and submit one script per year
 for YEAR in $(seq ${YEAR_ZERO} ${YEAR_LAST})
