@@ -15,7 +15,7 @@ set -eu
 
 usage()
 {
-  echo "Usage:   ./master_hiresclim.sh [-r rundir] [-p postdir] [-m months_per_leg] EXP YEAR YREF"
+  echo "Usage:   ./master_hiresclim.sh [-m months_per_leg] [-u userexp] EXP YEAR YREF"
   echo "Example: ./master_hiresclim.sh io01 1995 1990"
 }
 
@@ -24,19 +24,18 @@ usage()
 #########################
 
 months_per_leg=12                  # nb of months per legs. Default: yearly legs.
-ALT_RUNDIR=""
-ALT_POSTDIR=""
+#ALT_RUNDIR=""
+#ALT_POSTDIR=""
 
-while getopts "h?m:r:" opt; do
+while getopts "h?m:r:u:" opt; do
     case "$opt" in
         h|\?)
             usage
             exit 0
             ;;
-        r)  ALT_RUNDIR=$OPTARG
-            ;;
         m)  months_per_leg=$OPTARG
             ;;
+	u)  USERexp=$OPTARG
     esac
 done
 shift $((OPTIND-1))
@@ -103,13 +102,6 @@ PROGDIR=$ECE3_POSTPROC_TOPDIR/hiresclim2
 
 # cdo table for conversion GRIB parameter --> variable name
 export ecearth_table=$PROGDIR/script/ecearth.tab
-
-# where to find the results from the EC-EARTH experiment
-if [[ -n $ALT_RUNDIR ]]
-then
-    export IFSRESULTS0=$ALT_RUNDIR/${COREIFSDIR}
-    export NEMORESULTS0=$ALT_RUNDIR/${CORENEMODIR}
-fi
 
 # get the experiment directories
 eval_dirs 1
