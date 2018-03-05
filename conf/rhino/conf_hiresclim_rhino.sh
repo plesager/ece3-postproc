@@ -9,14 +9,15 @@
 # Must include $EXPID and be single-quoted
 #
 # optional variable are $USER, $LEGNB, $year
-export IFSRESULTS0='/scratch/ms/nl/$USER/ECEARTH-RUNS/${EXPID}/output/ifs/${LEGNB}'
-export NEMORESULTS0='/scratch/ms/nl/$USER/ECEARTH-RUNS/${EXPID}/output/nemo/${LEGNB}'
+#
+export IFSRESULTS0='/lustre3/projects/CMIP6/${USER}/rundirs/${EXPID}/output/ifs/${LEGNB}'
+export NEMORESULTS0='/lustre3/projects/CMIP6/${USER}/rundirs/${EXPID}/output/nemo/${LEGNB}'
 
 # --- PATTERN TO DEFINE WHERE TO SAVE POST-PROCESSED DATA
 # 
 # Must include ${EXPID} and be single-quoted
 #
-export ECE3_POSTPROC_POSTDIR='/scratch/ms/nl/${USER}/ECEARTH-RUNS/${EXPID}/post'
+export ECE3_POSTPROC_POSTDIR='/lustre3/projects/CMIP6/${USER}/rundirs/${EXPID}/post'
 
 # --- PROCESSING TO PERFORM (uncomment to change default)
 # ECE3_POSTPROC_HC_IFS_MONTHLY=1
@@ -63,7 +64,7 @@ STOREDIR=
 
 # NEMO 'wfo' variable can be in the SBC files instead of T files, then
 # set this flag to 1
-export use_SBC=1
+export use_SBC=0
 
 # NEMO files - which files are saved / we care for?
 NEMO_SAVED_FILES="grid_T grid_U grid_V icemod"
