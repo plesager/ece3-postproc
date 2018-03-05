@@ -85,9 +85,6 @@ nemo_extra=${ECE3_POSTPROC_HC_NEMO_EXTRA:-0}
 
 ########## HARDCODED OPTIONS ###############
 
-# TODO add option to compute variables only needed for ECMean
-#nemo_basic=0
-
 # copy monthly results in a second folder
 store=0
 
@@ -176,13 +173,13 @@ cd $PROGDIR/script
         . ./ifs_6hrs.sh $expname $year $yref
     fi
 
-    if [ $nemo == 1 ] ; then
-        . ./nemo_post.sh $expname $year $yref $nemo_extra
-    fi
-
     if [ $rh_build == 1 ] ; then
         export OUTDIR0
         $python ../rhbuild/build_RH_new.py $expname $year
+    fi
+
+    if [ $nemo == 1 ] ; then
+        . ./nemo_post.sh $expname $year $yref $nemo_extra
     fi
 
     end1=$(date +%s)
