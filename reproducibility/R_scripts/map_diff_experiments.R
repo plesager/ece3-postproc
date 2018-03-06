@@ -23,19 +23,24 @@ year1=args[5]
 year2=args[6]
 nmemb=args[7]
 
-var_name=c('t2m','msl','qnet','tp','ewss','nsss','SICE')
-var_name2=c('tas','msl','str','totp','ewss','nsss','ci')
-nb_var=length(var_name)
+# filename token & id of variables to read  
+fname=c('t2m'       ,'msl'        ,'qnet'       ,'tp'         ,'ewss'       ,'nsss'       ,'SICE')
+varid=c('tas'       ,'msl'        ,'str'        ,'totp'       ,'ewss'       ,'nsss'       ,'iiceconc')
+lonid=c('longitude' , 'longitude' , 'longitude' , 'longitude' , 'longitude' , 'longitude' , 'LONGITUDE')
+latid=c('latitude'  , 'latitude'  , 'latitude'  , 'latitude'  , 'latitude'  , 'latitude'  , 'LATITUDE' )
+timid=c('time'      , 'time'      , 'time'      , 'time'      , 'time'      , 'time'      , 'time_counter')
+
+
+nb_var=length(fname)
 
 if (length(args)==8){
-    nb_var=length(var_name)-1
+    nb_var=length(fname)-1
 }
 
 
 for (ji in 1:nb_var) {
 
-    var=var_name[ji]
-    var2=var_name2[ji]
+    var=fname[ji]
 
     writeLines(paste("\n** Processing:",var))
 
@@ -48,26 +53,24 @@ for (ji in 1:nb_var) {
         for (jmemb in 1:nmemb) {
 
             fnc <- nc_open(paste(path, "/", exp_name[jexp], jmemb, '/post/clim-',year1,'-',year2,'/',var,'_mon_2x2.nc',sep=""))
-            lon <-  ncvar_get(fnc, varid='longitude')
-            lat <-  ncvar_get(fnc, varid='latitude')
-            time <- ncvar_get(fnc, varid='time')
 
             if (jmemb == 1 && jexp==1 ) {
+                lon <-  ncvar_get(fnc, varid=lonid[ji])
+                lat <-  ncvar_get(fnc, varid=latid[ji])
+                time <- ncvar_get(fnc, varid=timid[ji])
                 data=array(NaN,dim=c(2,nmemb,length(lon),length(lat),length(time)))
             }
             
             writeLines(paste("       reading experiment ",exp_name[jexp]," and member ",jmemb,sep=""))
-            ##DBG writeLines(paste("       number of longitudes=",length(lon),sep=""))
-            ##DBG writeLines(paste("       number of latitudes=",length(lat),sep=""))
 
-            if (dim(lon)==dim(data)[3] && dim(lat)==dim(data)[4]) {
-                writeLines("       dimensions OK")
-            } else {
+            if (dim(lon)!=dim(data)[3] || dim(lat)!=dim(data)[4]) {
                 writeLines(paste("       bad dimensions for exp ",exp_name[jexp],' and memb ',memb_name[jmemb],sep=""))
-            } 
+                writeLines(paste("        nb of longitudes/latitudes=",length(lon),length(lat),sep=""))
+                writeLines(paste("        data spatial dimensions =",dim(data)[3], dim(data)[4],sep=""))
+            }
             
             ## Get the variable:
-            data[jexp,jmemb,,,] <- ncvar_get(fnc,varid=var2)
+            data[jexp,jmemb,,,] <- ncvar_get(fnc,varid=varid[ji])
 
             ## Closing netcdf file:
             nc_close(fnc)
@@ -90,6 +93,10 @@ for (ji in 1:nb_var) {
     diff_exp1_exp2 <- Mean1Dim(mean_exp1,posdim=1)-Mean1Dim(mean_exp2,posdim=1)
 
     ## Kolmogorov-Smirnov test:
+    NAS=sum(is.na(mean_data))
+    if (NAS != 0) {
+        writeLines(paste("      number of NA:", sum(is.na(mean_data)), "..skipping KS test for",var,sep=" " ))
+        next}    
     test_exp1_exp2 <- apply(mean_data,c(3,4),function(x) if (ks.test(x[1,],x[2,])$p.value < 0.05) {1} else {0})
     p_value <- apply(mean_data,c(3,4),function(x) ks.test(x[1,],x[2,])$p.value)
 
