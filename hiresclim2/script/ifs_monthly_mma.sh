@@ -58,7 +58,7 @@ out=$OUTDIR/${expname}_${year}
         wait
     done
 
-# TODO add lnsp to MMA files in POST
+# comment lnsp if running on old MMA files
 for v2 in t u v z #lnsp
 do
    v1="${v2^^}"
@@ -67,9 +67,11 @@ do
 done
 
 #part on surface pressure
-#$cdo chcode,152,134 ${out}_lnsp.nc temp_lnsp.nc
-#$cdo -t $ecearth_table exp temp_lnsp.nc ${out}_sp.nc
-#rm temp_lnsp.nc
+if [[ -f ${out}_lnsp.nc ]] ; then
+    $cdo chcode,152,134 ${out}_lnsp.nc temp_lnsp.nc
+    $cdo -t $ecearth_table exp temp_lnsp.nc ${out}_sp.nc
+    rm temp_lnsp.nc
+fi
 
 # ICMGG
     for m1 in $(seq 1 $NPROCS 12)
