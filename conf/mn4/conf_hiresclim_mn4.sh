@@ -64,7 +64,7 @@ newercdftools2=1
 python=python
 
 #extension for IFS files, default ""
-[[ -z ${GRB_EXT:-} ]] && GRB_EXT=".grb"
+[[ -z ${GRB_EXT:-} ]] && GRB_EXT="" #".grb"
 
 # number of parallel procs for IFS (max 12) and NEMO rebuild. Default to 12.
 if [ -z "${IFS_NPROCS:-}" ] ; then
