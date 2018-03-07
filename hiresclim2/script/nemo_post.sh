@@ -5,11 +5,11 @@ set -ex
  # To be called from ../master_hiresclim.sh #
  ############################################
 
-# This is the number of months in a leg. Different from 12 not tested yet.
-mlegs=${months_per_leg} 
-if [[ $mlegs != 12 ]] 
+# This is the number of months in a leg. Only 1 and 12 tested yet.
+mlegs=${months_per_leg}
+if [[ $mlegs != 12 && $mlegs != 1 ]]
 then
-    echo "*EE* only yearly leg has been tested in NEMO postprocessing. Please review."
+    echo "*EE* only yearly or monthly leg has been tested in NEMO postprocessing. Please review."
     exit 1
 fi
 
@@ -100,7 +100,7 @@ do
    then
       cp $NEMORESULTS/${froot}_${t}.nc .
    else
-       if [[ $mlegs != 12 ]]
+       if [[ $mlegs == 1 ]]
        then
            mfiles=""
            # build list of monthly files, could be less selective in the file list syntax
@@ -108,9 +108,10 @@ do
            do
                m0=`printf "%02d" $m`
                #additional evaluation for monthly files
-               NEMORESULTS=$(eval echo $NEMORESULTS0)
+               eval_dirs $m
                mfiles=$mfiles" "$NEMORESULTS/${expname}_1m_${year}${m0}01_${year}${m0}??_${t}.nc
            done
+           eval_dirs 1
            ncrcat -3 $mfiles ${froot}_${t}.nc
        elif (( $(ls $NEMORESULTS/${froot}_${t}* | wc -w) ))
        then
@@ -225,6 +226,18 @@ for v in iiceconc iicethic; do
     if [ -f ${ff}4 ]; then mv ${ff}4 ${ff}; fi
 done
 
+if (( $newercdftools ))
+then
+    $cdozip selvar,iiceconc,iicethic ${froot}_icemod.nc ${out}_ice.nc    
+    $cdftoolsbin/cdficediags -i ${froot}_icemod_cdfnew.nc -lim3 -o ${out}_icediags.nc
+else
+    $cdozip selvar,iiceconc,iicethic ${froot}_icemod.nc ${out}_ice.nc
+    $cdftoolsbin/cdficediags ${froot}_icemod.nc -lim3
+    cp icediags.nc ${out}_icediags.nc
+fi
+
+
+if [[ $nemo_extra == 1 ]] ; then
 
 # ** heat content
 tmpstring=tmpdate
@@ -244,7 +257,6 @@ do
     $cdo -f nc settaxis,${year}-01-01,12:00:00,1mon -input,r1x1 ${out}_${l}_heatc.nc < tmp_$l
 done
 
-
 if (( $newercdftools ))
 then
     # ** Nino3.4 SST
@@ -260,9 +272,6 @@ then
     # mixed layer depth
 #rhino: seg fault!    $cdftoolsbin/cdfmxl -t ${froot}_grid_T.nc -o ${out}_mxl.nc
 
-    # ice diagnostics
-    $cdozip selvar,iiceconc,iicethic ${froot}_icemod.nc ${out}_ice.nc    
-    $cdftoolsbin/cdficediags -i ${froot}_icemod_cdfnew.nc -lim3 -o ${out}_icediags.nc
 else
     # ** Nino3.4 SST
     if (( ! $skip_nino )) ; then
@@ -286,15 +295,12 @@ else
     #$cdftoolsbin/cdfmxl ${froot}_grid_T.nc
     #$cdozip copy mxl.nc ${out}_mxl.nc
 
-    # ice diagnostics
-    $cdozip selvar,iiceconc,iicethic ${froot}_icemod.nc ${out}_ice.nc
-    $cdftoolsbin/cdficediags ${froot}_icemod.nc -lim3
-    cp icediags.nc ${out}_icediags.nc
 fi
 
 
+
 # TODO : add case for newer cdftools syntax    
-if [[ $nemo_extra == 1 && $newercdftools == 0 ]] ; then
+if [[ $newercdftools == 0 ]] ; then
 
     #compute potential and in situ density
     $cdftoolsbin/cdfsiginsitu ${froot}_grid_T.nc
@@ -351,7 +357,9 @@ if [[ $nemo_extra == 1 && $newercdftools == 0 ]] ; then
     $cdozip merge temp1.nc temp2.nc temp3.nc fulloce.nc
     mv fulloce.nc ${out}_fulloce.nc
 
-fi
+fi # $newercdftools == 0
+
+fi # $nemo_extra == 1
 
 cd -
 rm -rf $WRKDIR

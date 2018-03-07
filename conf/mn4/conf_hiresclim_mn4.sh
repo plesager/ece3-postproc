@@ -6,22 +6,25 @@ set -xuve
  # Configuration file for HIRESCLIM2  #
  ######################################
 
+# For autosubmit these variables must be set elsewhere (in the calling script or .bashrc)
+# IFSRESULTS0 NEMORESULTS0 ECE3_POSTPROC_POSTDIR
+
 # --- PATTERN TO FIND MODEL OUTPUT
 # 
 # Must include $EXPID and be single-quoted
 #
 # optional variable are $USER, $LEGNB, $year
-export IFSRESULTS0='/scratch/ms/nl/$USER/ECEARTH-RUNS/${EXPID}/output/ifs/${LEGNB}'
-export NEMORESULTS0='/scratch/ms/nl/$USER/ECEARTH-RUNS/${EXPID}/output/nemo/${LEGNB}'
+[[ -z ${IFSRESULTS0:-} ]] && export IFSRESULTS0='$SCRATCH/ECEARTH-RUNS/${EXPID}/output/ifs/${LEGNB}'
+[[ -z ${NEMORESULTS0:-} ]] && export NEMORESULTS0='$SCRATCH/ECEARTH-RUNS/${EXPID}/output/nemo/${LEGNB}'
 
 # --- PATTERN TO DEFINE WHERE TO SAVE POST-PROCESSED DATA
 # 
 # Must include ${EXPID} and be single-quoted
 #
-export ECE3_POSTPROC_POSTDIR='/scratch/ms/nl/${USER}/ECEARTH-RUNS/${EXPID}/post'
+[[ -z ${ECE3_POSTPROC_POSTDIR:-} ]] && export ECE3_POSTPROC_POSTDIR='$SCRATCH/ECEARTH-RUNS/${EXPID}/post'
 
 # --- PROCESSING TO PERFORM (uncomment to change default)
-# ECE3_POSTPROC_HC_IFS_MONTHL=1
+# ECE3_POSTPROC_HC_IFS_MONTHLY=1
 # ECE3_POSTPROC_HC_IFS_MONTHLY_MMA=0
 # ECE3_POSTPROC_HC_IFS_DAILY=0
 # ECE3_POSTPROC_HC_IFS_6HRS=0
@@ -61,7 +64,7 @@ newercdftools2=1
 python=python
 
 #extension for IFS files, default ""
-GRB_EXT=".grb"
+[[ -z ${GRB_EXT:-} ]] && GRB_EXT=".grb"
 
 # number of parallel procs for IFS (max 12) and NEMO rebuild. Default to 12.
 if [ -z "${IFS_NPROCS:-}" ] ; then
@@ -69,7 +72,7 @@ if [ -z "${IFS_NPROCS:-}" ] ; then
 fi
 
 # where to find mesh and mask files for NEMO. Files are expected in $MESHDIR_TOP/$NEMOCONFIG.
-export MESHDIR_TOP="/gpfs/projects/bsc32/bsc32051/ECE3-DATA/post-proc"
+export MESHDIR_TOP="/gpfs/projects/bsc32/repository/ece3-postproc"
 
 # Base dir to archive (ie just make a copy of) the monthly results. Daily results, if any, are left in scratch. 
 STOREDIR=$SCRATCH/ecearth3/post/hiresclim/

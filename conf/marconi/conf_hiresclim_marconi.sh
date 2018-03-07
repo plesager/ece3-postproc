@@ -24,7 +24,7 @@ export NEMORESULTS0='/marconi_scratch/userexternal/${USERexp}/ece3/${EXPID}/outp
 export ECE3_POSTPROC_POSTDIR='/marconi_scratch/userexternal/${USER}/ece3/${EXPID}/post'
 
 # --- PROCESSING TO PERFORM (uncomment to change default)
-# ECE3_POSTPROC_HC_IFS_MONTHL=1
+# ECE3_POSTPROC_HC_IFS_MONTHLY=1
 # ECE3_POSTPROC_HC_IFS_MONTHLY_MMA=0
 # ECE3_POSTPROC_HC_IFS_DAILY=0
 # ECE3_POSTPROC_HC_IFS_6HRS=0
