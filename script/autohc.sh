@@ -3,7 +3,7 @@
 usage()
 {
    echo "Usage:"
-   echo "       hc.sh [-a account] [-u USEREXP] [-m months_per_leg] EXP"
+   echo "       hc.sh [-a account] [-u USERexp] [-m months_per_leg] EXP"
    echo
    echo "Submit to a job scheduler an HIRESCLIM2 postprocessing of experiment EXP"
    echo " (started in YREF) from YEAR1 to YEAR2. For each year, the script makes a"
@@ -90,8 +90,6 @@ yref=${YEAR_ZERO}
 # -- Scratch dir (location of submit script and its log, and temporary files)
 OUT=$SCRATCH/tmp_ecearth3
 mkdir -p $OUT/log
-
-YEAR_LAST=1999
 
 # -- Write and submit one script per year
 for YEAR in $(seq ${YEAR_ZERO} ${YEAR_LAST})

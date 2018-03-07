@@ -36,6 +36,7 @@ while getopts "h?m:r:u:" opt; do
         m)  months_per_leg=$OPTARG
             ;;
         u)  USERexp=$OPTARG
+	    ;;
     esac
 done
 shift $((OPTIND-1))
