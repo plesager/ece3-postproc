@@ -3,7 +3,7 @@
 usage()
 {
    echo "Usage:"
-   echo "       hc.sh [-a account] [-r rundir] [-m months_per_leg] EXP"
+   echo "       hc.sh [-a account] [-u USEREXP] [-m months_per_leg] EXP"
    echo
    echo "Submit to a job scheduler an HIRESCLIM2 postprocessing of experiment EXP"
    echo " (started in YREF) from YEAR1 to YEAR2. For each year, the script makes a"
@@ -13,8 +13,7 @@ usage()
    echo
    echo "Options are:"
    echo "   -a ACCOUNT  : specify a different special project for accounting (default: ${ECE3_POSTPROC_ACCOUNT:-unknown})"
-   echo "   -r RUNDIR   : fully qualified path to another user EC-Earth RUNDIR"
-   echo "                   that is RUNDIR/EXP/output must exists and be readable (default output structure assumed)"
+   echo "   -u USERexp  : alternative user owner of the experiment, default $USER"
    echo "   -m months_per_leg : run was performed with months_per_leg legs (yearly legs expected by default)"
    echo "   -n numprocs       : set number of processors to use (default is 12)"
 }
@@ -23,13 +22,12 @@ set -ue
 
 # -- default options
 account="${ECE3_POSTPROC_ACCOUNT-}"
-ALT_RUNDIR=""
 options=""
 nprocs=12
 yref=""
 
 # -- options
-while getopts "hr:a:m:n:" opt; do
+while getopts "hu:a:m:n:" opt; do
     case "$opt" in
         h)
             usage
@@ -39,8 +37,7 @@ while getopts "hr:a:m:n:" opt; do
             ;;
         m)  options=${options}" -m $OPTARG"
             ;;
-        r)  options=${options}" -r '$OPTARG'"
-            ALT_RUNDIR="$OPTARG"
+        u)  USERexp=$OPTARG
             ;;
         a)  account=$OPTARG
             ;;
@@ -66,12 +63,6 @@ check_environment
 CONFDIR=${ECE3_POSTPROC_TOPDIR}/conf/${ECE3_POSTPROC_MACHINE}
 
 . ${CONFDIR}/conf_hiresclim_${ECE3_POSTPROC_MACHINE}.sh
-
-# --alternative directory
-if [[ -n $ALT_RUNDIR ]]
-then
-    export IFSRESULTS0=$ALT_RUNDIR/${COREIFSDIR}
-fi
 
 # -- add here options for submit commands
 case "${submit_cmd}" in
@@ -100,7 +91,7 @@ yref=${YEAR_ZERO}
 OUT=$SCRATCH/tmp_ecearth3
 mkdir -p $OUT/log
 
-YEAR_LAST=1995
+YEAR_LAST=1999
 
 # -- Write and submit one script per year
 for YEAR in $(seq ${YEAR_ZERO} ${YEAR_LAST})

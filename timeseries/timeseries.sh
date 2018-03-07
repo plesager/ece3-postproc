@@ -1,12 +1,40 @@
 #/bin/bash
 
-set -xuve
+#set -xuve
+set -eu
 
-if [ "$#" -lt 1 ]; then
-    echo "Usage: timeseries.sh EXP [ALT_RUNDIR]"
-    echo
-    echo "   Compute timeseries for experiment EXP."
-    exit
+usage()
+{
+  echo "Usage: timeseries.sh [-r ALT_RUNDIR] [-u userexp] EXP"
+  echo "Example: ./timeseries.sh io01"
+  echo "   Compute timeseries for experiment EXP."
+  echo "Options are:"
+  echo "   -r ALT_RUNDIR : fully qualified path to another user EC-Earth top RUNDIR"
+  echo "                   that is RUNDIR/EXP/post must exists and be readable"
+  echo "   -u USERexp  : alternative user owner of the experiment, default $USER"
+}
+
+#########################
+# options and arguments #
+#########################
+
+while getopts "h?ur:" opt; do
+    case "$opt" in
+        h|\?)
+            usage
+            exit 0
+            ;;
+        u)  USERexp=$OPTARG
+            ;;
+        r)  ALT_RUNDIR=$OPTARG
+            ;;
+    esac
+done
+shift $((OPTIND-1))
+
+if [ $# -gt 3 ]; then
+   usage
+   exit 1
 fi
 
 exp=$1
@@ -20,12 +48,12 @@ EXPID=$exp
 . ${ECE3_POSTPROC_TOPDIR}/functions.sh
 check_environment
 
+if [ "$#" -eq 3 ]; then           # optional alternative top rundir 
+    ALT_RUNDIR=$3
+fi
+
 # load cdo, netcdf and dir for results and mesh files
 . $ECE3_POSTPROC_TOPDIR/conf/$ECE3_POSTPROC_MACHINE/conf_timeseries_$ECE3_POSTPROC_MACHINE.sh
-
-if [ "$#" -eq 2 ]; then           # optional alternative top rundir 
-    ALT_RUNDIR=$2
-fi
 
 do_trans=0
 
@@ -36,9 +64,9 @@ do_trans=0
 # Base directory of HiresClim2 postprocessing outputs
 if [[ -n $ALT_RUNDIR ]]
 then
-    export DATADIR=`eval echo ${ALT_RUNDIR}`/mon/
+    export DATADIR=`eval echo ${ALT_RUNDIR}`/mon
 else
-    export DATADIR=`eval echo ${ECE3_POSTPROC_POSTDIR}`/mon/
+    export DATADIR=`eval echo ${ECE3_POSTPROC_POSTDIR}`/mon
 fi
 [[ ! -d $DATADIR ]] && echo "*EE* Experiment HiresClim2 output dir $DATADIR does not exist!" && exit 1
 
@@ -105,6 +133,6 @@ then
     cd ${DIR_TIME_SERIES}
     rm -r -f  timeseries_$exp.tar # remove old if any
     tar cfv timeseries_$exp.tar  $exp/
-    ectrans -remote sansone -source timeseries_$exp.tar  -put -verbose -overwrite
-    ectrans -remote sansone -source ~/EXPERIMENTS.$MACHINE.$USER.dat -verbose -overwrite
+#    ectrans -remote sansone -source timeseries_$exp.tar  -put -verbose -overwrite
+#    ectrans -remote sansone -source ~/EXPERIMENTS.$MACHINE.$USER.dat -verbose -overwrite
 fi

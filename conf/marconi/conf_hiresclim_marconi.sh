@@ -12,18 +12,16 @@
 # 
 # Must include $EXPID and be single-quoted
 #
-# optional variable are $USER*, $LEGNB, $year
-export COREIFSDIR='${EXPID}/output/Output_${year}/IFS'
-export CORENEMODIR='${EXPID}/output/Output_${year}/NEMO'
-
-export IFSRESULTS0=${ECE3_POSTPROC_RUNDIR}/${COREIFSDIR}
-export NEMORESULTS0=${ECE3_POSTPROC_RUNDIR}/${CORENEMODIR}
+# optional variable are $USERexp/$USER, $LEGNB, $year
+export ${USERexp:=$USER}
+export IFSRESULTS0='/marconi_scratch/userexternal/${USERexp}/ece3/${EXPID}/output/Output_${year}/IFS'
+export NEMORESULTS0='/marconi_scratch/userexternal/${USERexp}/ece3/${EXPID}/output/Output_${year}/NEMO'
 
 # --- PATTERN TO DEFINE WHERE TO SAVE POST-PROCESSED DATA
 # 
 # Must include ${EXPID} and be single-quoted
 #
-export ECE3_POSTPROC_POSTDIR='${CINECA_SCRATCH}/ece3/${EXPID}/post'
+export ECE3_POSTPROC_POSTDIR='/marconi_scratch/userexternal/${USER}/ece3/${EXPID}/post'
 
 # --- PROCESSING TO PERFORM (uncomment to change default)
 # ECE3_POSTPROC_HC_IFS_MONTHL=1
