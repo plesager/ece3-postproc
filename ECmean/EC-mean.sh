@@ -74,8 +74,8 @@ mkdir -p $TABLEDIR
 # TEMP dirs
 ############################################################
 # Where to store the 2x2 climatologies
-[[ -z "${CLIMDIR0:-}" ]] && CLIMDIR=$(eval echo ${ECE3_POSTPROC_POSTDIR})/clim-${year1}-${year2} \
-    || CLIMDIR=$(eval $CLIMDIR0)
+echo $(eval echo $CLIMDIR0)
+[[ -z "${CLIMDIR0:-}" ]] && CLIMDIR=$(eval echo ${ECE3_POSTPROC_POSTDIR})/clim-${year1}-${year2} || CLIMDIR=$(eval echo $CLIMDIR0)
 export CLIMDIR
 mkdir -p $CLIMDIR
 

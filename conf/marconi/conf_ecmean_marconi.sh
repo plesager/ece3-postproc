@@ -21,10 +21,10 @@ export cdozip="$cdo -f nc4c -z zip"
 export cdonc="$cdo -f nc"
 
 # job scheduler submit command
-submit_cmd="sbatch"
+export submit_cmd="sbatch"
 
 #preferred type of CDO interpolation (curvilinear grids are obliged to use bilinear)
-remap="remapcon2"
+export remap="remapcon2"
 
 
 # --- PROCESS -----
@@ -54,7 +54,7 @@ export ECE3_POSTPROC_DIAGDIR='$HOME/ecearth3/diag'
 # where year1 and year2 are your script argument.
 #
 #CLIMDIR0=<my favorite path to store climatoloy data>
-CLIMDIR0='${CINECA_SCRATCH}/tmp/${EXPID}/post/model2x2_${year1}_${year2}'
+export CLIMDIR0='${CINECA_SCRATCH}/tmp/${EXPID}/post/model2x2_${year1}_${year2}'
 
 
 # [3] Where to save the extracted PIs for REPRODUCIBILITY tests
