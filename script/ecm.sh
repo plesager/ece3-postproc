@@ -2,7 +2,7 @@
 
 usage()
 {
-   echo "Usage: ecm.sh [-a account] [-r rundir] [-c] [-p] [-y] EXP YEAR1 YEAR2"
+   echo "Usage: ecm.sh [-a account] [-r rundir] [-u USERexp] [-c] [-p] [-y] EXP YEAR1 YEAR2"
    echo
    echo "Submit to a job scheduler an EC-MEAN analysis of experiment EXP in years"
    echo " YEAR1 to YEAR2."
@@ -15,6 +15,7 @@ usage()
    echo "   -a account  : specify a different special project for accounting (default: ${ECE3_POSTPROC_ACCOUNT-})"
    echo "   -r RUNDIR   : fully qualified path to another user EC-Earth top RUNDIR"
    echo "                   that is RUNDIR/EXP/post must exists and be readable"
+   echo "   -u USERexp  : alternative user owner of the experiment, default $USER"
    echo "   -y          : (Y)early global mean are added to "
    echo "   -p          : account for (P)rimavera complicated output"
 }
@@ -27,13 +28,16 @@ ALT_RUNDIR=""
 checkit=0
 options=""
 
-while getopts "hcr:a:py" opt; do
+while getopts "hcr:u:a:py" opt; do
     case "$opt" in
         h)  usage
             exit 0
             ;;
         r)  options="${options} -r $OPTARG"
             ALT_RUNDIR=$OPTARG
+	    ;;
+	u)  options="${options} -u $OPTARG"
+	    USERexp=$OPTARG
             ;;
         p)  options="${options} -p"
             ;;

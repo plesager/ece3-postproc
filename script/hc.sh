@@ -38,7 +38,7 @@ while getopts "hcu:a:m:n:" opt; do
             ;;
         m)  options=${options}" -m $OPTARG"
             ;;
-        u)  USERexp=$OPTARG
+        u)  options=${options}" -u $OPTARG"
             ;;
         c)  checkit=1
             ;;

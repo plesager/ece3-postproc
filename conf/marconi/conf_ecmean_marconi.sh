@@ -9,7 +9,8 @@ module load  hdf5/1.8.17--intel--pe-xe-2017--binary netcdf/4.4.1--intel--pe-xe-2
 # 
 # Must include ${EXPID} and be single-quoted
 #
-export ECE3_POSTPROC_POSTDIR='${CINECA_SCRATCH}/ece3/${EXPID}/post'
+export ${USERexp:=$USER}
+export ECE3_POSTPROC_POSTDIR='/marconi_scratch/userexternal/${USERexp}/ece3/${EXPID}/post'
 
 
 # --- TOOLS -----
@@ -54,7 +55,7 @@ export ECE3_POSTPROC_DIAGDIR='$HOME/ecearth3/diag'
 # where year1 and year2 are your script argument.
 #
 #CLIMDIR0=<my favorite path to store climatoloy data>
-export CLIMDIR0='${CINECA_SCRATCH}/tmp/${EXPID}/post/model2x2_${year1}_${year2}'
+export CLIMDIR0='/marconi_scratch/userexternal/${USER}/tmp/${EXPID}/post/model2x2_${year1}_${year2}'
 
 
 # [3] Where to save the extracted PIs for REPRODUCIBILITY tests
