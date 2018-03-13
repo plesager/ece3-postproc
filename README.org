@@ -6,7 +6,8 @@ includes HIRESCLIM2, ECMEAN and AMWG. The last two require the output
 from the first one. A REPRODUCIBILITY TEST is also provided. Other
 tools are available but have not been clean up or tested.
 
-The code has been ported on /cca (ECMWF)/ and /rhino (KNMI)/. See the
+The code has been ported on /cca (ECMWF)/, /rhino (KNMI)/, /marconi
+(CNR)/, and /marenostrum4 (BSC)/. See the
 /Porting/ instructions below to include other machines.
 
 ** INSTALLATION
@@ -24,7 +25,7 @@ The code has been ported on /cca (ECMWF)/ and /rhino (KNMI)/. See the
    or similar):
 
    : export ECE3_POSTPROC_TOPDIR=<dir where this file is>
-   : export ECE3_POSTPROC_DATADIR=<dir where your ecearth data are located>
+   : export ECE3_POSTPROC_DATADIR=<dir where your ecearth init data (not run output) are located>
    : export ECE3_POSTPROC_MACHINE=<name of your (HPC) machine>
 
    The "_name of your (HPC) machine_" is used to retrieve the machine
@@ -57,11 +58,12 @@ The code has been ported on /cca (ECMWF)/ and /rhino (KNMI)/. See the
     here [TODO: add description for case without wrappers].
 
 *** Tools settings
-    Each tool has its specifics settings. If the code has already been ported
-    to your machine, you will have to change very little there, as described
-    hereafter. They define the needed executable/lib (cdo, nco, netcdf,...),
-    location of auxiliary data, and where to save the results. For reference,
-    the machine configurations are:
+    Each tool has its specifics settings. If the code has already been
+    ported to your machine, you will have to change very little there,
+    as described hereafter. They define the needed executable/lib
+    (cdo, nco, netcdf,...), location of auxiliary data, of run output,
+    and where to save the results. For reference, the machine
+    configurations are:
 
     : ./conf/<your-machine>/conf_<tool>_<your-machine>.sh
 
@@ -72,7 +74,7 @@ The code has been ported on /cca (ECMWF)/ and /rhino (KNMI)/. See the
 
     This will create a set of netcdf files with monthly (default) averages of
     variables of interest. The files are found in the
-    ${ECE3_POSTPROC_POSTDIR}/post directory.
+    /${ECE3_POSTPROC_POSTDIR}/post/ directory.
 
     For more information about the script options, just call
 
@@ -91,7 +93,7 @@ The code has been ported on /cca (ECMWF)/ and /rhino (KNMI)/. See the
     In "./conf/<your-machine>/conf_hiresclim_<your-machine>.sh", you can set
     some options (if you want daily or 6h output on top of the monthly one, or
     the nemo_extra output for example). However the most important settings
-    that you may have to change are the templates for the model output and for
+    that you have to change are the templates for the model output and for
     the results location. For example:
     
     : export IFSRESULTS0='/scratch/ms/nl/${USER}/ECEARTH-RUNS/${EXPID}/output/ifs/${LEGNB}'
@@ -103,11 +105,9 @@ The code has been ported on /cca (ECMWF)/ and /rhino (KNMI)/. See the
     to the EXP argument passed to the script.
 
     The NEMO variable names expected by HIRESCLIM2 may differ from those found
-    in EC-Earth3 output. If needed, change the variable name from EC-Earth in
-    //hiresclim2/script/nemo_post.sh/ below:
+    in EC-Earth3 output. If needed, you can change the variables name from EC-Earth in
+    /conf_hiresclim_<your-machine>.sh/.
     
-    : # NEMO variables as currently named in EC-Earth output
-
 *** Then, you can compute the global mean fluxes with EC-MEAN:
 
     : ./ecm.sh [-a account] [-r rundir] [-c] [-y] [-p] EXP YEAR1 YEAR2
@@ -135,11 +135,11 @@ The code has been ported on /cca (ECMWF)/ and /rhino (KNMI)/. See the
     You can quickly check for success by executing the command again with -c
     option. It will print the summary line from /globtable.txt/ and
     /gregory.txt/ files, if they exist. For more insight, have a look at the
-    submitted scripts and logs, which are in $SCRATCH/tmp_ece3_ecmean
+    submitted scripts and logs, which are in /$SCRATCH/tmp_ece3_ecmean/.
 
     EC-Mean creates a climatology from the experiment to derive the
-    performance indices. The climatology is by default in the same directory
-    as the HIRESCLIM2 output:
+    performance indices. The climatology is by default in the same
+    directory as the HIRESCLIM2 output:
     : ${ECE3_POSTPROC_POSTDIR}/clim-${YEAR1}-${YEAR2}
     and not removed, since it can be use for other purposes (notably the
     reproducibility test).
@@ -302,7 +302,6 @@ The code has been ported on /cca (ECMWF)/ and /rhino (KNMI)/. See the
      Then, using your favorite method, run 5 experiments with a name
      that ends with 1,...,5.
      
-
 *** Postprocessing steps
     For each of your 5 experiments, you need to run /hireclim2/ followed by
     /EC-mean/ to get their resulting climatology and their Reichler-Kim
@@ -372,8 +371,8 @@ The code has been ported on /cca (ECMWF)/ and /rhino (KNMI)/. See the
 *** To port to a new machine, you need to:
     - add platform templates in a conf/<your_platform_name> directory (adapt
       existing ones to your job scheduler)
-      : conf/<your-machine>/platform/hc_<your-machine>.tmpl
-      : conf/<your-machine>/platform/header_<your-machine>.tmpl
+      : conf/<your-machine>/hc_<your-machine>.tmpl
+      : conf/<your-machine>/header_<your-machine>.tmpl
       The job scheduler command to submit job is set in the
       configuration scripts. 
     - add a configuration script for each tools:
@@ -391,7 +390,7 @@ The code has been ported on /cca (ECMWF)/ and /rhino (KNMI)/. See the
     - For CDFTOOLS you *cannot* use the light one that ships with barakuda.
     - If the /netCDF4/ python module is not available, you cannot build
       the 3D relative humidity. Set in your
-      ./conf/conf_hiresclim_<your-machine>.sh:
+      ./conf/<your-machine>/conf_hiresclim_<your-machine>.sh:
       : rh_build=0
     - Some EC-Earth experiments put the water flux output from NEMO in
       the SBC files instead of the grid_T files. Then you need
