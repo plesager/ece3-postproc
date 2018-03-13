@@ -12,11 +12,12 @@ set -ue
 
 usage()
 {
-    echo "Usage:   ${0##*/} [-y] [-p] [-r ALT_RUNDIR]  EXP  YEAR_START  YEAR_END"
+    echo "Usage:   ${0##*/} [-y] [-p] [-u USERexp] [-r ALT_RUNDIR]  EXP  YEAR_START  YEAR_END"
     echo
     echo "Options are:"
     echo "   -r ALT_RUNDIR : fully qualified path to another user EC-Earth top RUNDIR"
     echo "                   that is RUNDIR/EXP/post must exists and be readable"
+    echo "   -u USERexp  : alternative user owner of the experiment, default $USER"
     echo "   -y          : (Y)early global mean are added to 'OUTDIR/yearly_fldmean_EXP.txt'"
     echo "   -p          : account for (P)rimavera complicated output"
 }
@@ -26,13 +27,15 @@ lp=0
 ly=0
 ALT_RUNDIR=""
 
-while getopts "h?py" opt; do
+while getopts "h?u:r:py" opt; do
     case "$opt" in
         h|\?)
             usage
             exit 0
             ;;
         r)  ALT_RUNDIR=$OPTARG
+	    ;;
+	u)  USERexp=$OPTARG
             ;;
         p)  lp=1
             ;;
@@ -74,8 +77,8 @@ mkdir -p $TABLEDIR
 # TEMP dirs
 ############################################################
 # Where to store the 2x2 climatologies
-[[ -z "${CLIMDIR0:-}" ]] && CLIMDIR=$(eval echo ${ECE3_POSTPROC_POSTDIR})/clim-${year1}-${year2} \
-    || CLIMDIR=$(eval $CLIMDIR0)
+echo $(eval echo $CLIMDIR0)
+[[ -z "${CLIMDIR0:-}" ]] && CLIMDIR=$(eval echo ${ECE3_POSTPROC_POSTDIR})/clim-${year1}-${year2} || CLIMDIR=$(eval echo $CLIMDIR0)
 export CLIMDIR
 mkdir -p $CLIMDIR
 

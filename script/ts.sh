@@ -2,7 +2,7 @@
 
 usage()
 {
-    echo "Usage: ts.sh [-a account] [-r rundir] [-c] EXP"
+    echo "Usage: ts.sh [-a account] [-u userexp] [-r ALT_RUNDIR] [-c] EXP"
     echo
     echo "Submit to a job scheduler the computation of timeseries for experiment EXP"
     echo
@@ -10,23 +10,25 @@ usage()
     echo 
     echo "Options are:"
     echo "   -c          : check if processing was successful"
-    echo "   -a account  : specify a different special project for accounting (default $ECE3_POSTPROC_ACCOUNT)"
-    echo "   -r RUNDIR   : fully qualified path to another user EC-Earth top RUNDIR"
+    echo "   -a account  : specify a different special project for accounting (default: ${ECE3_POSTPROC_ACCOUNT:-unknown})"
+    echo "   -u USERexp  : alternative user owner of the experiment, default $USER"
+    echo "   -r ALT_RUNDIR : fully qualified path to another user EC-Earth top RUNDIR"
     echo "                   that is RUNDIR/EXP/post must exists and be readable"
 }
 
 set -ue
 
 # -- default option
-account=$ECE3_POSTPROC_ACCOUNT
-ALT_RUNDIR=""
+account="${ECE3_POSTPROC_ACCOUNT-}"
 checkit=0
 
-while getopts "h?cr:a:" opt; do
+while getopts "h?cur:a:" opt; do
     case "$opt" in
         h|\?)
             usage
             exit 0
+            ;;
+        u)  USERexp=$OPTARG
             ;;
         r)  ALT_RUNDIR=$OPTARG
             ;;
@@ -53,26 +55,22 @@ mkdir -p $OUT/log
 CONFDIR=${ECE3_POSTPROC_TOPDIR}/conf/${ECE3_POSTPROC_MACHINE}
 
 # -- get OUTDIR, submit command
-. ${CONFDIR}/conf_ecmean_${ECE3_POSTPROC_MACHINE}.sh
+. ${CONFDIR}/conf_timeseries_${ECE3_POSTPROC_MACHINE}.sh
 
+# -- add here options for submit commands
+case "${submit_cmd}" in
+        sbatch) queue_cmd="squeue -u $USER  -o %.16j" ;;
+esac
+
+#!! TOLGO, c'Ã in timeseries.sh
 # -- check input dir exist (from EC-mean.sh, repeated here for a "before submission" error catch)
-if [[ -n $ALT_RUNDIR ]]
-then
-    indir=`eval echo ${ALT_RUNDIR}`/mon/
-else
-    indir=`eval echo ${ECE3_POSTPROC_POSTDIR}`/mon/
-fi
-[[ ! -d $indir ]] && echo "*EE* Experiment HiresClim2 output dir $indir does not exist!" && exit 1
-
-
-# -- check previous processing
-# if (( checkit ))
-# then
-#     echo "Checking ${HOME}/EC-Earth3/diag/table/globtable.txt..."
-#     grep $1.$2-$3. ${HOME}/EC-Earth3/diag/table/globtable.txt || \
-#             echo "*EE* check log at $SCRATCH/tmp_ecearth3"
-#     exit
-# fi
+#if [[ -n $ALT_RUNDIR ]]
+#then
+#    indir=`eval echo ${ALT_RUNDIR}`/mon/
+#else
+#    indir=`eval echo ${ECE3_POSTPROC_POSTDIR}`/mon
+#fi
+#[[ ! -d $indir ]] && echo "*EE* Experiment HiresClim2 output dir $indir does not exist!" && exit 1
 
 
 # -- submit script
@@ -88,9 +86,7 @@ sed -i "s/<JOBID>/ts/" $tgt_script
 sed -i "s/<Y1>//" $tgt_script
 sed -i "s|<OUT>|$OUT|" $tgt_script
 
-echo ../timeseries/timeseries.sh $1 $ALT_RUNDIR >> $tgt_script
+echo ../timeseries/timeseries.sh $1 $USERexp >> $tgt_script
 
 ${submit_cmd} $tgt_script
-#qstat -wu $USER
 
-#echo; echo "*II* Launched timeseries analysis for experiment $1 of user $USERexp"; echo
