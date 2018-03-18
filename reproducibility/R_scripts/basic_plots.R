@@ -54,14 +54,14 @@ for (j.exp in seq(1, n.exp)) {
         ## SEA ICE
         filein <- (paste(path, "/", exps[j.exp], j.memb, '/post/clim-',year1,'-',year2,'/SICE_mon_2x2.nc',sep=""))
         f <- nc_open(filein) 
-        sic <- ncvar_get(f, 'ci')
+        sic <- ncvar_get(f, 'iiceconc')
 
         ## hack
         sic <- pmax(sic,0)
         sic <- pmin(sic,1)
 
-        lat <- ncvar_get(f, 'latitude')
-        lon <- ncvar_get(f, 'longitude')
+        lat <- ncvar_get(f, 'LATITUDE')
+        lon <- ncvar_get(f, 'LONGITUDE')
         tmp <- compute_cellarea(lon, lat)
         lon <- tmp$lon
         lat <- tmp$lat

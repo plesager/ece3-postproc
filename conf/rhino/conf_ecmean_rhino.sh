@@ -4,7 +4,7 @@
 # 
 # Must include ${EXPID} and be single-quoted
 #
-export ECE3_POSTPROC_POSTDIR='/scratch/ms/nl/${USER}/ECEARTH-RUNS/${EXPID}/post'
+export ECE3_POSTPROC_POSTDIR='/lustre3/projects/CMIP6/${USER}/rundirs/${EXPID}/post'
 
 
 # --- TOOLS -----
@@ -35,7 +35,7 @@ export do_3d_vars=1
 #     Tables for one simulation will be in ${ECE3_POSTPROC_DIAGDIR}/table/${EXPID}
 #     Summary tables for several simulations will be in ${ECE3_POSTPROC_DIAGDIR}/table/
 #     
-export ECE3_POSTPROC_DIAGDIR='$HOME/ecearth3/diag/'
+export ECE3_POSTPROC_DIAGDIR='$HOME/EC-Earth/diag/'
 
 # [2] Where to save the climatology (769M IFS, 799M IFS+NEMO). 
 #
@@ -53,5 +53,5 @@ export ECE3_POSTPROC_DIAGDIR='$HOME/ecearth3/diag/'
 #     Can include ${STEMID} as ensemble ID.
 #     Must be single-quoted if to be evaluated later.
 #
-export ECE3_POSTPROC_PI4REPRO='$HOME/ecearth3/diag/${STEMID}'
+export ECE3_POSTPROC_PI4REPRO='$HOME/EC-Earth/diag/${STEMID}'
 

@@ -47,7 +47,9 @@ for vv in ${varlist1}; do
 
     for (( year=$year1; year<=$year2; year++)); do
         indir=$DATADIR/Post_$year
-        $cdonc cat $indir/${exp}_${year}_${vv}.nc $WRKDIR/full_field.nc
+        $cdonc divdpy -timsum -muldpm $indir/${exp}_${year}_${vv}.nc \
+            $WRKDIR/atm_${vv}_${year}.nc
+        $cdonc cat $WRKDIR/atm_${vv}_${year}.nc $WRKDIR/full_field.nc
     done
 
     $cdo fldmean -timmean $WRKDIR/full_field.nc  $WRKDIR/mean_${vv}.nc
@@ -57,15 +59,15 @@ for vv in ${varlist1}; do
     fi
 
     if [ "${vv}" == tas ] ; then
-        $cdo trend -fldmean -yearmean $WRKDIR/full_field.nc $WRKDIR/a_${vv}.nc $WRKDIR/b_${vv}.nc
+        $cdo trend -fldmean $WRKDIR/full_field.nc $WRKDIR/a_${vv}.nc $WRKDIR/b_${vv}.nc
         tas_trend=$( $cdo output -mulc,100  $WRKDIR/b_${vv}.nc )
     fi
 
     if [ "${vv}"  == heatc ] ; then 
-        $cdo yearmean $WRKDIR/full_field.nc  $WRKDIR/timeseries_${vv}.nc 
+        mv $WRKDIR/full_field.nc  $WRKDIR/timeseries_${vv}.nc 
     fi
 
-    rm $WRKDIR/full_field.nc 
+    rm $WRKDIR/full_field.nc $WRKDIR/atm_*nc
 done
 
 # -- OCEAN 
@@ -80,13 +82,15 @@ then
 
         for (( year=$year1; year<=$year2; year++)); do
             indir=$DATADIR/Post_$year
-            $cdonc cat $indir/${exp}_${year}_${vv}_mean.nc $WRKDIR/full_field.nc
+            $cdonc divdpy -timsum -muldpm $indir/${exp}_${year}_${vv}_mean.nc \
+                $WRKDIR/oce_${vv}_${year}.nc
+            $cdonc cat $WRKDIR/oce_${vv}_${year}.nc $WRKDIR/full_field.nc
         done
         
         $cdo selvar,mean_${vv} $WRKDIR/full_field.nc $WRKDIR/varfile.nc
         $cdo timmean $WRKDIR/varfile.nc  $WRKDIR/mean_${vv}.nc
 
-        rm $WRKDIR/full_field.nc $WRKDIR/varfile.nc
+        rm $WRKDIR/full_field.nc $WRKDIR/varfile.nc $WRKDIR/oce_*nc
     done
 
     #delta ssh

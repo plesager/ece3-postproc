@@ -12,7 +12,8 @@
 # 
 # Must include $EXPID and be single-quoted
 #
-# optional variable are $USER*, $LEGNB, $year
+# optional variable are $USERexp/$USER, $LEGNB, $year
+export ${USERexp:=$USER}
 export IFSRESULTS0='/marconi_scratch/userexternal/${USERexp}/ece3/${EXPID}/output/Output_${year}/IFS'
 export NEMORESULTS0='/marconi_scratch/userexternal/${USERexp}/ece3/${EXPID}/output/Output_${year}/NEMO'
 
@@ -20,7 +21,7 @@ export NEMORESULTS0='/marconi_scratch/userexternal/${USERexp}/ece3/${EXPID}/outp
 # 
 # Must include ${EXPID} and be single-quoted
 #
-export ECE3_POSTPROC_POSTDIR='/marconi_scratch/userexternal/${USERme}/ece3/${EXPID}/post'
+export ECE3_POSTPROC_POSTDIR='/marconi_scratch/userexternal/${USER}/ece3/${EXPID}/post'
 
 # --- PROCESSING TO PERFORM (uncomment to change default)
 # ECE3_POSTPROC_HC_IFS_MONTHLY=1
@@ -57,13 +58,21 @@ done
 cdo=cdo
 cdozip="$cdo -f nc4c -z zip"
 rbld="$WORK/ecearth3/rebuild_nemo/rebuild_nemo"
-cdftoolsbin="$WORK/cdftools/3.0/bin"
+cdftoolsbin="$WORK/opt/bin"
 python=python
 
+# Set this to 1 if a newer syntax is used ("cdfmean -f file ..." instead
+# of "cdfmean file ..."). Set both to 1 if using version 4 of cdftools, only the second if using 3.0.1. 
+newercdftools=0
+newercdftools2=0
+
+# Set to 0 for not to rebuild 3D relative humidity
+rh_build=1
+
 # number of parallel procs for IFS (max 12) and NEMO rebuild
-if [[ -z $IFS_NPROCS ]] ; then
-    IFS_NPROCS=12; NEMO_NPROCS=12
-fi
+#if [[ -z $IFS_NPROCS ]] ; then
+IFS_NPROCS=12; NEMO_NPROCS=12
+#fi
 
 # NEMO resolution
 #if [ -z $NEMOCONFIG ] ; then

@@ -84,11 +84,18 @@ Rscript map_diff_experiments.R $CLIMDIR $PLOTDIR $stem1 $stem2 $year1 $year2 $nm
 
 # ------ PDF REPORT -------------
 cd $PLOTDIR
-for f in *.eps
+for f in *_${stem1}_${stem2}*.eps
 do
     epstopdf $f
 done
 
-pdfmerge reichler*pdf series*pdf diff_*pdf p_value_diff_*pdf repro-test_${stem1}-${stem2}_${year1}-${year2}_${nmemb}-members.pdf
+pdfmerge reichler_kim_scores_stat_${stem1}_${stem2}.pdf \
+         series_${stem1}_${stem2}_*pdf \
+         diff_${stem1}_${stem2}_*pdf \
+         p_value_diff_${stem1}_${stem2}_*pdf \
+         repro-test_${stem1}-${stem2}_${year1}-${year2}_${nmemb}-members.pdf
 
-\rm -f reichler*pdf series*pdf diff_*pdf p_value_diff_*pdf
+\rm -f reichler_kim_scores_stat_${stem1}_${stem2}.pdf \
+    series_${stem1}_${stem2}_*pdf \
+    diff_${stem1}_${stem2}_*pdf \
+    p_value_diff_${stem1}_${stem2}_*pdf

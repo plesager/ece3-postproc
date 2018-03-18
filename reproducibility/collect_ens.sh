@@ -25,7 +25,7 @@ usage()
     echo "   YEAR_END   : end year of the run"
     echo
     echo "Options are:"
-    echo "   -t         : tar the PI index results, with the 2x2 climatology, for easy sharing."
+    echo "   -t         : tar (in your \$SCRATCH) the PI index results, with the 2x2 climatology, for easy sharing."
 }
 
 do_tar=0
@@ -87,7 +87,7 @@ nb=$2
 year1=$3
 year2=$4
 
-# --- Get location templates of the tables to parse, climatology, and output 
+# --- Get location templates for the tables to parse, climatology, and output generated here 
 . $ECE3_POSTPROC_TOPDIR/conf/$ECE3_POSTPROC_MACHINE/conf_ecmean_${ECE3_POSTPROC_MACHINE}.sh
 
 STEMID=$root # to be eval'd
