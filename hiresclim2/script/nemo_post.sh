@@ -236,6 +236,15 @@ else
     cp icediags.nc ${out}_icediags.nc
 fi
 
+    # ** MOC
+if (( $newercdftools ))
+then
+echo "FIXME! MOC with newercdftools"
+#rhino: seg fault!    $cdftoolsbin/cdfmoc -v ${froot}_grid_V.nc -o ${out}_moc.nc
+else
+    $cdftoolsbin/cdfmoc ${froot}_grid_V.nc
+    $cdozip copy moc.nc ${out}_moc.nc
+fi
 
 if [[ $nemo_extra == 1 ]] ; then
 
@@ -280,8 +289,8 @@ else
     fi
 
     # ** MOC
-    $cdftoolsbin/cdfmoc ${froot}_grid_V.nc
-    $cdozip copy moc.nc ${out}_moc.nc
+    #$cdftoolsbin/cdfmoc ${froot}_grid_V.nc
+    #$cdozip copy moc.nc ${out}_moc.nc
 
     # barotropic stream function
     $cdftoolsbin/cdfpsi ${froot}_grid_U.nc ${froot}_grid_V.nc

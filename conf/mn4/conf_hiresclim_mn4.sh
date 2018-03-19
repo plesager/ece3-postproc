@@ -51,7 +51,7 @@ module purge
 module load intel/2017.4 impi/2017.4 mkl/2017.4
 module load gsl grib netcdf hdf5 CDO/1.8.2 udunits nco python/2.7.13
 module list
-export CDFTOOLS_DIR=/gpfs/projects/bsc32/opt/cdftools-3.1/intel-2017.4
+export CDFTOOLS_DIR=/gpfs/projects/bsc32/opt/cdftools-3.0.1/intel-2017.4
 
 cdo=cdo
 cdozip="$cdo -f nc4c -z zip"
@@ -64,7 +64,7 @@ newercdftools2=1
 python=python
 
 #extension for IFS files, default ""
-[[ -z ${GRB_EXT:-} ]] && GRB_EXT=".grb"
+[[ -z ${GRB_EXT:-} ]] && GRB_EXT="" #".grb"
 
 # number of parallel procs for IFS (max 12) and NEMO rebuild. Default to 12.
 if [ -z "${IFS_NPROCS:-}" ] ; then
