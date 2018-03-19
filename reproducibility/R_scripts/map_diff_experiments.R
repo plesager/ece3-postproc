@@ -8,6 +8,8 @@ library(ncdf4)
 library(s2dverification)
 library(RColorBrewer)
 
+options(warn=1)
+
 args = commandArgs(trailingOnly=TRUE)
 
 ## test if there are the correct number of arguments: if not, return an error
@@ -29,7 +31,6 @@ varid=c('tas'       ,'msl'        ,'str'        ,'totp'       ,'ewss'       ,'ns
 lonid=c('longitude' , 'longitude' , 'longitude' , 'longitude' , 'longitude' , 'longitude' , 'LONGITUDE')
 latid=c('latitude'  , 'latitude'  , 'latitude'  , 'latitude'  , 'latitude'  , 'latitude'  , 'LATITUDE' )
 timid=c('time'      , 'time'      , 'time'      , 'time'      , 'time'      , 'time'      , 'time_counter')
-
 
 nb_var=length(fname)
 
@@ -117,7 +118,7 @@ for (ji in 1:nb_var) {
     postscript(paste(plotdir,'/diff_',exp1,'_',exp2,'_',var,'.eps',sep=""))
 
     PlotEquiMap(diff_exp1_exp2,lon,lat,toptitle=paste(var," difference between ",nmemb,"-member experiments ",exp1," and ",exp2,". Black doted regions indicate where the difference \n is significant according to a Kolmogorov-Smirnov test (",percent,"% of grid points show a significant difference)",sep=""),
-                sizetit = 0.5, units = "",
+                title_scale = 0.5, units = "",
                 brks=brks_def, cols=rev(jBrewColors),
                 square = TRUE, filled.continents = FALSE, contours = NULL, brks2 = NULL,
                 dots = test_exp1_exp2, axelab = TRUE, labW = FALSE, intylat = 20, intxlon = 20,
@@ -132,7 +133,7 @@ for (ji in 1:nb_var) {
     postscript(paste(plotdir,'/p_value_diff_',exp1,'_',exp2,'_',var,'.eps',sep=""))
 
     PlotEquiMap(p_value,lon,lat,toptitle=paste(var," p_value when comparing the difference between ",nmemb,"-member experiments ",exp1," and ",exp2," according to a Kolmogorov-Smirnov test",sep=""),
-                sizetit = 0.5, units = "",
+                title_scale = 0.5, units = "",
                 brks=brks_def, cols=rev(jBrewColors), square = TRUE,
                 filled.continents = FALSE, contours = NULL, brks2 = NULL,
                 dots = NULL, axelab = TRUE, labW = FALSE, intylat = 20, intxlon = 20,

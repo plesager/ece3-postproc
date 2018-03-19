@@ -1,6 +1,8 @@
 #!/usr/bin/env Rscript
 # We test the statistical difference between Reichler-Kim indices computed for different experiments.
 
+options(warn=1)
+
 args = commandArgs(trailingOnly=TRUE)
 
 # test if there are the correct number of arguments: if not, return an error
