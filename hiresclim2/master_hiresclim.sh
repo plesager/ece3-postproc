@@ -24,10 +24,8 @@ usage()
 #########################
 
 months_per_leg=12                  # nb of months per legs. Default: yearly legs.
-#ALT_RUNDIR=""
-#ALT_POSTDIR=""
 
-while getopts "h?m:r:u:" opt; do
+while getopts "h?m:u:" opt; do
     case "$opt" in
         h|\?)
             usage

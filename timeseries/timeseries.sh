@@ -1,6 +1,5 @@
 #/bin/bash
 
-#set -xuve
 set -eu
 
 usage()
@@ -8,17 +7,19 @@ usage()
   echo "Usage: timeseries.sh [-r ALT_RUNDIR] [-u userexp] EXP"
   echo "Example: ./timeseries.sh io01"
   echo "   Compute timeseries for experiment EXP."
-  echo "Options are:"
+  echo "Options:"
   echo "   -r ALT_RUNDIR : fully qualified path to another user EC-Earth top RUNDIR"
-  echo "                   that is RUNDIR/EXP/post must exists and be readable"
+  echo "                   that is 'ALT_RUNDIR/mon' must exists and be readable"
+  echo "                   If single-quoted, can contain \$EXPID and any env var."
   echo "   -u USERexp  : alternative user owner of the experiment, default $USER"
 }
 
 #########################
 # options and arguments #
 #########################
+ALT_RUNDIR=""
 
-while getopts "h?ur:" opt; do
+while getopts "h?u:r:" opt; do
     case "$opt" in
         h|\?)
             usage
@@ -32,29 +33,23 @@ while getopts "h?ur:" opt; do
 done
 shift $((OPTIND-1))
 
-if [ $# -gt 3 ]; then
+if [ $# -ne 1 ]; then
    usage
    exit 1
 fi
 
-exp=$1
-ALT_RUNDIR=""
-
 # set variables which can be eval'd
-EXPID=$exp
+EXPID=$1
 
 # check environment
 [[ -z "${ECE3_POSTPROC_TOPDIR:-}" ]] && echo "User environment not set. See ../README." && exit 1
 . ${ECE3_POSTPROC_TOPDIR}/functions.sh
 check_environment
 
-if [ "$#" -eq 3 ]; then           # optional alternative top rundir 
-    ALT_RUNDIR=$3
-fi
-
 # load cdo, netcdf and dir for results and mesh files
 . $ECE3_POSTPROC_TOPDIR/conf/$ECE3_POSTPROC_MACHINE/conf_timeseries_$ECE3_POSTPROC_MACHINE.sh
 
+# -- HARDCODED OPTION
 do_trans=0
 
 #############################################################
@@ -70,8 +65,8 @@ else
 fi
 [[ ! -d $DATADIR ]] && echo "*EE* Experiment HiresClim2 output dir $DATADIR does not exist!" && exit 1
 
-#export DIR_TIME_SERIES=`echo ${DIR_TIME_SERIES} | sed -e "s|<RUN>|${RUN}|g"`
-export DIR_TIME_SERIES=`eval echo ${ECE3_POSTPROC_DIAGDIR}/timeseries`/$exp
+# Output dir
+export DIR_TIME_SERIES=`eval echo ${ECE3_POSTPROC_DIAGDIR}/timeseries`/$EXPID
 
 # test if it was a coupled run, and find resolution
 # TODO use same checks in hiresclim2, ECMean and timeseries
@@ -98,7 +93,7 @@ then
     esac
     
     export NEMOCONFIG
-    echo "*II* ecmean accounts for nemo output"
+    echo "*II* TimeSeries accounts for nemo output"
 fi
 
 # where to find mesh and mask files 
@@ -111,8 +106,8 @@ export NEMO_MESH_DIR=${MESHDIR_TOP}/$NEMOCONFIG
 
 cd $ECE3_POSTPROC_TOPDIR/timeseries
   
-./monitor_atmo.sh -R $exp -o
-./monitor_atmo.sh -R $exp -e
+./monitor_atmo.sh -R $EXPID -o
+./monitor_atmo.sh -R $EXPID -e
 
 #######################
 # -- Oceanic timeseries
@@ -120,8 +115,8 @@ cd $ECE3_POSTPROC_TOPDIR/timeseries
 
 if (( $do_ocean ))
 then
-    ./monitor_ocean.sh -R $exp
-    ./monitor_ocean.sh -R $exp -e
+    ./monitor_ocean.sh -R $EXPID
+    ./monitor_ocean.sh -R $EXPID -e
 fi
 
 #########################
@@ -131,8 +126,8 @@ fi
 if (( $do_trans ))
 then
     cd ${DIR_TIME_SERIES}
-    rm -r -f  timeseries_$exp.tar # remove old if any
-    tar cfv timeseries_$exp.tar  $exp/
-#    ectrans -remote sansone -source timeseries_$exp.tar  -put -verbose -overwrite
+    rm -r -f  timeseries_$EXPID.tar # remove old if any
+    tar cfv timeseries_$EXPID.tar  $EXPID/
+#    ectrans -remote sansone -source timeseries_$EXPID.tar  -put -verbose -overwrite
 #    ectrans -remote sansone -source ~/EXPERIMENTS.$MACHINE.$USER.dat -verbose -overwrite
 fi

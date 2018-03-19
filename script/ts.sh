@@ -22,7 +22,7 @@ set -ue
 account="${ECE3_POSTPROC_ACCOUNT-}"
 checkit=0
 
-while getopts "h?cur:a:" opt; do
+while getopts "h?cu:r:a:" opt; do
     case "$opt" in
         h|\?)
             usage
@@ -72,6 +72,13 @@ esac
 #fi
 #[[ ! -d $indir ]] && echo "*EE* Experiment HiresClim2 output dir $indir does not exist!" && exit 1
 
+# -- check previous processing
+if (( checkit ))
+then
+    echo " check of TS not implemented yet.."
+    exit
+fi
+
 
 # -- submit script
 tgt_script=$OUT/ts_$1.job
@@ -86,7 +93,7 @@ sed -i "s/<JOBID>/ts/" $tgt_script
 sed -i "s/<Y1>//" $tgt_script
 sed -i "s|<OUT>|$OUT|" $tgt_script
 
-echo ../timeseries/timeseries.sh $1 $USERexp >> $tgt_script
+echo ../timeseries/timeseries.sh $1 >> $tgt_script
 
 ${submit_cmd} $tgt_script
 

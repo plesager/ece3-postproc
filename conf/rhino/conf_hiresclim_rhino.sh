@@ -15,7 +15,7 @@ export NEMORESULTS0='/lustre3/projects/CMIP6/${USER}/rundirs/${EXPID}/output/nem
 
 # --- PATTERN TO DEFINE WHERE TO SAVE POST-PROCESSED DATA
 # 
-# Must include ${EXPID} and be single-quoted
+# Should include ${EXPID} and be single-quoted
 #
 export ECE3_POSTPROC_POSTDIR='/lustre3/projects/CMIP6/${USER}/rundirs/${EXPID}/post'
 
