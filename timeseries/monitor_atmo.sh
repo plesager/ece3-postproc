@@ -1,5 +1,6 @@
-#!/bin/ksh
-#set -ex
+#!/usr/bin/env bash
+
+set -eu
 export HERE=`pwd`
 
 export PYTHONPATH=${HERE}/scripts/barakuda_modules
@@ -7,8 +8,7 @@ export PYTHONPATH=${HERE}/scripts/barakuda_modules
 usage()
 {
     echo
-    echo "USAGE: ${0} -C -R <run name> (options)"
-    echo
+    echo "USAGE: ${0} -R <run name> (options)"
     echo
     echo "   OPTIONS:"
     echo "      -y <YYYY>    => force initial year to YYYY"
@@ -39,7 +39,6 @@ while getopts R:y:t:foeh option ; do
     esac
 done
 
-
 mkdir -p $SCRATCH/tmp_ecearth3/tmp
 export TMPDIR_ROOT=$(mktemp -d $SCRATCH/tmp_ecearth3/tmp/ts_${RUN}_XXXXXX)
 export POST_DIR=$DATADIR
@@ -48,29 +47,19 @@ echo
 echo " *** TMPDIR_ROOT = ${TMPDIR_ROOT}"
 echo " *** POST_DIR = ${POST_DIR}"
 echo " *** DIR_TIME_SERIES = ${DIR_TIME_SERIES}"
-echo " *** RHOST = ${RHOST}"
-echo " *** RUSER = ${RUSER}"
-echo " *** WWW_DIR_ROOT = ${WWW_DIR_ROOT}"
+echo " *** RHOST = ${RHOST:=}"
+echo " *** RUSER = ${RUSER:=}"
+echo " *** WWW_DIR_ROOT = ${WWW_DIR_ROOT:=}"
 echo " *** PYTHONPATH = ${PYTHONPATH}"
 echo
 
-
-
-
-echo; echo
-
-#sleep 3
-
-
 # Root path for temporary directory:
 TMPDIR=${TMPDIR_ROOT}
-
 
 # On what variable should we test files:
 cv_test="msl"
 
 # *** end of conf ***
-
 
 is_leap()
 {
@@ -87,13 +76,6 @@ is_leap()
     fi
 }
 
-
-
-
-
-
-
-
 export RUN=${RUN}
 
 if [ "${RUN}" = "" ]; then
@@ -102,42 +84,18 @@ if [ "${RUN}" = "" ]; then
     exit
 fi
 
-
 RWWWD=${WWW_DIR_ROOT}/time_series/${RUN}
 
-
-echo; echo " Runs to be treated: ${RUN}"; echo
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+echo " Runs to be treated: ${RUN}"; echo
 
 # where to create diagnostics:
 export DIAG_D=${DIR_TIME_SERIES}/atmosphere
 
-
 if [ ${IFORCENEW} -eq 1 ]; then
-    echo; echo "Forcing clean restart! => removing ${DIAG_D}"
+    echo "Forcing clean restart! => removing ${DIAG_D}"
     rm -rf ${DIAG_D}
     echo
 fi
-
-
-
 
 # Need to know first and last year
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -148,27 +106,27 @@ export YEAR_INI=`echo ${ca} | sed -e "s/${RUN}_//g" -e "s/_${cv_test}.nc//g"`
 ca=`\ls ${DATADIR}/Post_????/*_${cv_test}.nc | tail -1` ; ca=`basename ${ca}` ;
 export YEAR_END=`echo ${ca} | sed -e "s/${RUN}_//g" -e "s/_${cv_test}.nc//g"`
 
-# Checking if they at least are integers:
-echo ${YEAR_INI} |  grep "[^0-9]" >/dev/null
-if [ ! "$?" -eq 1 ]; then
+# Checking if they at least are 4-digits integers
+if [[ ! ${YEAR_INI} =~ ^[0-9]{4}$ ]]
+then
     echo "ERROR: it was imposible to guess initial year from your input files"
     echo "       maybe the directory contains non-related files..."
     echo "      => use the -y <YEAR> switch to force the initial year!"; exit
 fi
-echo ${YEAR_END} |  grep "[^0-9]" >/dev/null; # Checking if it's an integer
-if [ ! "$?" -eq 1 ]; then
+if [[ ! ${YEAR_END} =~ ^[0-9]{4}$ ]]
+then
     echo "ERROR: it was imposible to guess the year coresponding to the last saved year!"
     echo "       => check your IFS output directory and file naming..."; exit
 fi
 
-
 # Checking if analysis has been run previously
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 FILELIST=(${DIAG_D}/${RUN}*.nc)
 if [ -e ${FILELIST[0]}  ] ; then
     echo " Timeseries analysis has been performed and files has been saved..." ; echo
     OLD_SUPA_FILE=$( ls -tr ${DIAG_D}/${RUN}_${YEAR_INI}*.nc | tail -1 )
-    OLD_YEAR_END=$( echo $( basename ${OLD_SUPA_FILE} ) | cut -f3 -d "_" )
-
+    OLD_YEAR_END=$(basename $OLD_SUPA_FILE | sed "s|${RUN}_${YEAR_INI}_\(....\).*|\1|")
+    
     if [[ ${OLD_YEAR_END} -ne ${YEAR_END} ]] ; then
          BASE_YEAR_INI=${YEAR_INI}
          YEAR_INI=$(( ${OLD_YEAR_END} + 1 ))
@@ -179,46 +137,31 @@ if [ -e ${FILELIST[0]}  ] ; then
              exit
          fi
     fi
-
 fi
 
-
-echo " Initial year guessed from stored files => ${YEAR_INI}"; echo
+echo " Initial year guessed from stored files => ${YEAR_INI}"
 echo " Last year guessed from stored files => ${YEAR_END}"; echo
 if [ ${iforcey0} -eq 1 ]; then
     export YEAR_INI=${YEAR0}
     echo " Initial year forced to ${YEAR_INI}"; echo
 fi
 
-
 export SUPA_FILE=${DIAG_D}/${RUN}_${YEAR_INI}_${YEAR_END}_time-series_atmo.nc
-
-
-
 
 # ~~~~~~~~~~~~~~~~~~~~~~~`
 
-
-
 jyear=${YEAR_INI}
-
-
-
-d_n=${0%/*}
 
 avars="sf tas msl tcc totp e sshf slhf ssr str tsr ttr"
 
 var_diags="msl NetSFC NetTOA PminE tas tcc sshf slhf ssr str tsr ttr e"
 
-
 fcompletion=${DIAG_D}/last_year_done.info
-
 
 if [ ${IPREPHTML} -eq 0 ]; then
 
     echo " Will store all extracted time series into:"
     echo " ${SUPA_FILE}"
-
 
     # create output directory if necessary
     mkdir -p ${DIAG_D} || exit
@@ -228,13 +171,11 @@ if [ ${IPREPHTML} -eq 0 ]; then
     TMPD=${TMPDIR}/atmo_time_series.${RUN}.${rand_strg}
     mkdir -p ${TMPD} || exit
 
-
     jyear=${YEAR_INI}
 
     #if [ -f ${fcompletion} ]; then jyear=`cat ${fcompletion}`; jyear=`expr ${jyear} + 1`; fi
 
     icontinue=1
-
 
     rm -f ${SUPA_FILE}
 
@@ -249,41 +190,29 @@ if [ ${IPREPHTML} -eq 0 ]; then
         if [ ! -f ${ftst} ]; then
             echo "Year ${jyear} is not completed yet:"; echo " => ${ftst} is missing"; echo
             icontinue=0
-            #echo "`expr ${jyear} - 1`" > ${fcompletion}
         fi
 
-
-
         if [ ${icontinue} -eq 1 ]; then
-
-
-            echo; echo; echo;
+            echo
             echo " Starting diagnostic for ${RUN} for year ${jyear} !"
-            echo; echo
-
+            echo
 
             nbday=365
             if [ `is_leap ${jyear}` -eq 1 ]; then
-                echo; echo " ${jyear} is leap!!!!"; echo
+                echo " ${jyear} is leap!!!!"; echo
                 nbday=366
             fi
 
-
-
             SUPA_Y=${RUN}_${jyear}_time-series_atmo.tmp
 
-
-
-
             cd ${TMPD}/
-
 
             jv=0
             for cvar in ${avars[*]}; do
 
                 rm -f tmp.nc tmp2.nc
 
-                echo "cdo -R -t -fldmean ${DATADIR}/Post_????/${RUN}_${jyear}_${cvar}.nc ${cf_out}"
+                echo "cdo -R -t -fldmean ${DATADIR}/Post_????/${RUN}_${jyear}_${cvar}.nc tmp0.nc"
                 cdo -R -fldmean ${DATADIR}/Post_????/${RUN}_${jyear}_${cvar}.nc tmp0.nc
                 echo
                 
@@ -339,7 +268,6 @@ if [ ${IPREPHTML} -eq 0 ]; then
             ncap2 -3 -h -O -s "${cv}=${cv}-273.15" -s "${cv}@units=\"deg.C\"" ${SUPA_Y} -o ${SUPA_Y}
 
 
-
             # Creating composite variable:
             ##############################
             
@@ -372,7 +300,6 @@ if [ ${IPREPHTML} -eq 0 ]; then
                 ${SUPA_Y} -o tmp.nc
             ncks -3 -h -A -v ${cv}  tmp.nc -o ${SUPA_Y}
             rm -f tmp.nc
-
             
             echo " ${SUPA_Y} done..."; echo; echo
             
@@ -384,7 +311,6 @@ if [ ${IPREPHTML} -eq 0 ]; then
 
     ncrcat -h -O ${RUN}_*_time-series_atmo.tmp -o ${SUPA_FILE}
     
-
     ncrcat -O time_*.nc -o supa_time.nc
     echo "ncks -3 -A -h -v time supa_time.nc -o ${SUPA_FILE}"
     ncks -3 -A -h -v time supa_time.nc -o ${SUPA_FILE}
@@ -406,7 +332,6 @@ if [ ${IPREPHTML} -eq 0 ]; then
          export SUPA_FILE=${RUN}_${BASE_YEAR_INI}_${YEAR_END}_time-series_atmo.nc
          echo " Variables saved in ${RUN}_${BASE_YEAR_INI}_${YEAR_END}_time-series_atmo.nc " ; echo
     fi
-
 
 fi # [ ${IPREPHTML} -eq 0 ]
 
@@ -453,6 +378,3 @@ fi # [ ${IPREPHTML} -eq 1 ]
 
 
 #rm -rf ${TMPD}
-
-
-

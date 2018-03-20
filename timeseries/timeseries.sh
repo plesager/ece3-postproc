@@ -105,8 +105,11 @@ export NEMO_MESH_DIR=${MESHDIR_TOP}/$NEMOCONFIG
 ###########################
 
 cd $ECE3_POSTPROC_TOPDIR/timeseries
-  
+
+echo "*II* Compute Atmospheric TimeSeries"
 ./monitor_atmo.sh -R $EXPID -o
+
+echo "*II* Plot Atmospheric TimeSeries"
 ./monitor_atmo.sh -R $EXPID -e
 
 #######################
@@ -115,7 +118,10 @@ cd $ECE3_POSTPROC_TOPDIR/timeseries
 
 if (( $do_ocean ))
 then
+    echo "*II* Compute Oceanic TimeSeries"
     ./monitor_ocean.sh -R $EXPID
+    
+    echo "*II* Plot Oceanic TimeSeries"
     ./monitor_ocean.sh -R $EXPID -e
 fi
 

@@ -239,8 +239,9 @@ fi
     # ** MOC
 if (( $newercdftools ))
 then
-echo "FIXME! MOC with newercdftools"
-#rhino: seg fault!    $cdftoolsbin/cdfmoc -v ${froot}_grid_V.nc -o ${out}_moc.nc
+    #echo "FIXME! MOC with newercdftools"
+    
+    $cdftoolsbin/cdfmoc -v ${froot}_grid_V.nc -o ${out}_moc.nc
 else
     $cdftoolsbin/cdfmoc ${froot}_grid_V.nc
     $cdozip copy moc.nc ${out}_moc.nc

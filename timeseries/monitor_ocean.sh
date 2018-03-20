@@ -1,5 +1,6 @@
-#!/bin/ksh
+#!/usr/bin/env bash
 
+set -eu
 export HERE=`pwd`
 
 export PYTHONPATH=${HERE}/scripts/barakuda_modules
@@ -8,7 +9,6 @@ usage()
 {
     echo
     echo "USAGE: ${0} -R <run name> (options)"
-    echo
     echo
     echo "   OPTIONS:"
     echo "      -y <YYYY>    => force initial year to YYYY"
@@ -31,7 +31,6 @@ while getopts R:y:t:feh option ; do
         R) RUN=${OPTARG};;
         y) YEAR0=${OPTARG} ; iforcey0=1 ;;
         f) IFORCENEW=1;;
-
         e) IPREPHTML=1;;
         h)  usage;;
         \?) usage ;;
@@ -42,31 +41,22 @@ mkdir -p $SCRATCH/tmp_ecearth3/tmp
 export TMPDIR_ROOT=$(mktemp -d $SCRATCH/tmp_ecearth3/tmp/ts_${RUN}_XXXXXX)
 export POST_DIR=$DATADIR
 
-
 echo
 echo " *** TMPDIR_ROOT = ${TMPDIR_ROOT}"
 echo " *** POST_DIR = ${POST_DIR}"
 echo " *** DIR_TIME_SERIES = ${DIR_TIME_SERIES}"
-echo " *** RHOST = ${RHOST}"
-echo " *** RUSER = ${RUSER}"
-echo " *** WWW_DIR_ROOT = ${WWW_DIR_ROOT}"
+echo " *** RHOST = ${RHOST:=}"
+echo " *** RUSER = ${RUSER:=}"
+echo " *** WWW_DIR_ROOT = ${WWW_DIR_ROOT:=}"
 echo
-
-
-echo; echo
-
-sleep 3
-
 
 # Root path for temporary directory:
 TMPDIR=${TMPDIR_ROOT}
-
 
 # On what variable should we test files:
 cv_test="sosstsst"
 
 # *** end of conf ***
-
 
 is_leap()
 {
@@ -93,13 +83,13 @@ fi
 
 RWWWD=${WWW_DIR_ROOT}/time_series/${RUN}
 
-echo; echo " Runs to be treated: ${RUN}"; echo
+echo " Runs to be treated: ${RUN}"; echo
 
 # where to create diagnostics:
 export DIAG_D=${DIR_TIME_SERIES}/ocean
 
 if [ ${IFORCENEW} -eq 1 ]; then
-    echo; echo "Forcing clean restart! => removing ${DIAG_D}"
+    echo "Forcing clean restart! => removing ${DIAG_D}"
     rm -rf ${DIAG_D}
     echo
 fi
@@ -113,26 +103,27 @@ export YEAR_INI=`echo ${ca} | sed -e "s/${RUN}_//g" -e "s/_${cv_test}.nc//g"`
 ca=`\ls ${DATADIR}/Post_????/*_${cv_test}.nc | tail -1` ; ca=`basename ${ca}` ;
 export YEAR_END=`echo ${ca} | sed -e "s/${RUN}_//g" -e "s/_${cv_test}.nc//g"`
 
-# Checking if they at least are integers:
-echo ${YEAR_INI} |  grep "[^0-9]" >/dev/null
-if [ ! "$?" -eq 1 ]; then
+# Checking if they at least are 4-digits integers
+if [[ ! ${YEAR_INI} =~ ^[0-9]{4}$ ]]
+then
     echo "ERROR: it was imposible to guess initial year from your input files"
     echo "       maybe the directory contains non-related files..."
     echo "      => use the -y <YEAR> switch to force the initial year!"; exit
 fi
-echo ${YEAR_END} |  grep "[^0-9]" >/dev/null; # Checking if it's an integer
-if [ ! "$?" -eq 1 ]; then
+if [[ ! ${YEAR_END} =~ ^[0-9]{4}$ ]]
+then
     echo "ERROR: it was imposible to guess the year coresponding to the last saved year!"
     echo "       => check your NEMO output directory and file naming..."; exit
 fi
 
 # Checking if analysis has been run previously
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 FILELIST=(${DIAG_D}/${RUN}*.nc)
 if [ -e ${FILELIST[0]}  ] ; then
     echo " Timeseries analysis has been performed and files has been saved..." ; echo
     OLD_SUPA_FILE=$( ls -tr ${DIAG_D}/${RUN}_${YEAR_INI}*.nc | tail -1 )
-    OLD_YEAR_END=$( echo $( basename ${OLD_SUPA_FILE} ) | cut -f3 -d "_" )
-
+    OLD_YEAR_END=$(basename $OLD_SUPA_FILE | sed "s|${RUN}_${YEAR_INI}_\(....\).*|\1|")
+    
     if [[ ${OLD_YEAR_END} -ne ${YEAR_END} ]] ; then
          BASE_YEAR_INI=${YEAR_INI}
          YEAR_INI=$(( ${OLD_YEAR_END} + 1 ))
@@ -143,16 +134,14 @@ if [ -e ${FILELIST[0]}  ] ; then
              exit
          fi
     fi
-
 fi
 
-echo " Initial year guessed from stored files => ${YEAR_INI}"; echo
+echo " Initial year guessed from stored files => ${YEAR_INI}"
 echo " Last year guessed from stored files => ${YEAR_END}"; echo
 if [ ${iforcey0} -eq 1 ]; then
     export YEAR_INI=${YEAR0}
     echo " Initial year forced to ${YEAR_INI}"; echo
 fi
-
 
 #PD: check to have more than one year
 if [ ${YEAR_INI} -eq ${YEAR_END} ] ; then
@@ -164,8 +153,6 @@ export SUPA_FILE=${DIAG_D}/${RUN}_${YEAR_INI}_${YEAR_END}_time-series_ocean.nc
 # ~~~~~~~~~~~~~~~~~~~~~~~`
 
 jyear=${YEAR_INI}
-
-d_n=${0%/*}
 
 #PD add sowaflup
 avars_2d="sosstsst sosaline sossheig sowaflup"
@@ -201,18 +188,16 @@ if [ ${IPREPHTML} -eq 0 ]; then
         if [ ! -f ${ftst} ]; then
             echo "Year ${jyear} is not completed yet:"; echo " => ${ftst} is missing"; echo
             icontinue=0
-            #echo "`expr ${jyear} - 1`" > ${fcompletion}
         fi
 
         if [ ${icontinue} -eq 1 ]; then
-
-            echo; echo; echo;
+            echo
             echo " Starting diagnostic for ${RUN} for year ${jyear} !"
-            echo; echo
+            echo
 
             nbday=365
             if [ `is_leap ${jyear}` -eq 1 ]; then
-                echo; echo " ${jyear} is leap!!!!"; echo
+                echo " ${jyear} is leap!!!!"; echo
                 nbday=366
             fi
 
@@ -545,20 +530,7 @@ if [ ${IPREPHTML} -eq 0 ]; then
          echo " Variables saved in ${RUN}_${BASE_YEAR_INI}_${YEAR_END}_time-series_ocean.nc " ; echo
     fi
 
-
-
 fi # [ ${IPREPHTML} -eq 0 ]
-
-
-
-
-
-
-
-
-
-
-
 
 
 if [ ${IPREPHTML} -eq 1 ]; then

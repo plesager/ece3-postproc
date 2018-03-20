@@ -22,10 +22,18 @@ export MESHDIR_TOP=${ECE3_POSTPROC_DATADIR}/post-proc
 # [1] # Where to store time-series plots
 #     Can include ${EXPID} and then must be single-quoted.
 #     
-#     Timeseries for one simulation will be in ${ECE3_POSTPROC_DIAGDIR}/${EXPID}
-#     See ./conf_ecmean_rhino.sh
+#     Timeseries for one simulation will be in ${ECE3_POSTPROC_DIAGDIR}/timeseries/${EXPID}
+#     available in two netCDF files and two html pages (one for atmosphere and one for ocean)
 #     
-export ECE3_POSTPROC_DIAGDIR="$HOME/EC-Earth/diag/"
+#     (See also ./conf_ecmean_rhino.sh for a similar 'diagdir')
+#     
+export ECE3_POSTPROC_DIAGDIR="$HOME/EC-Earth/diag"
+#
+#  [2] The output can be put on a remote machine through ssh and scp.
+#       =>  Comment or set RHOST="" to disable this function...
+#export RHOST=pc170547
+export RUSER=sager
+export WWW_DIR_ROOT="/usr/people/sager/ECEARTH/diag"
 
 
 ######################
