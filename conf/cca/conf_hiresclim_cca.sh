@@ -46,7 +46,7 @@ done
 
 cdo=cdo
 cdozip="$cdo -f nc4c -z zip"
-rbld="/perm/ms/nl/nm6/r1902-merge-new-components/sources/nemo-3.6/TOOLS/REBUILD_NEMO/rebuild_nemo"
+rbld="/perm/ms/nl/nm6/trunk/sources/nemo-3.6/TOOLS/REBUILD_NEMO/rebuild_nemo"
 
 cdftoolsbin="${CDFTOOLS_DIR}/bin"
 python=python

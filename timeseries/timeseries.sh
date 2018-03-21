@@ -4,14 +4,18 @@ set -eu
 
 usage()
 {
-  echo "Usage: timeseries.sh [-r ALT_RUNDIR] [-u userexp] EXP"
+  echo "Usage: timeseries.sh [-r POSTDIR] [-u userexp] EXP"
+  echo
   echo "Example: ./timeseries.sh io01"
   echo "   Compute timeseries for experiment EXP."
+  echo
   echo "Options:"
-  echo "   -r ALT_RUNDIR : fully qualified path to another user EC-Earth top RUNDIR"
-  echo "                   that is 'ALT_RUNDIR/mon' must exists and be readable"
-  echo "                   If single-quoted, can contain \$EXPID and any env var."
-  echo "   -u USERexp  : alternative user owner of the experiment, default $USER"
+  echo "   -r POSTDIR  : overwrite ECE3_POSTPROC_POSTDIR "
+  echo "   -u USERexp  : alternative 'user' owner of the experiment, default to $USER"
+  echo "                  overwrite USERexp token."
+  echo
+  echo "   ECE3_POSTPROC_POSTDIR and USERexp default values should be set in"
+  echo "   your conf_timeseries_$ECE3_POSTPROC_MACHINE.sh file"
 }
 
 #########################
@@ -53,7 +57,7 @@ check_environment
 do_trans=0
 
 #############################################################
-# -- Check settings dependent only on the ECE3_POSTPROC_* variables, i.e. env
+# -- Check configuration settings
 ############################################################
 
 # Base directory of HiresClim2 postprocessing outputs

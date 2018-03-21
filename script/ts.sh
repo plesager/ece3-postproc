@@ -1,8 +1,10 @@
 #!/bin/bash
 
+set -ue
+
 usage()
 {
-    echo "Usage: ts.sh [-a account] [-u userexp] [-r ALT_RUNDIR] [-c] EXP"
+    echo "Usage: ts.sh [-a account] [-u userexp] [-r POSTDIR] [-c] EXP"
     echo
     echo "Submit to a job scheduler the computation of timeseries for experiment EXP"
     echo
@@ -11,16 +13,19 @@ usage()
     echo "Options are:"
     echo "   -c          : check if processing was successful"
     echo "   -a account  : specify a different special project for accounting (default: ${ECE3_POSTPROC_ACCOUNT:-unknown})"
-    echo "   -u USERexp  : alternative user owner of the experiment, default $USER"
-    echo "   -r ALT_RUNDIR : fully qualified path to another user EC-Earth top RUNDIR"
-    echo "                   that is RUNDIR/EXP/post must exists and be readable"
+    echo "   -r POSTDIR  : overwrite ECE3_POSTPROC_POSTDIR "
+    echo "   -u USERexp  : alternative 'user' owner of the experiment, default to $USER"
+    echo "                  overwrite USERexp token."
+    echo
+    echo "   ECE3_POSTPROC_POSTDIR and USERexp default values should be set in"
+    echo "   your conf_timeseries_$ECE3_POSTPROC_MACHINE.sh file"
 }
-
-set -ue
 
 # -- default option
 account="${ECE3_POSTPROC_ACCOUNT-}"
+ALT_RUNDIR=
 checkit=0
+options=
 
 while getopts "h?cu:r:a:" opt; do
     case "$opt" in
@@ -28,9 +33,11 @@ while getopts "h?cu:r:a:" opt; do
             usage
             exit 0
             ;;
-        u)  USERexp=$OPTARG
+        r)  options="${options} -r $OPTARG"
+            ALT_RUNDIR=$OPTARG
             ;;
-        r)  ALT_RUNDIR=$OPTARG
+        u)  options="${options} -u $OPTARG"
+            USERexp=$OPTARG
             ;;
         c)  checkit=1
             ;;
@@ -57,25 +64,38 @@ CONFDIR=${ECE3_POSTPROC_TOPDIR}/conf/${ECE3_POSTPROC_MACHINE}
 # -- get OUTDIR, submit command
 . ${CONFDIR}/conf_timeseries_${ECE3_POSTPROC_MACHINE}.sh
 
-# -- add here options for submit commands
-case "${submit_cmd}" in
-        sbatch) queue_cmd="squeue -u $USER  -o %.16j" ;;
-esac
 
-#!! TOLGO, c'Ã in timeseries.sh
-# -- check input dir exist (from EC-mean.sh, repeated here for a "before submission" error catch)
-#if [[ -n $ALT_RUNDIR ]]
-#then
-#    indir=`eval echo ${ALT_RUNDIR}`/mon/
-#else
-#    indir=`eval echo ${ECE3_POSTPROC_POSTDIR}`/mon
-#fi
-#[[ ! -d $indir ]] && echo "*EE* Experiment HiresClim2 output dir $indir does not exist!" && exit 1
+# -- Check that base directory of HiresClim2 postprocessing output exists (repeated here for a "before submission" error catch)
+if [[ -n $ALT_RUNDIR ]]
+then
+    INDATA=`eval echo ${ALT_RUNDIR}`/mon
+else
+    INDATA=`eval echo ${ECE3_POSTPROC_POSTDIR}`/mon
+fi
+[[ ! -d $INDATA ]] && echo "*EE* Experiment HiresClim2 output dir $INDATA does not exist!" && exit 1
 
-# -- check previous processing
+
+# -- check previously computed TS
+
 if (( checkit ))
 then
-    echo " check of TS not implemented yet.."
+    diagdir=$(eval echo ${ECE3_POSTPROC_DIAGDIR})
+    set +e
+
+    printf "\n\tchecking TimeSeries results for Atmosphere:\n"
+    ls -lt ${diagdir}/timeseries/${EXPID}/atmosphere/${EXPID}_????_????_time-series_atmo.nc
+    ls -lt ${diagdir}/timeseries/${EXPID}/atmosphere/index.html
+
+    printf "\n\tchecking TimeSeries results for Ocean:\n"
+    ls -lt ${diagdir}/timeseries/${EXPID}/ocean/${EXPID}_????_????_time-series_ocean.nc
+    ls -lt ${diagdir}/timeseries/${EXPID}/ocean/index.html
+
+    printf "\n\tLog file: $OUT/log/ts_${EXPID}_.out"
+    printf "\n\tDo you want to check this log w/ less? "
+    read -n 1 answer
+    [[ $answer == "y" ]] || [[ $answer == "Y" ]] && less $OUT/log/ts_${EXPID}_.out
+
+    set -e
     exit
 fi
 
@@ -93,7 +113,7 @@ sed -i "s/<JOBID>/ts/" $tgt_script
 sed -i "s/<Y1>//" $tgt_script
 sed -i "s|<OUT>|$OUT|" $tgt_script
 
-echo ../timeseries/timeseries.sh $1 >> $tgt_script
+echo ../timeseries/timeseries.sh ${options} $1 >> $tgt_script
 
 ${submit_cmd} $tgt_script
 

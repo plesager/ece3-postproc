@@ -35,9 +35,9 @@ while getopts "hcr:u:a:py" opt; do
             ;;
         r)  options="${options} -r $OPTARG"
             ALT_RUNDIR=$OPTARG
-	    ;;
-	u)  options="${options} -u $OPTARG"
-	    USERexp=$OPTARG
+            ;;
+        u)  options="${options} -u $OPTARG"
+            USERexp=$OPTARG
             ;;
         p)  options="${options} -p"
             ;;

@@ -122,6 +122,8 @@ fi
 # Checking if analysis has been run previously
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 FILELIST=(${DIAG_D}/${RUN}*.nc)
+BASE_YEAR_INI=
+
 if [ -e ${FILELIST[0]}  ] ; then
     echo " Timeseries analysis has been performed and files has been saved..." ; echo
     OLD_SUPA_FILE=$( ls -tr ${DIAG_D}/${RUN}_${YEAR_INI}*.nc | tail -1 )
