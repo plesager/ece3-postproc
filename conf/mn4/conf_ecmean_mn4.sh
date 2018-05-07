@@ -54,7 +54,7 @@ export do_3d_vars=1
 #
 # where year1 and year2 are your script argument.
 #
-#CLIMDIR0=<my favorite path to store climatoloy data>
+#CLIMDIR0=<my favorite path to store climatology data>
 
 # [3] Where to save the extracted PIs for REPRODUCIBILITY tests
 #
