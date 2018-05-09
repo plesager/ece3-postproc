@@ -57,7 +57,7 @@ python=python
 # Set this to 1 if a newer syntax is used ("cdfmean -f file ..." instead
 # of "cdfmean file ..."). Set both to 1 if using version 4 of cdftools, only the second if using 3.0.1. 
 newercdftools=0
-newercdftools2=0
+newercdftools2=1
 
 # Set to 0 for not to rebuild 3D relative humidity
 rh_build=1
@@ -78,9 +78,8 @@ STOREDIR=$SCRATCH/ecearth3/post/hiresclim/
 
 # ---------- NEMO VAR/FILES MANGLING ----------------------
 
-# NEMO 'wfo' variable can be in the SBC files instead of T files, then
-# set this flag to 1
-export use_SBC=0
+# NEMO 'wfo' variable should be in SBC files, set this flag to 0 if it is in grid_T files
+export use_SBC=1
 
 # NEMO files - which files are saved / we care for?
 NEMO_SAVED_FILES="grid_T grid_U grid_V icemod"

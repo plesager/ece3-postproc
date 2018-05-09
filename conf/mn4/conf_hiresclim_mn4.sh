@@ -81,9 +81,8 @@ STOREDIR=$SCRATCH/ecearth3/post/hiresclim/
 
 # ---------- NEMO VAR/FILES MANGLING ----------------------
 
-# NEMO 'wfo' variable can be in the SBC files instead of T files, then
-# set this flag to 1
-export use_SBC=0
+# NEMO 'wfo' variable should be in SBC files, set this flag to 0 if it is in grid_T files
+export use_SBC=1
 
 # NEMO files - which files are saved / we care for?
 NEMO_SAVED_FILES="grid_T grid_U grid_V icemod"

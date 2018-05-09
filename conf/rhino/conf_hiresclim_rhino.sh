@@ -64,7 +64,7 @@ STOREDIR=
 
 # NEMO 'wfo' variable can be in the SBC files instead of T files, then
 # set this flag to 1
-export use_SBC=0
+export use_SBC=1
 
 # NEMO files - which files are saved / we care for?
 NEMO_SAVED_FILES="grid_T grid_U grid_V icemod"

@@ -35,7 +35,7 @@ cd $WRKDIR
 NOMP=${NEMO_NPROCS}
 
 # Check on use of SBC file - can be set in your ../../../conf/conf_hiresclim_<MACHINE-NAME>.sh
-echo "SBC file used: ${use_SBC:=0}"
+echo "SBC file used: ${use_SBC:=1}"
 (( $use_SBC )) && SBC='SBC' || SBC='grid_T'
 
 # Check if new or old version of CDFtools is used - can be set in
@@ -226,6 +226,9 @@ for v in iiceconc iicethic; do
     if [ -f ${ff}4 ]; then mv ${ff}4 ${ff}; fi
 done
 
+#TODO fix  y_grid_T, x_grid_T in icemod.ns on CCA
+if [[ "$ECE3_POSTPROC_MACHINE" != "cca" ]]
+then
 if (( $newercdftools ))
 then
     $cdozip selvar,iiceconc,iicethic ${froot}_icemod.nc ${out}_ice.nc    
@@ -234,6 +237,7 @@ else
     $cdozip selvar,iiceconc,iicethic ${froot}_icemod.nc ${out}_ice.nc
     $cdftoolsbin/cdficediags ${froot}_icemod.nc -lim3
     cp icediags.nc ${out}_icediags.nc
+fi
 fi
 
     # ** MOC
