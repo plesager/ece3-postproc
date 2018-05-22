@@ -226,9 +226,7 @@ for v in iiceconc iicethic; do
     if [ -f ${ff}4 ]; then mv ${ff}4 ${ff}; fi
 done
 
-#TODO fix  y_grid_T, x_grid_T in icemod.ns on CCA
-if [[ "$ECE3_POSTPROC_MACHINE" != "cca" ]]
-then
+#TODO fix  y_grid_T, x_grid_T in icemod.ns after shaconemo updates
 if (( $newercdftools ))
 then
     $cdozip selvar,iiceconc,iicethic ${froot}_icemod.nc ${out}_ice.nc    
@@ -237,7 +235,6 @@ else
     $cdozip selvar,iiceconc,iicethic ${froot}_icemod.nc ${out}_ice.nc
     $cdftoolsbin/cdficediags ${froot}_icemod.nc -lim3
     cp icediags.nc ${out}_icediags.nc
-fi
 fi
 
     # ** MOC
