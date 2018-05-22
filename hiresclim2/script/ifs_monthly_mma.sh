@@ -82,7 +82,7 @@ fi
             ym=$(printf %04d%02d $year $m)
             eval_dirs $m  
             gunzip -c  $IFSRESULTS/MMA_${expname}_6h_GG_${ym}.nc.gz > MMA_${expname}_6h_GG_${ym}.nc
-            $cdo -b F64 setdate,$year-$m-01 -settime,00:00:00 -timmean \
+            $cdo -b F64 setdate,$year-$m-01 -settime,00:00:00 -timmean -delvar,LSM,Z \
                 MMA_${expname}_6h_GG_${ym}.nc icmgg_${ym}.nc &
         done
         wait
@@ -93,28 +93,20 @@ fi
     rm -f icmgg_${year}??.nc
 
 
-#rename vars: build a list of rename pairs and call ncrename once
-rename_str=""
 # these vars must be renamed
 vars1=(U10M V10M T2M D2M var78 var79)
 vars2=(uas vas tas tds tclw tciw)
 for (( i = 0 ; i < ${#vars1[@]} ; i++ )) 
 do
-#   ncrename -v $v1,$v2 icmgg_${year}.nc
-   rename_str="${rename_str} -v ${vars1[$i]},${vars2[$i]}"
+   ncrename -v .${vars1[$i]},${vars2[$i]} icmgg_${year}.nc
 done
+
 #these vars must be converted to lower case
-vars2="ci sstk sd tcc lcc mcc hcc tcwv msl q fal ro sf lsp cp e ssr str sshf ssrd strd slhf tsr ttr ewss nsss ssrc strc stl1"
+vars2="ci sstk sd tcc lcc mcc hcc tcwv msl q fal ro sf lsp cp e ssr str sshf ssrd strd slhf tsr ttr ewss nsss ssrc strc stl1 ttrc tsrc"
 for v2 in $vars2
 do
-#   v1="${v2^^}"
-    v1=`echo "$v2" | tr '[:lower:]' '[:upper:]'`
-#   ncrename -v $v1,$v2 icmgg_${year}.nc
-   rename_str="${rename_str} -v .$v1,$v2"
+   ncrename -v .${v2^^},$v2 icmgg_${year}.nc
 done
-ncrename $rename_str icmgg_${year}.nc
-#weird bug, nco cannot find TTRC nor TSRC if we do all in one command
-ncrename -v TTRC,ttrc -v TSRC,tsrc icmgg_${year}.nc
 
 
 # extract variables which do not require any calculations
