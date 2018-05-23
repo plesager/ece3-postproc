@@ -1,9 +1,18 @@
 #!/bin/bash
 
-# --- PATTERN TO FIND POST-PROCESSED DATA FROM HIRESCLIM2
+########################################
+# Configuration file for ECMEAN script #
+########################################
+
+# --- INPUT -----
+#
+# Where to find monthly averages from hiresclim (i.e. data are in $ECE3_POSTPROC_POSTDIR/mon)
 # 
 # Must include ${EXPID} and be single-quoted
 #
+# Token ${USERexp} can be used (and set through -u option at the command line).
+# Provide default if using it. 
+# 
 export ECE3_POSTPROC_POSTDIR='/scratch/ms/nl/${USER}/ECEARTH-RUNS/${EXPID}/post'
 
 
@@ -54,6 +63,7 @@ export ECE3_POSTPROC_DIAGDIR='$HOME/ecearth3/diag/'
 #
 #     Can include ${STEMID} as ensemble ID.
 #     Must be single-quoted if to be evaluated later.
+#     This is used only by the reproducibility/collect_ens.sh script
 #
 export ECE3_POSTPROC_PI4REPRO='$HOME/ecearth3/diag/${STEMID}'
 
