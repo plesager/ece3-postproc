@@ -232,7 +232,9 @@ then
     $cdftoolsbin/cdficediags -i ${froot}_icemod_cdfnew.nc -lim3 -o ${out}_icediags.nc
 else
     $cdozip selvar,iiceconc,iicethic ${froot}_icemod.nc ${out}_ice.nc
-    $cdftoolsbin/cdficediags ${froot}_icemod.nc -lim3
+    ncks -3 ${froot}_icemod.nc ${froot}_icemod_tmp.nc
+    ncrename -O -d .x_grid_T,x -d .y_grid_T,y ${froot}_icemod_tmp.nc
+    $cdftoolsbin/cdficediags ${froot}_icemod_tmp.nc -lim3
     cp icediags.nc ${out}_icediags.nc
 fi
 
