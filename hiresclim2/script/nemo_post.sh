@@ -218,11 +218,6 @@ done
 
 tempf=$(mktemp $SCRATCH/tmp_ecearth3/tmp/hireclim2_nemo_XXXXXX)
 
-#fix  y_grid_T, x_grid_T after nemo updates
-ncks -3 ${froot}_icemod.nc ${froot}_icemod_tmp.nc
-ncrename -O -d .x_grid_T,x -d .y_grid_T,y ${froot}_icemod_tmp.nc ${froot}_icemod.nc
-rm -f ${froot}_icemod_tmp.nc
-
 $cdo selvar,iiceconc,iicethic ${froot}_icemod.nc $tempf
 $cdozip splitvar $tempf ${out}_
 rm -f $tempf
