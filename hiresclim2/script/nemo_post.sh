@@ -172,6 +172,17 @@ fi
 if [ "${nm_iceconc}" != "iiceconc" ]; then ncrename -v ${nm_iceconc},iiceconc  ${froot}_icemod.nc ; fi
 if [ "${nm_icethic}" != "iicethic" ]; then ncrename -v ${nm_icethic},iicethic  ${froot}_icemod.nc ; fi
 
+# SHACONEMO update (april 2018) changes dimension names in the icemod file
+if (( $newercdftools ))
+then
+    ncks -3 ${froot}_icemod_cdfnew.nc ${froot}_icemod_tmp.nc
+    ncrename -O -d .x_grid_T,x -d .y_grid_T,y ${froot}_icemod_tmp.nc ${froot}_icemod_cdfnew.nc
+    rm -f ${froot}_icemod_tmp1.nc
+fi
+ncks -3 ${froot}_icemod.nc ${froot}_icemod_tmp.nc
+ncrename -O -d .x_grid_T,x -d .y_grid_T,y ${froot}_icemod_tmp.nc ${froot}_icemod.nc
+rm -f ${froot}_icemod_tmp.nc
+
 
 # create time axis
 $cdo showdate ${froot}_icemod.nc | tr '[:blank:]' '\n' | \
@@ -232,9 +243,7 @@ then
     $cdftoolsbin/cdficediags -i ${froot}_icemod_cdfnew.nc -lim3 -o ${out}_icediags.nc
 else
     $cdozip selvar,iiceconc,iicethic ${froot}_icemod.nc ${out}_ice.nc
-    ncks -3 ${froot}_icemod.nc ${froot}_icemod_tmp.nc
-    ncrename -O -d .x_grid_T,x -d .y_grid_T,y ${froot}_icemod_tmp.nc
-    $cdftoolsbin/cdficediags ${froot}_icemod_tmp.nc -lim3
+    $cdftoolsbin/cdficediags ${froot}_icemod.nc -lim3
     cp icediags.nc ${out}_icediags.nc
 fi
 
