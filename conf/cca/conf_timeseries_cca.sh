@@ -6,7 +6,7 @@
 
 # --- INPUT -----
 #
-# Where to find monthly averages from hireclim (i.e. data are in $ECE3_POSTPROC_POSTDIR/mon)
+# Where to find monthly averages from hiresclim (i.e. data are in $ECE3_POSTPROC_POSTDIR/mon)
 # 
 # Token ${USERexp} can be used (and set through -u option at the command line).
 # Provide default if using it. 
@@ -37,9 +37,9 @@ export RUSER=sager
 export WWW_DIR_ROOT="/usr/people/sager/ECEARTH/diag"
 
 
-############################
+#######################
 # Required software   #
-############################
+#######################
 
 for soft in nco netcdf python cdo cdftools
 do

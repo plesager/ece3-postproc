@@ -1,1 +1,0 @@
-../conf/conf_amwg_cca.sh
