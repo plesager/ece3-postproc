@@ -12,7 +12,10 @@
 
 ##PBS -l EC_memory_per_task=24GB
 
-module load cray-snplauncher
+echo '$EC_nodes           ='$EC_nodes
+echo '$EC_total_tasks     ='$EC_total_tasks     
+echo '$EC_threads_per_task='$EC_threads_per_task
+echo '$EC_tasks_per_node  ='$EC_tasks_per_node  
 
 set -e
 
@@ -23,4 +26,4 @@ export IFS_NPROCS=$EC_threads_per_task
 
 export OMP_NUM_THREADS=$EC_threads_per_task
 
-mpiexec -n 1 ../hiresclim2/master_hiresclim.sh <OPTIONS> <EXPID> <YEAR> <YREF>
+../hiresclim2/master_hiresclim.sh <OPTIONS> <EXPID> <YEAR> <YREF>
