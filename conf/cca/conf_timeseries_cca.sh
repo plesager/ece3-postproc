@@ -11,7 +11,7 @@
 # Token ${USERexp} can be used (and set through -u option at the command line).
 # Provide default if using it. 
 # 
-[[ -z ${ECE3_POSTPROC_POSTDIR:-} ]] && export ECE3_POSTPROC_POSTDIR='/scratch/ms/nl/${USER}/ECEARTH-RUNS/${EXPID}/post'
+[[ -z ${ECE3_POSTPROC_POSTDIR:-} ]] && export ECE3_POSTPROC_POSTDIR='$SCRATCH/ECEARTH-RUNS/${EXPID}/post'
 #
 # Where to find mesh and mask files for NEMO.
 # Files are expected in $MESHDIR_TOP/$NEMOCONFIG.
