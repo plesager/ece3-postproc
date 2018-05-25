@@ -4,19 +4,22 @@
  # Configuration file for HIRESCLIM2  #
  ######################################
 
+# For autosubmit these variables must be set elsewhere (in the calling script or .bashrc)
+# IFSRESULTS0 NEMORESULTS0 ECE3_POSTPROC_POSTDIR
+
 # --- PATTERN TO FIND MODEL OUTPUT
 # 
 # Must include ${EXPID} and be single-quoted
 #
 # optional variables: $USER, $LEGNB, $year
-export IFSRESULTS0='/scratch/ms/nl/${USER}/ECEARTH-RUNS/${EXPID}/output/ifs/${LEGNB}'
-export NEMORESULTS0='/scratch/ms/nl/${USER}/ECEARTH-RUNS/${EXPID}/output/nemo/${LEGNB}'
+[[ -z ${IFSRESULTS0:-} ]] && export IFSRESULTS0='$SCRATCH/ECEARTH-RUNS/${EXPID}/output/ifs/${LEGNB}'
+[[ -z ${NEMORESULTS0:-} ]] && export NEMORESULTS0='$SCRATCH/ECEARTH-RUNS/${EXPID}/output/nemo/${LEGNB}'
 
 # --- PATTERN TO DEFINE WHERE TO SAVE POST-PROCESSED DATA
 # 
 # Must include ${EXPID} and be single-quoted
 #
-export ECE3_POSTPROC_POSTDIR='/scratch/ms/nl/${USER}/ECEARTH-RUNS/${EXPID}/post'
+[[ -z ${ECE3_POSTPROC_POSTDIR:-} ]] && export ECE3_POSTPROC_POSTDIR='$SCRATCH/ECEARTH-RUNS/${EXPID}/post'
 
 # --- PROCESSING TO PERFORM (uncomment to change default)
 # ECE3_POSTPROC_HC_IFS_MONTHLY=1
@@ -56,22 +59,29 @@ python=python
 # Set this to 1 if a newer syntax is used ("cdfmean -f file ..." instead
 # of "cdfmean file ..."). Set both to 1 if using version 4 of cdftools, only the second if using 3.0.1. 
 newercdftools=0
-newercdftools2=0
+newercdftools2=1
 
 # Set to 0 for not to rebuild 3D relative humidity
 rh_build=1
 
+#extension for IFS files, default ""
+[[ -z ${GRB_EXT:-} ]] && GRB_EXT="" #".grb"
+
+# number of parallel procs for IFS (max 12) and NEMO rebuild. Default to 12.
+if [ -z "${IFS_NPROCS:-}" ] ; then
+    IFS_NPROCS=12; NEMO_NPROCS=12
+fi
+
 # where to find mesh and mask files for NEMO. Files are expected in $MESHDIR_TOP/$NEMOCONFIG.
 export MESHDIR_TOP="/perm/ms/nl/nm6/ECE3-DATA/post-proc"
 
-# Base dir to archive (ie just make a copy of) the monthly results. Daily results, if any, are left behind. 
-STOREDIR=/home/hpc/pr45de/di56bov/work/ecearth3/post/hiresclim/
+# Base dir to archive (ie just make a copy of) the monthly results. Daily results, if any, are left in scratch. 
+STOREDIR=$SCRATCH/ecearth3/post/hiresclim/
 
 # ---------- NEMO VAR/FILES MANGLING ----------------------
 
-# NEMO 'wfo' variable can be in the SBC files instead of T files, then
-# set this flag to 1
-export use_SBC=0
+# NEMO 'wfo' variable should be in SBC files, set this flag to 0 if it is in grid_T files
+export use_SBC=1
 
 # NEMO files - which files are saved / we care for?
 NEMO_SAVED_FILES="grid_T grid_U grid_V icemod"

@@ -1,6 +1,6 @@
 #!/bin/bash
 set -e
-
+set -xuve
  ############################################
  # To be called from ../master_hiresclim.sh #
  ############################################
@@ -61,7 +61,8 @@ out=$OUTDIR/${expname}_${year}
 # comment lnsp if running on old MMA files
 for v2 in t u v z #lnsp
 do
-   v1="${v2^^}"
+#   v1="${v2^^}"
+   v1=`echo "$v2" | tr '[:lower:]' '[:upper:]'`
    rm -f ${out}_${v2}.nc
    $cdozip -r -R chname,${v1},${v2} -cat "icmsh_${year}??_${v1}.nc" ${out}_${v2}.nc
 done
@@ -81,7 +82,7 @@ fi
             ym=$(printf %04d%02d $year $m)
             eval_dirs $m  
             gunzip -c  $IFSRESULTS/MMA_${expname}_6h_GG_${ym}.nc.gz > MMA_${expname}_6h_GG_${ym}.nc
-            $cdo -b F64 setdate,$year-$m-01 -settime,00:00:00 -timmean \
+            $cdo -b F64 setdate,$year-$m-01 -settime,00:00:00 -timmean -delvar,LSM,Z \
                 MMA_${expname}_6h_GG_${ym}.nc icmgg_${ym}.nc &
         done
         wait
@@ -92,27 +93,20 @@ fi
     rm -f icmgg_${year}??.nc
 
 
-#rename vars: build a list of rename pairs and call ncrename once
-rename_str=""
 # these vars must be renamed
 vars1=(U10M V10M T2M D2M var78 var79)
 vars2=(uas vas tas tds tclw tciw)
 for (( i = 0 ; i < ${#vars1[@]} ; i++ )) 
 do
-#   ncrename -v $v1,$v2 icmgg_${year}.nc
-   rename_str="${rename_str} -v ${vars1[$i]},${vars2[$i]}"
+   ncrename -v .${vars1[$i]},${vars2[$i]} icmgg_${year}.nc
 done
+
 #these vars must be converted to lower case
-vars2="ci sstk sd tcc lcc mcc hcc tcwv msl q fal ro sf lsp cp e ssr str sshf ssrd strd slhf tsr ttr ewss nsss ssrc strc stl1"
+vars2="ci sstk sd tcc lcc mcc hcc tcwv msl q fal ro sf lsp cp e ssr str sshf ssrd strd slhf tsr ttr ewss nsss ssrc strc stl1 ttrc tsrc"
 for v2 in $vars2
 do
-   v1="${v2^^}"
-#   ncrename -v $v1,$v2 icmgg_${year}.nc
-   rename_str="${rename_str} -v .$v1,$v2"
+   ncrename -v .${v2^^},$v2 icmgg_${year}.nc
 done
-ncrename $rename_str icmgg_${year}.nc
-#weird bug, nco cannot find TTRC nor TSRC if we do all in one command
-ncrename -v TTRC,ttrc -v TSRC,tsrc icmgg_${year}.nc
 
 
 # extract variables which do not require any calculations
@@ -158,6 +152,9 @@ $cdo -R fldmean \
    -expr,"tnr=(tsr+ttr)/$pptime" icmgg_${year}.nc tmp_tnr.nc
 $cdozip -r copy tmp_tnr.nc ${out}_tnr.nc
 
+# change file suffices
+( cd $OUTDIR ; for f in $(ls *.nc4); do mv $f ${f/.nc4/.nc}; done )
+
 # fix units, ugly hack
 for v in ci fal tcc lcc mcc hcc ; do ncatted -a units,${v},c,c,'0-1' ${out}_${v}.nc ; done
 for v in e lsp cp ro sf ; do ncatted -a units,${v},m,c,'kg m-2 s-1' ${out}_${v}.nc ; done
@@ -172,9 +169,6 @@ for v in tcwv ; do ncatted -a units,${v},m,c,'kg m-2' ${out}_${v}.nc ; done
 
 # fix long_name
 for v in pme totp ; do ncatted -a long_name,${v},c,c,'Total precipitation' ${out}_${v}.nc ; done
-
-# change file suffices
-( cd $OUTDIR ; for f in $(ls *.nc4); do mv $f ${f/.nc4/.nc}; done )
 
 set -x
 ls -l $WRKDIR

@@ -35,7 +35,7 @@ cd $WRKDIR
 NOMP=${NEMO_NPROCS}
 
 # Check on use of SBC file - can be set in your ../../../conf/conf_hiresclim_<MACHINE-NAME>.sh
-echo "SBC file used: ${use_SBC:=0}"
+echo "SBC file used: ${use_SBC:=1}"
 (( $use_SBC )) && SBC='SBC' || SBC='grid_T'
 
 # Check if new or old version of CDFtools is used - can be set in
@@ -228,6 +228,7 @@ done
 # ** ice diagnostics
 
 tempf=$(mktemp $SCRATCH/tmp_ecearth3/tmp/hireclim2_nemo_XXXXXX)
+
 $cdo selvar,iiceconc,iicethic ${froot}_icemod.nc $tempf
 $cdozip splitvar $tempf ${out}_
 rm -f $tempf

@@ -11,9 +11,9 @@ set -xuve
 
 # --- PATTERN TO FIND MODEL OUTPUT
 # 
-# Must include $EXPID and be single-quoted
+# Must include ${EXPID} and be single-quoted
 #
-# optional variable are $USER, $LEGNB, $year
+# optional variables: $USER, $LEGNB, $year
 [[ -z ${IFSRESULTS0:-} ]] && export IFSRESULTS0='$SCRATCH/ECEARTH-RUNS/${EXPID}/output/ifs/${LEGNB}'
 [[ -z ${NEMORESULTS0:-} ]] && export NEMORESULTS0='$SCRATCH/ECEARTH-RUNS/${EXPID}/output/nemo/${LEGNB}'
 
@@ -31,15 +31,12 @@ set -xuve
 # ECE3_POSTPROC_HC_NEMO=1         # applied only if available
 # ECE3_POSTPROC_HC_NEMO_EXTRA=0   # require nco
 
-# -- Filter IFS output (to be applied through a grib_filter call)
+# --- Filter IFS output (to be applied through a grib_filter call)
 # Useful when there are output with different timestep.
-# Set to empty if no filtering/change for different output
+# Comment if no filtering/change for different output
 #FILTERGG2D="if ( (!(typeOfLevel is \"isobaricInhPa\") && !(typeOfLevel is \"isobaricInPa\") && !(typeOfLevel is \"potentialVorticity\" ))) { write; }"
 #FILTERGG3D="if ( ((typeOfLevel is \"isobaricInhPa\") || (typeOfLevel is \"isobaricInPa\") )) { write; }"
 #FILTERSH="if ( ((dataTime == 0000) || (dataTime == 0600) || (dataTime == 1200)  || (dataTime == 1800) )) { write; }"
-FILTERGG2D=""
-FILTERGG3D=""
-FILTERSH=""
 
 # --- TOOLS (required programs, including compression options) -----
 
@@ -58,10 +55,15 @@ cdozip="$cdo -f nc4c -z zip"
 rbld="/gpfs/projects/bsc32/repository/apps/rebuild_nemo/rebuild_nemo"
 
 cdftoolsbin="${CDFTOOLS_DIR}/bin"
-#cdftoolsbin="/home/ms/nl/nm6/ECEARTH/postproc/barakuda/cdftools_light/bin"
+python=python
+
+# Set this to 1 if a newer syntax is used ("cdfmean -f file ..." instead
+# of "cdfmean file ..."). Set both to 1 if using version 4 of cdftools, only the second if using 3.0.1. 
 newercdftools=0
 newercdftools2=1
-python=python
+
+# Set to 0 for not to rebuild 3D relative humidity
+rh_build=1
 
 #extension for IFS files, default ""
 [[ -z ${GRB_EXT:-} ]] && GRB_EXT="" #".grb"
@@ -79,9 +81,8 @@ STOREDIR=$SCRATCH/ecearth3/post/hiresclim/
 
 # ---------- NEMO VAR/FILES MANGLING ----------------------
 
-# NEMO 'wfo' variable can be in the SBC files instead of T files, then
-# set this flag to 1
-export use_SBC=0
+# NEMO 'wfo' variable should be in SBC files, set this flag to 0 if it is in grid_T files
+export use_SBC=1
 
 # NEMO files - which files are saved / we care for?
 NEMO_SAVED_FILES="grid_T grid_U grid_V icemod"
