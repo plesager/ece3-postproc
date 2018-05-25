@@ -13,10 +13,9 @@ usage()
    echo "Options are:"
    echo "   -c          : check if processing was successful"
    echo "   -a account  : specify a different special project for accounting (default: ${ECE3_POSTPROC_ACCOUNT-})"
-   echo "   -r RUNDIR   : fully qualified path to another user EC-Earth top RUNDIR"
-   echo "                   that is RUNDIR/EXP/post must exists and be readable"
+   echo "   -r RUNDIR   : fully qualified path to HIRESCLIM2 ouput, i.e. RUNDIR/mon must exists (default is set in the config file)"
    echo "   -u USERexp  : alternative user owner of the experiment, default $USER"
-   echo "   -y          : (Y)early global mean are added to "
+   echo "   -y          : (Y)early global mean are added to yearly_fldmean_${EXP}.txt"
    echo "   -p          : account for (P)rimavera complicated output"
 }
 

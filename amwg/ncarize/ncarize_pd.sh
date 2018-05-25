@@ -8,12 +8,9 @@
 #  * mask_drown_field.x of SOSIE.  Only if coupled simulation data (needed for ocean fields)
 #
 # Important, the following environment variables must be set:
-# - POST_DIR (where to find the output from hiresclim2 postprocessing of EC-Earth output)
-# - EMOP_CLIM_DIR (where to store the generated climatology)
-# - DIR_EXTRA 
+#  POST_DIR (hiresclim2 output), EMOP_CLIM_DIR (where to store the generated climatology),
+#  DIR_EXTRA (auxiliary data)
 # 
-# This is (most of it) currently done in ../../conf_<MACHINE>
-#
 # What do you need as input files
 # ===============================
 #
@@ -32,7 +29,7 @@
 #
 # ...
 #
-# The script will generate the following files in the EMOP_CLIM_DIR dir:
+# The script will generate the following files in the ${EMOP_CLIM_DIR}/clim_${expname}_${YEAR1}-${YEAR2} dir:
 # <expname>_01_climo.nc  <expname>_04_climo.nc  <expname>_07_climo.nc  <expname>_10_climo.nc  <expname>_ANN_climo.nc
 # <expname>_02_climo.nc  <expname>_05_climo.nc  <expname>_08_climo.nc  <expname>_11_climo.nc  <expname>_DJF_climo.nc
 # <expname>_03_climo.nc  <expname>_06_climo.nc  <expname>_09_climo.nc  <expname>_12_climo.nc  <expname>_JJA_climo.nc
@@ -43,50 +40,19 @@
 # Author: Laurent Brodeau (laurent@misu.su.se), 2014
 #==========================================================================================
 
-set -e
+set -eu
 
-# Getting list of available confs:
-list_confs=`\ls ../conf_*.bash | sed -e "s|../conf_||g" -e "s|.bash||g"`
-
-usage()
-{
-    echo
-    echo "USAGE: `basename $0` -C <MY_SETUP> -R <EXP_NAME> -i <first_year> -e <last_year>"
-    echo
-    echo "              * <MY_SETUP>         => configuration settings"
-    echo "                                    file ../../conf_<MY_SETUP>.bash must be here"
-    echo "                          List of available MY_SETUP is:"
-    echo "${list_confs}"
-    echo
-    echo "              * <EXP_NAME>       => name of your experiment (usually 4-character long)"
-    echo "   OPTIONS:"
-    echo "      -h                         =>  print this message"
-    echo
-    exit
+usage() {
+    echo "Usage:  ${0##*/} EXP YEAR1 YEAR2"
 }
 
-# Defaults
-MY_SETUP=""
-expname=""
-YEAR1=""
-YEAR2=""
-
-while getopts C:R:i:e:h option ; do
-    case $option in
-        C) MY_SETUP=${OPTARG}   ;;
-        R) expname=${OPTARG}   ;;
-        i) YEAR1=${OPTARG}    ;;
-        e) YEAR2=${OPTARG}    ;;
-        h)  usage ;;
-        \?) usage ;;
-    esac
-done
-
-if [ "${MY_SETUP}" = "" -o "${expname}" = "" -o "${YEAR1}" = "" -o "${YEAR2}" = "" ]
-then
-    usage
-    exit 1
+if [ "$#" -ne 3 ]; then
+   usage
+   exit 0
 fi
+expname=$1
+YEAR1=$2
+YEAR2=$3
 
 echo
 echo " *** Name of run = ${expname}"
@@ -94,12 +60,10 @@ echo " *** First year  = ${YEAR1}"
 echo " *** Last year   = ${YEAR2}"
 echo; echo
 
-fconfig="../conf_${MY_SETUP}.bash"
-if [ ! -f ${fconfig} ]; then echo " ERROR: no configuration file found: ${fconfig}"; exit; fi
-. ${fconfig}
+# -- User configuration
+. $ECE3_POSTPROC_TOPDIR/conf/${ECE3_POSTPROC_MACHINE}/conf_amwg_${ECE3_POSTPROC_MACHINE}.sh
 
 echo; echo
-#echo " *** EMOP_DIR = ${EMOP_DIR}"
 echo " *** POST_DIR = ${POST_DIR}"
 echo " *** EMOP_CLIM_DIR = ${EMOP_CLIM_DIR}"
 echo " *** DIR_EXTRA = ${DIR_EXTRA}"
@@ -115,8 +79,6 @@ echo
 echo " *** reqested 3D fields for atmosphere :"
 echo "   => ${LIST_V_3D_ATM}"
 echo
-
-#export POST_DIR=`echo ${POST_DIR} | sed -e "s|<RUN>|${expname}|g"`
 echo " *** Will read EC-Earth post-processed netcdf files from"; echo "   ${POST_DIR} "; echo
 
 echo; echo
@@ -286,12 +248,13 @@ for var in ${LIST_V_2D_ATM}; do
 
                 # Testing if no degenerate level dimension and variable of length 1:
                 ca=`ncdump -h tmp.nc | grep " ${var}("`
-                for ctest in depth lev alt; do
+                for ctest in depth plev lev alt; do
                     if [[ "${ca}" =~ "${ctest}, lat" ]]; then
                         echo "Need to remove degenerate dimension ${ctest} from ${var}"
                         ncwa -O -h    -a ${ctest} tmp.nc  -o tmp2.nc ; rm -f tmp.nc  ; # removes lev dimension
                         ncks -O -h -x -v ${ctest} tmp2.nc -o tmp.nc  ; rm -f tmp2.nc ; # deletes lev variable
                         echo " => done!"
+                        break
                     fi
                 done
 
@@ -356,13 +319,6 @@ if [ ${i_ocean} -eq 1 ]; then
                     echo "ERROR: file ${cf} is missing !!!"; exit 1
                 fi
                 
-                # If time-record is called "time_counter", renaming to "time"
-                #ca=`ncdump -h ${cf} | grep UNLIMITED | grep time_counter`
-                #if [ ! "${ca}" = "" ]; then
-                #    echo "ncrename -d time_counter,time ${cf}"
-                #    ncrename -O -d time_counter,time ${cf} -o ./copy.tmp
-                #    cf="./copy.tmp"
-                #fi
 
                 if [ ! ${SOSIE_DROWN_EXEC} == "" ]; then
 
@@ -385,7 +341,15 @@ if [ ${i_ocean} -eq 1 ]; then
                 $cdo remapbil,${GAUSS_RES_lc}       -selvar,${var} ${cf} tmp1.nc
                 
                 rm -f tmp.nc; echo
-                
+
+                # If time-record is called "time_counter", rename it to "time"
+                ca=`ncdump -h tmp1.nc | grep UNLIMITED | grep time_counter`
+                if [ ! "${ca}" = "" ]; then
+                    cftemp=$(mktemp)
+                    cdo -f nc copy tmp1.nc ${cftemp}
+                    echo "ncrename -d time_counter,time ${cftemp}"
+                    ncrename -O -d time_counter,time ${cftemp} -o tmp1.nc
+                fi
                 
                 for cm in ${LM}; do
                     ncks -h -a -F -O -d time,${cm} tmp1.nc -o tmp2.nc
@@ -438,9 +402,6 @@ function var_is_there()
 
 cd ${DIR_CL}/
 
-# pwd
-# ls
-# echo
 
 # Wind module at 10m:
 if [ ! `var_is_there WIND_MAG_SURF` -eq 1 ]; then
@@ -735,6 +696,9 @@ done
 # Flipping latitude and Adding global attributes:
 echo; echo "Flipping latitude, correcting levels and adding global attributes source and case!"
 
+# find name of lev dimension (lev or plev?) - Assume GNU sed (-r)
+levdim=$(ncdump -h ${expname}_01_climo.nc | sed -rn "s|[[:blank:]]*(p?lev) = [0-9]+ ;|\1|p")
+
 for cm in ${LM}; do
 
     # removing the rif raf...
@@ -751,7 +715,7 @@ for cm in ${LM}; do
     ncpdq -O -h -a -lat ${expname}_${cm}_climo.nc ${expname}_${cm}_climo.nc
 
     # from Pa to hPa (and renaming to mb)
-    ncap2 -h -O -s 'lev=lev/100' -s "lev@units=\"mb\"" ${expname}_${cm}_climo.nc -o ${expname}_${cm}_climo.nc
+    ncap2 -h -O -s "${levdim}=${levdim}/100" -s "${levdim}@units=\"mb\"" ${expname}_${cm}_climo.nc -o ${expname}_${cm}_climo.nc
 done
 
 echo; echo; echo

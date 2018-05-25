@@ -3,7 +3,7 @@
 usage()
 {
    echo "Usage:"
-   echo "       hc.sh [-a account] [-u userexp] [-m months_per_leg]  EXP YEAR1 YEAR2 YREF"
+   echo "       hc.sh [-c] [-a account] [-u userexp] [-m months_per_leg] EXP YEAR1 YEAR2 YREF"
    echo
    echo "Submit to a job scheduler an HIRESCLIM2 postprocessing of experiment EXP"
    echo " (started in YREF) from YEAR1 to YEAR2. For each year, the script makes a"

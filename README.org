@@ -1,10 +1,10 @@
 
 * EC-Earth-3 Post-Processing Tools
 
-ECE3-POSTPROC is a suite of post-processing tools for EC-Earth 3. It
-includes HIRESCLIM2, ECMEAN and AMWG. The last two require the output
-from the first one. A REPRODUCIBILITY TEST is also provided. Other
-tools are available but have not been clean up or tested.
+ECE3-POSTPROC is a suite of post-processing tools for EC-Earth 3. It includes
+HIRESCLIM2, ECMEAN, TIMESERIES and AMWG. The last three require the output
+from the first one. A REPRODUCIBILITY TEST, which relies on ECMEAN output is
+also provided.
 
 The code has been ported on /cca (ECMWF)/, /rhino (KNMI)/, /marconi
 (CNR)/, and /marenostrum4 (BSC)/. See the
@@ -20,70 +20,63 @@ The code has been ported on /cca (ECMWF)/, /rhino (KNMI)/, /marconi
    the scripts on the command line.
 
    For this to work as intended, locations of the post-processing code, of the
-   EC-Earth model data, and your platform, must be known. They are unlikely to
-   change and set as environment variables, so in your shell rc file (bash.rc
-   or similar):
+   data used to run the EC-Earth model, and your platform, must be known. They
+   are unlikely to change and set as environment variables, so in your shell
+   rc file (bash.rc or similar):
 
    : export ECE3_POSTPROC_TOPDIR=<dir where this file is>
-   : export ECE3_POSTPROC_DATADIR=<dir where your ecearth init data (not run output) are located>
+   : export ECE3_POSTPROC_DATADIR=<dir where your ecearth init data (not run output!) are located>
    : export ECE3_POSTPROC_MACHINE=<name of your (HPC) machine>
 
    The "_name of your (HPC) machine_" is used to retrieve the machine
-   configuration. The list of available platforms is: 
+   configuration. The list of available platforms is obtained with: 
    : ls ./conf/
    If yours is not present, you need to port the code. See the /Porting/
    section below.
   
    Optionally, you can also set your HPC account:
    : export ECE3_POSTPROC_ACCOUNT=<HPC account>
-   If not set, your default account is used to submit job to HPC. At
-   ECMWF, this is the 1st one in the list you get with the command (on
-   ecgate only): "account -l $USER"
+   If not set, your default account is used to submit job to HPC. At ECMWF,
+   this is the 1st one in the list you get with the command (on ecgate only):
+   "account -l $USER"
 
    If you want to temporarily change the HPC account, you can also use the
    command line option when calling each tool.
 
-   Finally, the code relies on $SCRATCH and $USER being defined. If
-   not, define one. A lot of temporary data files, job scripts and
-   their log are being written on the $SCRATCH. The $USER is used in
-   few job manager commands (SLURM or PBS), and should already be
-   defined.
+   Finally, the code relies on $SCRATCH and $USER being defined. If not,
+   define one. A lot of temporary data files, job scripts and their log are
+   being written on the $SCRATCH. The $USER is used in few job manager
+   commands (SLURM or PBS), and should already be defined.
 
 ** USAGE
 *** To use a job manager or not
     If you use a job scheduler (SLURM, PBSpro, ...), there is a set of
     wrappers that let you submit jobs in parallel. If not, you can still run
-    the wrapped scripts. In all cases, the calls are made in the /script/
-    sub-directory of the package [FIXME?]. The wrappers calls are described
-    here [TODO: add description for case without wrappers].
+    the wrapped scripts. The wrappers calls are described here [TODO: add
+    description for case without wrappers]. All the calls are made in the
+    /script/ sub-directory of the package.
 
 *** Tools settings
-    Each tool has its specifics settings. If the code has already been
-    ported to your machine, you will have to change very little there,
-    as described hereafter. They define the needed executable/lib
-    (cdo, nco, netcdf,...), location of auxiliary data, of run output,
-    and where to save the results. For reference, the machine
-    configurations are:
+    Each tool has its specifics set up. If the code has already been ported to
+    your machine, you will have little to change. The settings define the
+    needed executable/lib (cdo, nco, netcdf,...), location of auxiliary data,
+    of run output, and where to save the results. All configurations are
+    collected in:
 
     : ./conf/<your-machine>/conf_<tool>_<your-machine>.sh
 
 *** First, run HIRESCLIM2 to extract and average variables of interest:
 
     : cd ${ECE3_POSTPROC_TOPDIR}/script
-    : ./hc.sh [-a account] [-r rundir] [-m months_per_leg] [-c] EXP YEAR1 YEAR2 YREF
+    : ./hc.sh [-c] [-a account] [-u userexp] [-m months_per_leg] EXP YEAR1 YEAR2 REF
 
-    This will create a set of netcdf files with monthly (default) averages of
-    variables of interest. The files are found in the
-    /${ECE3_POSTPROC_POSTDIR}/post/ directory.
+    This will create a set of netcdf files with monthly averages in the
+    /${ECE3_POSTPROC_POSTDIR}/post/ directory, which ic defined in the config
+    file.
 
     For more information about the script options, just call
 
     : ./hc.sh -h
-
-    If you specify an alternate "rundir" to find the model output, the default
-    EC-Earth3 output structure is assumed and must be readable:
-
-    : rundir/EXP/output/{ifs,nemo}/leg_number
 
     Upon success, ${ECE3_POSTPROC_POSTDIR}/postcheck_EXP_YYYY.txt files
     are created with some basic information. By repeating the command with the
@@ -91,7 +84,7 @@ The code has been ported on /cca (ECMWF)/, /rhino (KNMI)/, /marconi
     log is printed.
 
     In "./conf/<your-machine>/conf_hiresclim_<your-machine>.sh", you can set
-    some options (if you want daily or 6h output on top of the monthly one, or
+    some options (if you want daily or 6h output on top of the monthly ones, or
     the nemo_extra output for example). However the most important settings
     that you have to change are the templates for the model output and for
     the results location. For example:
@@ -100,9 +93,12 @@ The code has been ported on /cca (ECMWF)/, /rhino (KNMI)/, /marconi
     : export NEMORESULTS0='/scratch/ms/nl/${USER}/ECEARTH-RUNS/${EXPID}/output/nemo/${LEGNB}'
     : export ECE3_POSTPROC_POSTDIR='/scratch/ms/nl/${USER}/ECEARTH-RUNS/${EXPID}/post'
     
-    They must include at least either the ${year} or the ${LEGNB} to find the
+    The first two must include at least either the ${year} or the ${LEGNB} to find the
     correct data, and must be *single-quoted*. The ${EXPID} will be expanded
-    to the EXP argument passed to the script.
+    to the EXP argument passed to the script. You can also use the ${USERexp}
+    variable to define any part of the path, which will be expanded to the -u
+    option value set at the command line. You will need to define a default
+    value to fully exploit this feature.
 
     The NEMO variable names expected by HIRESCLIM2 may differ from those found
     in EC-Earth3 output. If needed, you can change the variables name from EC-Earth in
@@ -110,7 +106,7 @@ The code has been ported on /cca (ECMWF)/, /rhino (KNMI)/, /marconi
     
 *** Then, you can compute the global mean fluxes with EC-MEAN:
 
-    : ./ecm.sh [-a account] [-r rundir] [-c] [-y] [-p] EXP YEAR1 YEAR2
+    : ./ecm.sh [-a account] [-r rundir] [-u USERexp] [-c] [-y] [-p] EXP YEAR1 YEAR2
 
     The options are the same as for hiresclim2. For details, call
     : ./ecm.sh -h
@@ -143,9 +139,15 @@ The code has been ported on /cca (ECMWF)/, /rhino (KNMI)/, /marconi
     : ${ECE3_POSTPROC_POSTDIR}/clim-${YEAR1}-${YEAR2}
     and not removed, since it can be use for other purposes (notably the
     reproducibility test).
-      
+    
 *** or/and produce the AMWG diagnostics:
-    TODO
+
+    : amwg.sh [-a account] [-r altdir] [-u USERexp] EXP YEAR1 YEAR2
+    
+*** or/and produce Timeseries:
+
+    : ts.sh [-a account] [-u userexp] [-r POSTDIR] [-c] EXP
+
    
 ** REPRODUCIBILITY TEST
 *** Overview
