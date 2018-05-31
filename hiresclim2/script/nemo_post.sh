@@ -176,12 +176,14 @@ if [ "${nm_icethic}" != "iicethic" ]; then ncrename -v ${nm_icethic},iicethic  $
 if (( $newercdftools ))
 then
     ncks -3 ${froot}_icemod_cdfnew.nc ${froot}_icemod_tmp.nc
-    ncrename -O -d .x_grid_T,x -d .y_grid_T,y ${froot}_icemod_tmp.nc ${froot}_icemod_cdfnew.nc
-    rm -f ${froot}_icemod_tmp1.nc
+    ncrename -O -d .x_grid_T,x ${froot}_icemod_tmp.nc
+    ncrename -O -d .y_grid_T,y ${froot}_icemod_tmp.nc
+    mv ${froot}_icemod_tmp.nc ${froot}_icemod_cdfnew.nc
 fi
 ncks -3 ${froot}_icemod.nc ${froot}_icemod_tmp.nc
-ncrename -O -d .x_grid_T,x -d .y_grid_T,y ${froot}_icemod_tmp.nc ${froot}_icemod.nc
-rm -f ${froot}_icemod_tmp.nc
+ncrename -O -d .x_grid_T,x ${froot}_icemod_tmp.nc
+ncrename -O -d .y_grid_T,y ${froot}_icemod_tmp.nc
+mv ${froot}_icemod_tmp.nc ${froot}_icemod.nc
 
 
 # create time axis
