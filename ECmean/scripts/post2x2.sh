@@ -59,10 +59,10 @@ for (( year=$year1; year<=$year2; year++)); do
     $cdonc cat -$remap,$REFGRID -mulc,86400.0 ${FBASE}_totp.nc $CLIMDIR/tp_mon_2x2.nc
 
     # East-west surface stress [already in N/m2]
-    $cdonc cat -$remap,$REFGRID ${FBASE}_ewss.nc $CLIMDIR/ewss_mon_2x2.nc
+    [ -f ${FBASE}_ewss.nc ] && $cdonc cat -$remap,$REFGRID ${FBASE}_ewss.nc $CLIMDIR/ewss_mon_2x2.nc
 
     # North-south surface stress [already in N/m2]
-    $cdonc cat -$remap,$REFGRID ${FBASE}_nsss.nc $CLIMDIR/nsss_mon_2x2.nc
+    [ -f ${FBASE}_nsss.nc ] && $cdonc cat -$remap,$REFGRID ${FBASE}_nsss.nc $CLIMDIR/nsss_mon_2x2.nc
 
     # T, U, V, Q on p levels [units already ok]
 
@@ -71,7 +71,7 @@ for (( year=$year1; year<=$year2; year++)); do
     $cdonc cat -$remap,$REFGRID ${FBASE}_t.nc $CLIMDIR/T_mon_2x2.nc
     $cdonc cat -$remap,$REFGRID ${FBASE}_u.nc $CLIMDIR/U_mon_2x2.nc
     $cdonc cat -$remap,$REFGRID ${FBASE}_v.nc $CLIMDIR/V_mon_2x2.nc
-    $cdonc cat -$remap,$REFGRID ${FBASE}_q.nc $CLIMDIR/Q_mon_2x2.nc
+    [ -f ${FBASE}_q.nc ] && $cdonc cat -$remap,$REFGRID ${FBASE}_q.nc $CLIMDIR/Q_mon_2x2.nc
     fi #do_3dvars
 
     if (( do_ocean ))
@@ -93,16 +93,12 @@ for (( year=$year1; year<=$year2; year++)); do
 done
 
 # -- time mean for all fields
-if (( do_3d_vars ))
-then
-    vvars="t2m msl qnet tp ewss nsss T U V Q"
-else
-    vvars="t2m msl qnet tp ewss nsss"
-fi
+vvars="t2m msl qnet tp ewss nsss"
+if (( do_3d_vars )) ; then vvars=${vvars}" T U V Q" ; fi
 if (( do_ocean )) ; then vvars=${vvars}" SST SSS SICE" ; fi
 
 for vv in ${vvars} ; do
-    $cdonc timmean $CLIMDIR/${vv}_mon_2x2.nc $CLIMDIR/${vv}_mean_2x2.nc
+    [ -f $CLIMDIR/${vv}_mon_2x2.nc ] && $cdonc timmean $CLIMDIR/${vv}_mon_2x2.nc $CLIMDIR/${vv}_mean_2x2.nc
 done
 
 # 2x2 mask, will be needed for PI 

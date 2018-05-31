@@ -29,14 +29,6 @@ submit_cmd="qsub"
 # preferred type of CDO interpolation (curvilinear grids are obliged to use bilinear)
 export remap="remapcon2"
 
-
-# --- PROCESS -----
-#
-# process 3D vars (most of which which are in SH files) ? 
-# set to 0 if you only want simple diags e.g. Gregory plots
-export do_3d_vars=1
-
-
 # --- OUTPUT -----
 #
 # [1] Where to save the diagnostics.

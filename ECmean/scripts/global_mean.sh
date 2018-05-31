@@ -47,10 +47,19 @@ for vv in ${varlist1}; do
 
     for (( year=$year1; year<=$year2; year++)); do
         indir=$DATADIR/Post_$year
-        $cdonc divdpy -timsum -muldpm $indir/${exp}_${year}_${vv}.nc \
-            $WRKDIR/atm_${vv}_${year}.nc
-        $cdonc cat $WRKDIR/atm_${vv}_${year}.nc $WRKDIR/full_field.nc
+        if [[ -f $indir/${exp}_${year}_${vv}.nc ]] ; then
+            $cdonc divdpy -timsum -muldpm $indir/${exp}_${year}_${vv}.nc \
+                $WRKDIR/atm_${vv}_${year}.nc
+            $cdonc cat $WRKDIR/atm_${vv}_${year}.nc $WRKDIR/full_field.nc
+        else
+            echo "missing file $indir/${exp}_${year}_${vv}.nc!"
+        fi
     done
+
+    if [[ ! -f $WRKDIR/full_field.nc ]] ; then
+        echo "missing full_field.nc for variable $vv!"
+        continue;
+    fi
 
     $cdo fldmean -timmean $WRKDIR/full_field.nc  $WRKDIR/mean_${vv}.nc
 
@@ -154,10 +163,13 @@ net_TOA=$( $cdo outputf,$cdoformat -add mean_tsr.nc mean_ttr.nc )
 surface_SW_up=$( $cdo outputf,$cdoformat -sub mean_ssr.nc mean_ssrd.nc )
 surface_LW_up=$( $cdo outputf,$cdoformat -sub mean_str.nc mean_strd.nc )
 net_surface=$( $cdo outputf,$cdoformat -add mean_sshf.nc -add mean_slhf.nc -add mean_ssr.nc mean_str.nc )
-net_TOA_clear=$( $cdo outputf,$cdoformat -add mean_tsrc.nc mean_ttrc.nc )
-net_surface_clear=$( $cdo outputf,$cdoformat -add mean_sshf.nc -add mean_slhf.nc -add mean_ssrc.nc mean_strc.nc )
-SW_cloud_forcing=$( $cdo outputf,$cdoformat -sub mean_tsr.nc mean_tsrc.nc )
-LW_cloud_forcing=$( $cdo outputf,$cdoformat -sub mean_ttr.nc mean_ttrc.nc )
+if (( do_clear_flux ))
+then
+    net_TOA_clear=$( $cdo outputf,$cdoformat -add mean_tsrc.nc mean_ttrc.nc )
+    net_surface_clear=$( $cdo outputf,$cdoformat -add mean_sshf.nc -add mean_slhf.nc -add mean_ssrc.nc mean_strc.nc )
+    SW_cloud_forcing=$( $cdo outputf,$cdoformat -sub mean_tsr.nc mean_tsrc.nc )
+    LW_cloud_forcing=$( $cdo outputf,$cdoformat -sub mean_ttr.nc mean_ttrc.nc )
+fi
 Snow_LH=$( $cdo outputf,$cdoformat -mulc,334000 mean_sf.nc )
 
 #TOA-SFC
@@ -223,6 +235,12 @@ echo -e "Variable   \tunits                  \t${exp}         \tObservations" >>
 
 varlist2="tas tas_trend tcc lcc mcc hcc totp totpocean totpland e pe ro peland peocean seatrend seatrend2 sowaflup sosstsst sossheig sosaline"
 
+function cdo_output
+{
+    [ -f $1 ] && echo "`$cdo output $1`" || echo "N/A"
+}
+
+
 for vv in ${varlist2}; do
 
     eraval=""
@@ -233,9 +251,9 @@ for vv in ${varlist2}; do
         "tas")          varname="Air T at 2m    ";      units="K         ";     expval=`$cdo output mean_${vv}.nc`; eraval=287.575 ; datas="ERAI(1990-2010)";;
         "tas_trend")    varname="Trend T at 2m  ";      units="K/100y    ";     expval=${tas_trend} ;;
         "tcc")          varname="Tot Cloud Cover";      units="0-1       ";     expval=`$cdo output mean_${vv}.nc`; eraval=0.60461 ; datas="ERAI(1990-2010)";;
-        "lcc")          varname="Low CC         ";      units="0-1       ";     expval=`$cdo output mean_${vv}.nc`; eraval=0.36627 ; datas="ERAI(1979-2006)";;
-        "mcc")          varname="Medium CC      ";      units="0-1       ";     expval=`$cdo output mean_${vv}.nc`; eraval=0.17451 ; datas="ERAI(1979-2006)";;
-        "hcc")          varname="High CC        ";      units="0-1       ";     expval=`$cdo output mean_${vv}.nc`; eraval=0.28723 ; datas="ERAI(1979-2006)";;
+        "lcc")          varname="Low CC         ";      units="0-1       ";     expval=`cdo_output mean_${vv}.nc`; eraval=0.36627 ; datas="ERAI(1979-2006)";;
+        "mcc")          varname="Medium CC      ";      units="0-1       ";     expval=`cdo_output mean_${vv}.nc`; eraval=0.17451 ; datas="ERAI(1979-2006)";;
+        "hcc")          varname="High CC        ";      units="0-1       ";     expval=`cdo_output mean_${vv}.nc`; eraval=0.28723 ; datas="ERAI(1979-2006)";;
 
         "msl")          varname="MSLP           ";      units="Pa        ";     expval=`$cdo output mean_${vv}.nc`; eraval=101135   ; datas="ERAI(1990-2010)";;
         "totp")         varname="Tot Precipit.  ";      units="mm/day    ";     expval=`$cdo output -mulc,86400 mean_${vv}.nc`; eraval=2.92339; datas="ERAI(1990-2010)";;

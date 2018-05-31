@@ -40,8 +40,8 @@ set -xuve
 
 # --- TOOLS (required programs, including compression options) -----
 
-#submit_cmd="sbatch"
-submit_cmd="bash"
+submit_cmd="sbatch"
+#submit_cmd="bash"
 
 # required programs, including compression options
 module purge

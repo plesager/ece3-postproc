@@ -59,7 +59,7 @@ out=$OUTDIR/${expname}_${year}
     done
 
 # comment lnsp if running on old MMA files
-for v2 in t u v z #lnsp
+for v2 in t u v z
 do
 #   v1="${v2^^}"
    v1=`echo "$v2" | tr '[:lower:]' '[:upper:]'`
@@ -68,7 +68,8 @@ do
 done
 
 #part on surface pressure
-if [[ -f ${out}_lnsp.nc ]] ; then
+if [[ -f icmsh_${year}01_LNSP.nc ]] ; then
+    $cdozip -r -R chname,LNSP,lnsp -cat "icmsh_${year}??_LNSP.nc" ${out}_lnsp.nc
     $cdo chcode,152,134 ${out}_lnsp.nc temp_lnsp.nc
     $cdo -t $ecearth_table exp temp_lnsp.nc ${out}_sp.nc
     rm temp_lnsp.nc
@@ -156,19 +157,19 @@ $cdozip -r copy tmp_tnr.nc ${out}_tnr.nc
 ( cd $OUTDIR ; for f in $(ls *.nc4); do mv $f ${f/.nc4/.nc}; done )
 
 # fix units, ugly hack
-for v in ci fal tcc lcc mcc hcc ; do ncatted -a units,${v},c,c,'0-1' ${out}_${v}.nc ; done
-for v in e lsp cp ro sf ; do ncatted -a units,${v},m,c,'kg m-2 s-1' ${out}_${v}.nc ; done
-for v in pme totp ; do ncatted -a units,${v},c,c,'kg m-2 s-1' ${out}_${v}.nc ; done
-for v in ewss nsss ; do ncatted -a units,${v},m,c,'N m-2' ${out}_${v}.nc ; done
-for v in sd ; do ncatted -a units,${v},c,c,'m' ${out}_${v}.nc ; done
+for v in ci fal tcc lcc mcc hcc ; do [ -f ${out}_${v}.nc ] && ncatted -a units,${v},c,c,'0-1' ${out}_${v}.nc ; done
+for v in e lsp cp ro sf ; do [ -f ${out}_${v}.nc ] && ncatted -a units,${v},m,c,'kg m-2 s-1' ${out}_${v}.nc ; done
+for v in pme totp ; do [ -f ${out}_${v}.nc ] && ncatted -a units,${v},c,c,'kg m-2 s-1' ${out}_${v}.nc ; done
+for v in ewss nsss ; do [ -f ${out}_${v}.nc ] && ncatted -a units,${v},m,c,'N m-2' ${out}_${v}.nc ; done
+for v in sd ; do [ -f ${out}_${v}.nc ] && ncatted -a units,${v},c,c,'m' ${out}_${v}.nc ; done
 for v in ssr str sshf ssrd strd slhf tsr ttr ssrc strc tsrc ttrc ; do \
-    ncatted -a units,${v},m,c,'W m-2' ${out}_${v}.nc ; done
-for v in snr tnr ; do ncatted -a units,${v},c,c,'W m-2' ${out}_${v}.nc ; done
-for v in tclw tciw ; do ncatted -a units,${v},c,c,'kg m-2' ${out}_${v}.nc ; done
-for v in tcwv ; do ncatted -a units,${v},m,c,'kg m-2' ${out}_${v}.nc ; done
+    [ -f ${out}_${v}.nc ] && ncatted -a units,${v},m,c,'W m-2' ${out}_${v}.nc ; done
+for v in snr tnr ; do [ -f ${out}_${v}.nc ] && ncatted -a units,${v},c,c,'W m-2' ${out}_${v}.nc ; done
+for v in tclw tciw ; do [ -f ${out}_${v}.nc ] && ncatted -a units,${v},c,c,'kg m-2' ${out}_${v}.nc ; done
+for v in tcwv ; do [ -f ${out}_${v}.nc ] && ncatted -a units,${v},m,c,'kg m-2' ${out}_${v}.nc ; done
 
 # fix long_name
-for v in pme totp ; do ncatted -a long_name,${v},c,c,'Total precipitation' ${out}_${v}.nc ; done
+for v in pme totp ; do [ -f ${out}_${v}.nc ] && ncatted -a long_name,${v},c,c,'Total precipitation' ${out}_${v}.nc ; done
 
 set -x
 ls -l $WRKDIR
