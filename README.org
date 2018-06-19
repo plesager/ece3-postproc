@@ -103,6 +103,17 @@ The code has been ported on /cca (ECMWF)/, /rhino (KNMI)/, /marconi
     The NEMO variable names expected by HIRESCLIM2 may differ from those found
     in EC-Earth3 output. If needed, you can change the variables name from EC-Earth in
     /conf_hiresclim_<your-machine>.sh/.
+
+    *Important* If you have IFS output with mixed time and/or levels output,
+    hiresclim will not work unless you filter the output beforehand. This can
+    be done with /grib_filter/, and is readily available in hiresclim. You can
+    activate a pass through /grib_filter/ by uncommenting the lines in
+    the conf_hiresclim_<your-machine>.sh file that start with: 
+    : FILTERGG2D
+    : FILTERGG3D
+    : FILTERGGSH
+    As written now, these filters work with the PRIMAVERA project output, and
+    may just work out of the box for yours.
     
 *** Then, you can compute the global mean fluxes with EC-MEAN:
 
