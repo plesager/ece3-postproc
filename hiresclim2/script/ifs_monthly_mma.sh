@@ -106,7 +106,7 @@ done
 vars2="ci sstk sd tcc lcc mcc hcc tcwv msl q fal ro sf lsp cp e ssr str sshf ssrd strd slhf tsr ttr ewss nsss ssrc strc stl1 ttrc tsrc"
 for v2 in $vars2
 do
-   ncrename -v .${v2^^},$v2 icmgg_${year}.nc
+  ncrename -v .$(echo $v2 | tr "[a-z]" "[A-Z]"),$v2 icmgg_${year}.nc
 done
 
 
