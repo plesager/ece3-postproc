@@ -318,7 +318,8 @@ if [ ${IPREPHTML} -eq 0 ]; then
     ncks -3 -A -h -v time supa_time.nc -o ${SUPA_FILE}
     
     rm -f ${RUN}_*_time-series_atmo.tmp time_*.nc supa_time.nc
-
+    
+    cd -
     rm -rf ${TMPD}
 
     echo
