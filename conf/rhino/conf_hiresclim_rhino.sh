@@ -20,7 +20,7 @@ export NEMORESULTS0='/lustre3/projects/PRIMAVERA/${USER}/ecearth3/${EXPID}/outpu
 export ECE3_POSTPROC_POSTDIR='/lustre3/projects/CMIP6/${USER}/rundirs/${EXPID}/post'
 
 # --- PROCESSING TO PERFORM (uncomment to change default)
-ECE3_POSTPROC_HC_IFS_MONTHLY=0
+# ECE3_POSTPROC_HC_IFS_MONTHLY=1
 # ECE3_POSTPROC_HC_IFS_MONTHLY_MMA=0
 # ECE3_POSTPROC_HC_IFS_DAILY=0
 # ECE3_POSTPROC_HC_IFS_6HRS=0
@@ -47,7 +47,6 @@ rbld="/nfs/home/users/sager/primavera/sources/nemo-3.6/TOOLS/REBUILD_NEMO/rebuil
 python=/nfs/home/users/sager/anaconda2/bin/python
 
 # CDFtools - note that you cannot use the "cdftools light" from the barakuda package
-#cdftoolsbin="/nfs/home/users/sager/installed/CDFTOOLS-3.0.0/bin"
 cdftoolsbin="/nfs/home/users/sager/installed/CDFTOOLS/bin"
 
 # By default the older (3.0.0) CDFTOOLS syntax is used.
