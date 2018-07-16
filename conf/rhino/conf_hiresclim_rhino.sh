@@ -47,11 +47,12 @@ rbld="/nfs/home/users/sager/primavera/sources/nemo-3.6/TOOLS/REBUILD_NEMO/rebuil
 python=/nfs/home/users/sager/anaconda2/bin/python
 
 # CDFtools - note that you cannot use the "cdftools light" from the barakuda package
-cdftoolsbin="/nfs/home/users/sager/installed/CDFTOOLS-3.0.0/bin"
+#cdftoolsbin="/nfs/home/users/sager/installed/CDFTOOLS-3.0.0/bin"
+cdftoolsbin="/nfs/home/users/sager/installed/CDFTOOLS/bin"
 
 # By default the older (3.0.0) CDFTOOLS syntax is used.
 # If you use version 4 or 3.0.1 (or 3.0.2), set the corresponding flag to 1.
-cdftools4=0
+cdftools4=1
 cdftools301=0
 
 # where to find mesh and mask files for NEMO. Files are expected in $MESHDIR_TOP/$NEMOCONFIG.

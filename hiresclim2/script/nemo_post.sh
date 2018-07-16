@@ -255,9 +255,7 @@ fi
     # ** MOC
 if (( $cdftools4 ))
 then
-    echo "FIXME! MOC with cdftools4"
-#forrtl: severe (174): SIGSEGV, segmentation fault occurred    
-    #$cdftoolsbin/cdfmoc -v ${froot}_grid_V.nc -o ${out}_moc.nc
+    $cdftoolsbin/cdfmoc -v ${froot}_grid_V.nc -o ${out}_moc.nc
 else
     $cdftoolsbin/cdfmoc ${froot}_grid_V.nc
     $cdozip copy moc.nc ${out}_moc.nc
