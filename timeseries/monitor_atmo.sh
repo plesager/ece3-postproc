@@ -319,6 +319,7 @@ if [ ${IPREPHTML} -eq 0 ]; then
     
     rm -f ${RUN}_*_time-series_atmo.tmp time_*.nc supa_time.nc
 
+    cd ..
     rm -rf ${TMPD}
 
     echo
