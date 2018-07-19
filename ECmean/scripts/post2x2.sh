@@ -87,7 +87,7 @@ for (( year=$year1; year<=$year2; year++)); do
         rm $OCEMASK
     else
         # Sea ice (on atmosphere grid, FM modification to read sea ice from atm model since no sea ice data is output)
-        $cdonc cat -$remap,$REFGRID ${FBASE}_ci.nc $CLIMDIR/SICE_mon_2x2.nc
+        [ -f ${FBASE}_ci.nc ] && $cdonc cat -$remap,$REFGRID ${FBASE}_ci.nc $CLIMDIR/SICE_mon_2x2.nc
     fi
 
 done
