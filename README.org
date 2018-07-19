@@ -71,7 +71,7 @@ The code has been ported on /cca (ECMWF)/, /rhino (KNMI)/, /marconi
     : ./hc.sh [-c] [-a account] [-u userexp] [-m months_per_leg] EXP YEAR1 YEAR2 REF
 
     This will create a set of netcdf files with monthly averages in the
-    /${ECE3_POSTPROC_POSTDIR}/post/ directory, which ic defined in the config
+    /${ECE3_POSTPROC_POSTDIR}/post/ directory, which is defined in the config
     file.
 
     For more information about the script options, just call
@@ -98,11 +98,34 @@ The code has been ported on /cca (ECMWF)/, /rhino (KNMI)/, /marconi
     to the EXP argument passed to the script. You can also use the ${USERexp}
     variable to define any part of the path, which will be expanded to the -u
     option value set at the command line. You will need to define a default
-    value to fully exploit this feature.
+    value in your config file to fully exploit this feature.
 
     The NEMO variable names expected by HIRESCLIM2 may differ from those found
     in EC-Earth3 output. If needed, you can change the variables name from EC-Earth in
     /conf_hiresclim_<your-machine>.sh/.
+
+**** Filtering IFS output
+     If you have IFS output with mixed time and/or levels output,
+     /hiresclim2/ will not work unless you filter the output beforehand.
+     A clue that you need filtering is when you have errors like:
+
+     : cdo setdate: Started child process "settime,00:00:00 -timmean icmgg2df_195001 (pipe1.1)".
+     : cdo(2) settime: Started child process "timmean icmgg2df_195001 (pipe2.1)".
+     : Warning (cgribexScanTimestep2) : Record 144 (id=133.128 lev1=1 lev2=0) timestep 2: Parameter not defined at timestep 1!
+     :  
+     : cdo(3) timmean: Open failed on >icmgg2df_195001<
+     : Unsupported file structure
+
+     Filtering can be done with /grib_filter/, and is readily
+     available in hiresclim. You can activate a pass through
+     /grib_filter/ by uncommenting the lines in the
+     conf_hiresclim_<your-machine>.sh file that start with:
+     : FILTERGG2D
+     : FILTERGG3D
+     : FILTERGGSH
+     As written now in the /conf_hiresclim_rhino.sh/, these filters
+     work with the PRIMAVERA project output, and may just work out of
+     the box for yours.
     
 *** Then, you can compute the global mean fluxes with EC-MEAN:
 

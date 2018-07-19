@@ -10,8 +10,8 @@
 #
 # optional variable are $USER, $LEGNB, $year
 #
-export IFSRESULTS0='/lustre3/projects/CMIP6/${USER}/rundirs/${EXPID}/output/ifs/${LEGNB}'
-export NEMORESULTS0='/lustre3/projects/CMIP6/${USER}/rundirs/${EXPID}/output/nemo/${LEGNB}'
+export IFSRESULTS0='/lustre3/projects/PRIMAVERA/${USER}/ecearth3/${EXPID}/output/ifs/${LEGNB}'
+export NEMORESULTS0='/lustre3/projects/PRIMAVERA/${USER}/ecearth3/${EXPID}/output/nemo/${LEGNB}'
 
 # --- PATTERN TO DEFINE WHERE TO SAVE POST-PROCESSED DATA
 # 
@@ -28,11 +28,14 @@ export ECE3_POSTPROC_POSTDIR='/lustre3/projects/CMIP6/${USER}/rundirs/${EXPID}/p
 # ECE3_POSTPROC_HC_NEMO_EXTRA=0   # require nco
 
 # -- Filter IFS output (to be applied through a grib_filter call)
-# Useful when there are output with different timestep.
+# Useful when there is output with mixed timestep and/or levels
 # Comment if no filtering/change for different output
-#FILTERGG2D="if ( (!(typeOfLevel is \"isobaricInhPa\") && !(typeOfLevel is \"isobaricInPa\") && !(typeOfLevel is \"potentialVorticity\" ))) { write; }"
-#FILTERGG3D="if ( ((typeOfLevel is \"isobaricInhPa\") || (typeOfLevel is \"isobaricInPa\") )) { write; }"
-#FILTERSH="if ( ((dataTime == 0000) || (dataTime == 0600) || (dataTime == 1200)  || (dataTime == 1800) )) { write; }"
+# 
+#  The following will screen out model levels and 3-hourly data
+#  from default Primavera output:
+export FILTERGG2D="if ( (!(typeOfLevel is \"isobaricInhPa\") && !(typeOfLevel is \"isobaricInPa\") && !(typeOfLevel is \"potentialVorticity\" ) && ((dataTime == 0000) || (dataTime == 0600) || (dataTime == 1200)  || (dataTime == 1800))) ) { write; }"
+export FILTERGG3D="if ( ((typeOfLevel is \"isobaricInhPa\") || (typeOfLevel is \"isobaricInPa\") && ((dataTime == 0000) || (dataTime == 0600) || (dataTime == 1200)  || (dataTime == 1800) ))) { write; }"
+export FILTERSH="if ( ((dataTime == 0000) || (dataTime == 0600) || (dataTime == 1200)  || (dataTime == 1800) )) { write; }"
 
 
 # --- TOOLS (required programs, including compression options) -----
@@ -46,10 +49,10 @@ python=/nfs/home/users/sager/anaconda2/bin/python
 # CDFtools - note that you cannot use the "cdftools light" from the barakuda package
 cdftoolsbin="/nfs/home/users/sager/installed/CDFTOOLS/bin"
 
-# Set this to 1 if a newer syntax is used ("cdfmean -f file ..." instead
-# of "cdfmean file ..."). Set both to 1 if using version 4 of cdftools, only the second if using 3.0.1. 
-newercdftools=1
-newercdftools2=1
+# By default the older (3.0.0) CDFTOOLS syntax is used.
+# If you use version 4 or 3.0.1 (or 3.0.2), set the corresponding flag to 1.
+cdftools4=1
+cdftools301=0
 
 # where to find mesh and mask files for NEMO. Files are expected in $MESHDIR_TOP/$NEMOCONFIG.
 export MESHDIR_TOP=${ECE3_POSTPROC_DATADIR}/post-proc
@@ -70,13 +73,13 @@ export use_SBC=1
 NEMO_SAVED_FILES="grid_T grid_U grid_V icemod"
 
 # NEMO variables as currently named in EC-Earth output
-export nm_wfo="wfo"        ; # water flux 
-export nm_sst="tos"        ; # SST (2D)
-export nm_sss="sos"        ; # SS salinity (2D)
-export nm_ssh="zos"        ; # sea surface height (2D)
-export nm_iceconc="siconc" ; # Ice concentration as in icemod file (2D)
-export nm_icethic="sithic" ; # Ice thickness as in icemod file (2D)
-export nm_tpot="thetao"    ; # pot. temperature (3D)
-export nm_s="so"           ; # salinity (3D)
-export nm_u="uo"           ; # X current (3D)
-export nm_v="vo"           ; # Y current (3D)
+export nm_wfo="wfo"         ; # water flux 
+export nm_sst="tos"         ; # SST (2D)
+export nm_sss="sos"         ; # SS salinity (2D)
+export nm_ssh="zos"         ; # sea surface height (2D)
+export nm_iceconc="siconc"  ; # Ice concentration as in icemod file (2D)
+export nm_icethic="sithick" ; # Ice thickness as in icemod file (2D)
+export nm_tpot="thetao"     ; # pot. temperature (3D)
+export nm_s="so"            ; # salinity (3D)
+export nm_u="uo"            ; # X current (3D)
+export nm_v="vo"            ; # Y current (3D)
