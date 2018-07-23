@@ -186,7 +186,7 @@ then
         rm -f ${froot}_icemod_tmp.nc
     fi
     ncks -3 ${froot}_icemod.nc ${froot}_icemod_tmp.nc
-    ncrename -O -d .x_grid_T,x -d .y_grid_T,y ${froot}_icemod_tmp.nc ${froot}_icemod.nc
+    ncrename -7 -O -d .x_grid_T,x -d .y_grid_T,y ${froot}_icemod_tmp.nc ${froot}_icemod.nc
     rm -f ${froot}_icemod_tmp.nc
 fi
 
