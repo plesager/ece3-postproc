@@ -10,7 +10,7 @@ import barakuda_orca as bo
 import barakuda_plot as bp
 import barakuda_tool as bt
 
-
+# Dimension
 cv_time  = 'time_counter'
 cv_depth = 'gdept'
 
@@ -28,10 +28,10 @@ bt.chck4f(SUPA_FILE)
 # Reading all var in netcdf file:
 
 id_clim = Dataset(SUPA_FILE)
-
 list_variables = id_clim.variables.keys()
-
 list_variables.remove(cv_time)
+
+nbvar = len(list_variables)
 
 l3d = False
 if cv_depth in list_variables:
@@ -39,33 +39,37 @@ if cv_depth in list_variables:
     list_variables.remove(cv_depth)
 
 
-nbvar = len(list_variables)
+# -- COUNT 2D AND 1D
 
 nbvar_2d = 0
 for cv2d in [ 'votemper' , 'vosaline' ]:
-    if cv2d in list_variables: nbvar_2d = nbvar_2d + 1
-
+    if cv2d in list_variables:
+        XX = id_clim.variables[cv2d]
+        shape_XX = nmp.shape(XX)
+        ndim = len(shape_XX)
+        if ndim != 1:
+            nbvar_2d = nbvar_2d + 1
 
 nbvar_1d = nbvar - nbvar_2d
 
-
+# -- INIT HOLDER
 
 list_units = nmp.zeros(nbvar, dtype = nmp.dtype('a8'))
 list_lngnm = nmp.zeros(nbvar, dtype = nmp.dtype('a64'))
 
+vtime  = id_clim.variables[cv_time][:]    # time
+nbr = len(vtime)
 
-vtime  = id_clim.variables[cv_time][:]   ; nbr   = len(vtime)
-
-
-
-
-X1d = nmp.zeros(nbvar_1d*nbr)       ; X1d.shape = [nbvar_1d, nbr]
+X1d = nmp.zeros(nbvar_1d*nbr)
+X1d.shape = [nbvar_1d, nbr]
 
 if l3d:
     vdepth = id_clim.variables[cv_depth][:]
     nblev  = len(vdepth)
-    X2d    = nmp.zeros(nbvar_2d*nbr*nblev) ; X2d.shape = [nbvar_2d, nbr, nblev ]
+    X2d    = nmp.zeros(nbvar_2d*nbr*nblev)
+    X2d.shape = [nbvar_2d, nbr, nblev ]
 
+# --- LOOP OVER VARIABLES
 
 jv1d = -1
 jv2d = -1
@@ -102,9 +106,6 @@ for jv in range(nbvar):
     print '      * units    => '+list_units[jv]
     print '      * longname => '+list_lngnm[jv]
 
-
-
-
     cln = list_lngnm[jv]
     cfn  = cv+'_'+CRUN
 
@@ -129,15 +130,11 @@ for jv in range(nbvar):
             vice_c[0,jy] = X1d[jv1d,j03]
             vice_c[1,jy] = X1d[jv1d,j09]
 
-
         ittic = bt.iaxe_tick(nby)
             
         bp.plot_1d_multi(vt_y, vice_c, vlabels=['March', 'September'], cfignm=cfn,
                          dt_year=ittic, cyunit=list_units[jv], ctitle = CRUN+': Sea-Ice extent ('+cv[13:]+')',
                          cfig_type='svg', l_tranparent_bg=False)
-
-
-
         
         
     #elif cv == 'votemper' or cv == 'vosaline':
@@ -173,9 +170,6 @@ for jv in range(nbvar):
                              ctitle=CRUN+': '+cln,
                              cfig_type='svg', lforce_lim=True, i_sub_samp=2)
 
-        
-
-
     else:
 
         # Normal variables!
@@ -191,16 +185,6 @@ for jv in range(nbvar):
                            cyunit=list_units[jv], ctitle = CRUN+': '+cln,
                            cfig_type='svg', l_tranparent_bg=False)
 
-
-
-
-
-
-
-
 id_clim.close()
 
 print '   *** '+sys.argv[0]+' done!\n'
-
-
-

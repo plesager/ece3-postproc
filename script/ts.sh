@@ -11,11 +11,11 @@ usage()
     echo "This is basically a wrapper around the timeseries.sh script."
     echo 
     echo "Options are:"
+    echo "   -l          : local (run on the local node, do not submit to compute node)"
     echo "   -c          : check if processing was successful"
     echo "   -a account  : specify a different special project for accounting (default: ${ECE3_POSTPROC_ACCOUNT:-unknown})"
     echo "   -r POSTDIR  : overwrite ECE3_POSTPROC_POSTDIR "
-    echo "   -u USERexp  : alternative 'user' owner of the experiment, default to $USER"
-    echo "                  overwrite USERexp token."
+    echo "   -u USERexp  : alternative 'user' owner of the experiment, overwrite USERexp token"
     echo
     echo "   ECE3_POSTPROC_POSTDIR and USERexp default values should be set in"
     echo "   your conf_timeseries_$ECE3_POSTPROC_MACHINE.sh file"
@@ -25,13 +25,16 @@ usage()
 account="${ECE3_POSTPROC_ACCOUNT-}"
 ALT_RUNDIR=
 checkit=0
+nosub=0
 options=
 
-while getopts "h?cu:r:a:" opt; do
+while getopts "h?clu:r:a:" opt; do
     case "$opt" in
         h|\?)
             usage
             exit 0
+            ;;
+        l)  nosub=1
             ;;
         r)  options="${options} -r $OPTARG"
             ALT_RUNDIR=$OPTARG
@@ -100,20 +103,25 @@ then
 fi
 
 
-# -- submit script
-tgt_script=$OUT/ts_$1.job
+# -- submit script or execute on the login node
 
-sed "s/<EXPID>/$1/" < ${CONFDIR}/header_$ECE3_POSTPROC_MACHINE.tmpl > $tgt_script
+if (( nosub ))
+then
+    ../timeseries/timeseries.sh ${options} $1
+else
+    tgt_script=$OUT/ts_$1.job
 
-[[ -n $account ]] && \
-    sed -i "s/<ACCOUNT>/$account/" $tgt_script || \
-    sed -i "/<ACCOUNT>/ d" $tgt_script
+    sed "s/<EXPID>/$1/" < ${CONFDIR}/header_$ECE3_POSTPROC_MACHINE.tmpl > $tgt_script
 
-sed -i "s/<JOBID>/ts/" $tgt_script
-sed -i "s/<Y1>//" $tgt_script
-sed -i "s|<OUT>|$OUT|" $tgt_script
+    [[ -n $account ]] && \
+        sed -i "s/<ACCOUNT>/$account/" $tgt_script || \
+            sed -i "/<ACCOUNT>/ d" $tgt_script
 
-echo ../timeseries/timeseries.sh ${options} $1 >> $tgt_script
+    sed -i "s/<JOBID>/ts/" $tgt_script
+    sed -i "s/<Y1>//" $tgt_script
+    sed -i "s|<OUT>|$OUT|" $tgt_script
 
-${submit_cmd} $tgt_script
-
+    echo ../timeseries/timeseries.sh ${options} $1 >> $tgt_script
+    
+    ${submit_cmd} $tgt_script
+fi
