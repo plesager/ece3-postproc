@@ -29,14 +29,16 @@ bt.chck4f(SUPA_FILE)
 
 id_clim = Dataset(SUPA_FILE)
 list_variables = id_clim.variables.keys()
-list_variables.remove(cv_time)
 
-nbvar = len(list_variables)
+# remove dim variables, check if any "3D" (truly 2D)
+list_variables.remove(cv_time)
 
 l3d = False
 if cv_depth in list_variables:
     l3d = True
     list_variables.remove(cv_depth)
+
+nbvar = len(list_variables)
 
 
 # -- COUNT 2D AND 1D
