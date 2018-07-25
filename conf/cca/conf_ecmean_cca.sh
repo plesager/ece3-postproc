@@ -29,6 +29,15 @@ submit_cmd="qsub"
 # preferred type of CDO interpolation (curvilinear grids are obliged to use bilinear)
 export remap="remapcon2"
 
+# --- PROCESSING TO PERFORM (uncomment to change default)
+#
+# process 3D vars (most of which which are in SH files) ? 
+# set to 0 if you only want simple diags e.g. Gregory plots or if using the reduced outclass
+# ECE3_POSTPROC_ECM_3D_VARS=1
+#
+# compute clear sky fluxes, set to 0 if using the reduced outclass
+# ECE3_POSTPROC_ECM_CLEAR_FLUX=1
+
 # --- OUTPUT -----
 #
 # [1] Where to save the diagnostics.

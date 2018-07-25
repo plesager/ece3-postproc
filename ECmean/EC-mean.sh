@@ -114,12 +114,9 @@ export do_ocean
 
 # process 3D vars (most of which which are in SH files) ? 
 # set to 0 if you only want simple diags e.g. Gregory plots or if using the reduced outclass
-[[ -z "${ECE3_POSTPROC_ECM_3D_VARS:-}" ]] && do_3d_vars=1 || do_3d_vars=${ECE3_POSTPROC_ECM_3D_VARS}
-export do_3d_vars
-
+export do_3d_vars=${ECE3_POSTPROC_ECM_3D_VARS:-1}
 # compute clear sky fluxes, set to 0 if using the reduced outclass
-[[ -z "${ECE3_POSTPROC_ECM_CLEAR_FLUX:-}" ]] && do_clear_flux=1 || do_clear_flux=${ECE3_POSTPROC_ECM_CLEAR_FLUX}
-export do_clear_flux
+export do_clear_flux=${ECE3_POSTPROC_ECM_CLEAR_FLUX:-1}
 
 # -- mask files
 
