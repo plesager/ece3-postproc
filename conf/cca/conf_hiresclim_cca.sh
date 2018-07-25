@@ -39,6 +39,14 @@
 # --- TOOLS (required programs, including compression options) -----
 submit_cmd="qsub"
 
+# to avoid using ncdump that comes with HDF4 if loaded
+module unload hdf
+
+# for a working ncdump, remove modules that may be in the way and load
+# recommended netcdf4
+for mm in $(module -t list 2>&1| grep hdf5); do module unload $(echo ${mm} | sed "s|(.*||"); done
+module load netcdf4/4.4.1
+
 for soft in netcdf python cdo cdftools
 do
     if ! module -t list 2>&1 | grep -q $soft
@@ -59,7 +67,7 @@ python=python
 # Set this to 1 if a newer syntax is used ("cdfmean -f file ..." instead
 # of "cdfmean file ..."). Set both to 1 if using version 4 of cdftools, only the second if using 3.0.1. 
 cdftools4=0
-cdftools301=1
+cdftools301=0
 
 # Set to 0 for not to rebuild 3D relative humidity
 rh_build=1

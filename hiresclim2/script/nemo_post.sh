@@ -42,8 +42,8 @@ echo "SBC file used: ${use_SBC:=1}"
 # ../../../conf/conf_hiresclim_<MACHINE-NAME>.sh, but old syntax is
 # assumed if not set.
 echo "Use CDFTOOLS 4.x syntax: ${cdftools4:=0}"
-echo "Use CDFTOOLS 3.0.1 syntax: ${cdftools301:=0}"
 if (( $cdftools4 )); then cdftools301=1; fi
+echo "Use CDFTOOLS 3.0.1 syntax: ${cdftools301:=0}"
 
 # update NEMORESULTS and get OUTDIR0
 eval_dirs 1
@@ -175,28 +175,25 @@ if [ "${nm_iceconc}" != "iiceconc" ]; then ncrename -v ${nm_iceconc},iiceconc  $
 if [ "${nm_icethic}" != "iicethic" ]; then ncrename -v ${nm_icethic},iicethic  ${froot}_icemod.nc ; fi
 
 # SHACONEMO update (april 2018) changes dimension names in the icemod files
+which ncdump
 if ! ncdump -h ${froot}_icemod.nc | grep -q "^[[:blank:]]*x *="
 then
+    echo "*II* rename X,Y dimensions of icemod file(s)"
     if (( $cdftools4 ))
     then
         ncks -3 ${froot}_icemod_cdfnew.nc ${froot}_icemod_tmp.nc
         ncrename -O -d .x_grid_T,x -d .y_grid_T,y ${froot}_icemod_tmp.nc ${froot}_icemod_cdfnew.nc
+        # TODO test ncrename with cdftools4 on MN4
         rm -f ${froot}_icemod_tmp.nc
-        # TODO test with cdftools4 on MN4
+        # TODO fix missingvalue introduced by ElPin !
     fi
     ncks -3 ${froot}_icemod.nc ${froot}_icemod_tmp.nc
     ncrename -O -d .x_grid_T,x ${froot}_icemod_tmp.nc
     ncrename -O -d .y_grid_T,y ${froot}_icemod_tmp.nc
-    mv -f ${froot}_icemod_tmp.nc ${froot}_icemod.nc
-fi
-
-if (( $cdftools4 ))
-then
-    echo TODO fix missingvalue introduced by ElPin !
-else
     # fix missingvalue introduced by ElPin
-    $cdo setmissval,0 ${froot}_icemod.nc ${froot}_icemod_tmp.nc
-    mv ${froot}_icemod_tmp.nc ${froot}_icemod.nc
+    $cdo setmissval,0 ${froot}_icemod_tmp.nc ${froot}_icemod_tmp2.nc
+    ncks -7 -O ${froot}_icemod_tmp2.nc ${froot}_icemod.nc
+    rm -f ${froot}_icemod_tmp.nc ${froot}_icemod_tmp2.nc
 fi
 
 # create time axis
@@ -263,7 +260,16 @@ else
     cp icediags.nc ${out}_icediags.nc
 fi
 
-    # ** MOC
+# ** MOC
+if ! ncdump -h ${froot}_grid_V.nc | grep -q "^[[:blank:]]*depthv *="
+then
+    echo "*II* 'olevel' dimension of grid_V file renamed 'depthv'"
+
+    ncks -3 ${froot}_grid_V.nc ${froot}_grid_V_tmp.nc
+    ncrename -O -d .olevel,depthv  ${froot}_grid_V_tmp.nc ${froot}_grid_V.nc
+    rm -f ${froot}_grid_V_tmp.nc
+fi
+
 if (( $cdftools4 ))
 then
     $cdftoolsbin/cdfmoc -v ${froot}_grid_V.nc -o ${out}_moc.nc

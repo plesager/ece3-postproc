@@ -12,11 +12,14 @@ usage()
    echo 
    echo "Options are:"
    echo "   -c          : check if processing was successful"
-   echo "   -a account  : specify a different special project for accounting (default: ${ECE3_POSTPROC_ACCOUNT-})"
-   echo "   -r RUNDIR   : fully qualified path to HIRESCLIM2 ouput, i.e. RUNDIR/mon must exists (default is set in the config file)"
-   echo "   -u USERexp  : alternative user owner of the experiment, default $USER"
-   echo "   -y          : (Y)early global mean are added to yearly_fldmean_${EXP}.txt"
-   echo "   -p          : account for (P)rimavera complicated output"
+   echo "   -a account  : specify a different special project for accounting (default: ${ECE3_POSTPROC_ACCOUNT-unknown})"
+   echo "   -r RUNDIR   : fully qualified path to HIRESCLIM2 ouput (default: \${ECE3_POSTPROC_POSTDIR}/mon)"
+   echo "   -u USERexp  : alternative 'user' owner of the experiment"
+   echo "   -y          : (Y)early global mean are added to \$OUTDIR/yearly_fldmean_\${EXP}.txt"
+   echo "   -p          : (P)rimavera specific treatment to select pressure levels"
+   echo
+   echo "   ECE3_POSTPROC_POSTDIR and USERexp default values should be set in"
+   echo "   your conf_timeseries_$ECE3_POSTPROC_MACHINE.sh file"
 }
 
 set -ue

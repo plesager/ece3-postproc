@@ -22,7 +22,7 @@ The code has been ported on /cca (ECMWF)/, /rhino (KNMI)/, /marconi
    For this to work as intended, locations of the post-processing code, of the
    data used to run the EC-Earth model, and your platform, must be known. They
    are unlikely to change and set as environment variables, so in your shell
-   rc file (bash.rc or similar):
+   rc file (~/.bashrc or equivalent):
 
    : export ECE3_POSTPROC_TOPDIR=<dir where this file is>
    : export ECE3_POSTPROC_DATADIR=<dir where your ecearth init data (not run output!) are located>
@@ -169,7 +169,20 @@ The code has been ported on /cca (ECMWF)/, /rhino (KNMI)/, /marconi
     
 *** or/and produce Timeseries:
 
-    : ts.sh [-a account] [-u userexp] [-r POSTDIR] [-c] EXP
+    : ts.sh [-l] [-a account] [-u userexp] [-r POSTDIR] [-c] EXP
+
+    It will create and store time-series plots of several variables.
+    It is smart enough to update an existing series, i.e. you can run
+    it several time during an on-going run to monitor it.
+
+    Timeseries for one experiment EXP will be in the diagnostic dir
+    ${ECE3_POSTPROC_DIAGDIR}/timeseries/EXP, as two netCDF files and
+    two html pages (one for atmosphere and one for ocean).
+         
+    The output can be put on a remote machine through ssh and scp. See
+    remote variables RHOST, RUSER, WWW_DIR_ROOT in the config file. If
+    access to the remote machine is possible only from the login node,
+    you should run the script on that node with the /-l/ flag.
 
    
 ** REPRODUCIBILITY TEST
