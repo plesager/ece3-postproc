@@ -71,7 +71,7 @@ for (( year=$year1; year<=$year2; year++)); do
     $cdonc cat -$remap,$REFGRID ${FBASE}_t.nc $CLIMDIR/T_mon_2x2.nc
     $cdonc cat -$remap,$REFGRID ${FBASE}_u.nc $CLIMDIR/U_mon_2x2.nc
     $cdonc cat -$remap,$REFGRID ${FBASE}_v.nc $CLIMDIR/V_mon_2x2.nc
-    [ -f ${FBASE}_q.nc ] && $cdonc cat -$remap,$REFGRID ${FBASE}_q.nc $CLIMDIR/Q_mon_2x2.nc
+    $cdonc cat -$remap,$REFGRID ${FBASE}_q.nc $CLIMDIR/Q_mon_2x2.nc
     fi #do_3dvars
 
     if (( do_ocean ))

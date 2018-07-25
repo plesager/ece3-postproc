@@ -37,6 +37,12 @@ export remap="remapcon2"
 # compute clear sky fluxes, set to 0 if using the reduced outclass
 # ECE3_POSTPROC_ECM_CLEAR_FLUX=1
 
+# note : the following variables are not available when using BSC reduced output
+# ssrc strc tsrc ttrc ssrc strc lcc mcc hcc ewss nsss
+# various [ -f ] tests are used to ignore them
+# you must also set ECE3_POSTPROC_ECM_3D_VARS=0 and ECE3_POSTPROC_ECM_CLEAR_FLUX=0
+# lcc mcc and hcc will appear as N/A in the tables, others are not really important
+
 # --- OUTPUT -----
 #
 # [1] Where to save the diagnostics.
