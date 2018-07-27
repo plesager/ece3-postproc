@@ -110,6 +110,14 @@ do_ocean=0
     echo "*II* ecmean accounts for nemo output"
 export do_ocean
 
+# -- other options
+
+# process 3D vars (most of which which are in SH files) ? 
+# set to 0 if you only want simple diags e.g. Gregory plots or if using the reduced outclass
+export do_3d_vars=${ECE3_POSTPROC_ECM_3D_VARS:-1}
+# compute clear sky fluxes, set to 0 if using the reduced outclass
+export do_clear_flux=${ECE3_POSTPROC_ECM_CLEAR_FLUX:-1}
+
 # -- mask files
 
 # first, find IFS horizontal resolution from one of the processed output

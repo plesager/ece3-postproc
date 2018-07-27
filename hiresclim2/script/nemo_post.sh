@@ -183,12 +183,17 @@ then
     then
         ncks -3 ${froot}_icemod_cdfnew.nc ${froot}_icemod_tmp.nc
         ncrename -O -d .x_grid_T,x -d .y_grid_T,y ${froot}_icemod_tmp.nc ${froot}_icemod_cdfnew.nc
+        # TODO test ncrename with cdftools4 on MN4
         rm -f ${froot}_icemod_tmp.nc
+        # TODO fix missingvalue introduced by ElPin !
     fi
     ncks -3 ${froot}_icemod.nc ${froot}_icemod_tmp.nc
-    ncrename -O -d .x_grid_T,x -d .y_grid_T,y ${froot}_icemod_tmp.nc
-    ncks -7 -O ${froot}_icemod_tmp.nc ${froot}_icemod.nc
-    rm -f ${froot}_icemod_tmp.nc
+    ncrename -O -d .x_grid_T,x ${froot}_icemod_tmp.nc
+    ncrename -O -d .y_grid_T,y ${froot}_icemod_tmp.nc
+    # fix missingvalue introduced by ElPin
+    $cdo setmissval,0 ${froot}_icemod_tmp.nc ${froot}_icemod_tmp2.nc
+    ncks -7 -O ${froot}_icemod_tmp2.nc ${froot}_icemod.nc
+    rm -f ${froot}_icemod_tmp.nc ${froot}_icemod_tmp2.nc
 fi
 
 # create time axis

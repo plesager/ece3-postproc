@@ -35,7 +35,8 @@ TMPDIR=$(mktemp -d $SCRATCH/tmp_ecearth3/tmp/ecmean_${exp}_XXXXXX)
 pilong=(1 2 3 4 5 6 7 8 9 10 11 12 13); ii=0
 
 #variable list to create PIs
-var2d="t2m msl qnet tp ewss nsss SST SSS SICE"
+var2d="t2m msl qnet tp ewss nsss"
+if (( do_ocean )) ; then var2d=${var2d}" SST SSS SICE" ; fi
 var3d="T U V Q"
 
 rm -f $outfile
@@ -75,17 +76,17 @@ for vv in $var2d ; do
     fi      
 
     #ocean with mask
-    if [ "$vv" == "SST" ] && (( do_ocean )) ; then
+    if [ "$vv" == "SST" ]; then
         $cdonc div -sqr -sub $field $clim $var $TMPDIR/temp_$vv.nc
     fi
 
     #special SSS case
-    if [ "$vv" == "SSS" ] && (( do_ocean )) ; then
+    if [ "$vv" == "SSS" ]; then
         $cdonc divc,3.0116 -sqr -sub $field $clim  $TMPDIR/temp_$vv.nc
     fi
     
     #special SICE case
-    if [ "$vv" == "SICE" ] && (( do_ocean )) ; then
+    if [ "$vv" == "SICE" ]; then
         $cdonc divc,0.1309 -sqr -sub $field $clim  $TMPDIR/temp_$vv.nc
     fi
 

@@ -84,13 +84,15 @@ fi
 for v in t u v z lnsp
 do
    rm -f ${out}_${v}.nc
-   $cdozip -r -R -t $ecearth_table cat icmsh_??????_$v.grb ${out}_${v}.nc
+   [ -f icmsh_${year}01_$v.grb ] && $cdozip -r -R -t $ecearth_table cat icmsh_??????_$v.grb ${out}_${v}.nc
 done
 
 #part on surface pressure
-$cdo chcode,152,134 ${out}_lnsp.nc temp_lnsp.nc
-$cdo -t $ecearth_table exp temp_lnsp.nc ${out}_sp.nc
-rm temp_lnsp.nc
+if [[ -f ${out}_lnsp.nc ]] ; then
+    $cdo chcode,152,134 ${out}_lnsp.nc temp_lnsp.nc
+    $cdo -t $ecearth_table exp temp_lnsp.nc ${out}_sp.nc
+    rm temp_lnsp.nc
+fi
 
 
 # ICMGG
