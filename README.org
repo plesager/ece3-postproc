@@ -232,6 +232,44 @@ The code has been ported on /cca (ECMWF)/, /rhino (KNMI)/, /marconi
      : ${ECE3_POSTPROC_TOPDIR}/reproducibility/perturb_ifs_ic.py -s t \
      :     ${ini_data_dir}/ifs/${ifs_grid}/${leg_start_date_yyyymmdd}/ICMSHECE3INIT \
      :                                                         ICMSH${exp_name}INIT
+     If you are using the initial conditions from 1950 provided by BSC
+     as laid out in the next section, you should use (5 lines to change):
+
+     : Index: ece-esm.sh.tmpl
+     : ===================================================================
+     : --- ece-esm.sh.tmpl	(revision 5836)
+     : +++ ece-esm.sh.tmpl	(working copy)
+     : @@ -25,7 +25,7 @@
+     :  #     config="ifs nemo lim3 rnfmapper xios:detached oasis lpjg:fdbck"           # "Veg"     : GCM+LPJ-Guess
+     :  #     config="ifs nemo lim3 rnfmapper xios:detached oasis tm5:chem,o3,ch4,aero" # "AerChem" : GCM+TM5
+     :  
+     : -config="ifs nemo lim3 rnfmapper xios:detached oasis lpjg:fdbck tm5:co2"
+     : +config="ifs amip"
+     :  
+     :  # minimum sanity
+     :  has_config amip nemo && error "Cannot have both nemo and amip in config!!"
+     : @@ -493,13 +493,15 @@
+     :  
+     :          # Initial data
+     :          ln -s \
+     : -        ${ini_data_dir}/ifs/${ifs_grid}/${leg_start_date_yyyymmdd}/ICMGGECE3INIUA \
+     : +        <full-path-to-your-ic-dir>/atmos/ICMGGa0raINIUA \
+     :                                                              ICMGG${exp_name}INIUA
+     : -        ln -s \
+     : -        ${ini_data_dir}/ifs/${ifs_grid}/${leg_start_date_yyyymmdd}/ICMSHECE3INIT \
+     : +        # apply AMIP perturbation to 3D temperature
+     : +        ${ECE3_POSTPROC_TOPDIR}/reproducibility/perturb_ifs_ic.py -s t \
+     : +        <full-path-to-your-ic-dir>/atmos/ICMSHa0raINIT \
+     :                                                              ICMSH${exp_name}INIT
+     : +
+     :          rm -f ICMGG${exp_name}INIT
+     : -        cp ${ini_data_dir}/ifs/${ifs_grid}/${leg_start_date_yyyymmdd}/ICMGGECE3INIT \
+     : +        cp <full-path-to-your-ic-dir>/atmos/ICMGGa0raINIT \
+     :                                                              ICMGG${exp_name}INIT
+     :  
+     :          # add bare_soil_albedo to ICMGG*INIT
+     Then, using your favorite method, run 5 experiments with a name
+     that ends with 1,...,5.
 
 **** For CMIP runs
      A perturbation script is also available for ocean restart but has
@@ -298,8 +336,8 @@ The code has been ported on /cca (ECMWF)/, /rhino (KNMI)/, /marconi
 
      : Index: ece-esm.sh.tmpl
      : ===================================================================
-     : --- ece-esm.sh.tmpl      (revision 5029)
-     : +++ ece-esm.sh.tmpl      (working copy)
+     : --- ece-esm.sh.tmpl	(revision 5836)
+     : +++ ece-esm.sh.tmpl	(working copy)
      : @@ -25,7 +25,7 @@
      :  #     config="ifs nemo lim3 rnfmapper xios:detached oasis lpjg:fdbck"           # "Veg"     : GCM+LPJ-Guess
      :  #     config="ifs nemo lim3 rnfmapper xios:detached oasis tm5:chem,o3,ch4,aero" # "AerChem" : GCM+TM5
@@ -309,7 +347,7 @@ The code has been ported on /cca (ECMWF)/, /rhino (KNMI)/, /marconi
      :  
      :  # minimum sanity
      :  has_config amip nemo && error "Cannot have both nemo and amip in config!!"
-     : @@ -189,7 +189,7 @@
+     : @@ -215,7 +215,7 @@
      :  
      :  # This is only needed if the experiment is started from an existing set of NEMO
      :  # restart files
@@ -318,7 +356,7 @@ The code has been ported on /cca (ECMWF)/, /rhino (KNMI)/, /marconi
      :  
      :  nem_restart_offset=0
      :  
-     : @@ -450,13 +450,13 @@
+     : @@ -493,13 +493,13 @@
      :  
      :          # Initial data
      :          ln -s \
@@ -335,7 +373,6 @@ The code has been ported on /cca (ECMWF)/, /rhino (KNMI)/, /marconi
      :                                                              ICMGG${exp_name}INIT
      :  
      :          # add bare_soil_albedo to ICMGG*INIT
-     :      
      
      Then, using your favorite method, run 5 experiments with a name
      that ends with 1,...,5.
