@@ -10,8 +10,10 @@
 #
 # optional variable are $USER, $LEGNB, $year
 #
-export IFSRESULTS0='/lustre3/projects/PRIMAVERA/${USER}/ecearth3/${EXPID}/output/ifs/${LEGNB}'
-export NEMORESULTS0='/lustre3/projects/PRIMAVERA/${USER}/ecearth3/${EXPID}/output/nemo/${LEGNB}'
+#export IFSRESULTS0='/lustre3/projects/PRIMAVERA/${USER}/ecearth3/${EXPID}/output/ifs/${LEGNB}'
+#export NEMORESULTS0='/lustre3/projects/PRIMAVERA/${USER}/ecearth3/${EXPID}/output/nemo/${LEGNB}'
+export IFSRESULTS0='/lustre3/projects/CMIP6/${USER}/rundirs/${EXPID}/output/ifs/${LEGNB}'
+export NEMORESULTS0='/lustre3/projects/CMIP6/${USER}/rundirs/${EXPID}/output/nemo/${LEGNB}'
 
 # --- PATTERN TO DEFINE WHERE TO SAVE POST-PROCESSED DATA
 # 
@@ -33,9 +35,9 @@ export ECE3_POSTPROC_POSTDIR='/lustre3/projects/CMIP6/${USER}/rundirs/${EXPID}/p
 # 
 #  The following will screen out model levels and 3-hourly data
 #  from default Primavera output:
-export FILTERGG2D="if ( (!(typeOfLevel is \"isobaricInhPa\") && !(typeOfLevel is \"isobaricInPa\") && !(typeOfLevel is \"potentialVorticity\" ) && ((dataTime == 0000) || (dataTime == 0600) || (dataTime == 1200)  || (dataTime == 1800))) ) { write; }"
-export FILTERGG3D="if ( ((typeOfLevel is \"isobaricInhPa\") || (typeOfLevel is \"isobaricInPa\") && ((dataTime == 0000) || (dataTime == 0600) || (dataTime == 1200)  || (dataTime == 1800) ))) { write; }"
-export FILTERSH="if ( ((dataTime == 0000) || (dataTime == 0600) || (dataTime == 1200)  || (dataTime == 1800) )) { write; }"
+#export FILTERGG2D="if ( (!(typeOfLevel is \"isobaricInhPa\") && !(typeOfLevel is \"isobaricInPa\") && !(typeOfLevel is \"potentialVorticity\" ) && ((dataTime == 0000) || (dataTime == 0600) || (dataTime == 1200)  || (dataTime == 1800))) ) { write; }"
+#export FILTERGG3D="if ( ((typeOfLevel is \"isobaricInhPa\") || (typeOfLevel is \"isobaricInPa\") && ((dataTime == 0000) || (dataTime == 0600) || (dataTime == 1200)  || (dataTime == 1800) ))) { write; }"
+#export FILTERSH="if ( ((dataTime == 0000) || (dataTime == 0600) || (dataTime == 1200)  || (dataTime == 1800) )) { write; }"
 
 
 # --- TOOLS (required programs, including compression options) -----
@@ -78,7 +80,7 @@ export nm_sst="tos"         ; # SST (2D)
 export nm_sss="sos"         ; # SS salinity (2D)
 export nm_ssh="zos"         ; # sea surface height (2D)
 export nm_iceconc="siconc"  ; # Ice concentration as in icemod file (2D)
-export nm_icethic="sithick" ; # Ice thickness as in icemod file (2D)  --- ! use "sithic" for EC-Earth 3.2.3, and "sithick" for PRIMAVERA
+export nm_icethic="sithic"  ; # Ice thickness as in icemod file (2D)  --- ! use "sithic" for EC-Earth 3.2.3, and "sithick" for PRIMAVERA
 export nm_tpot="thetao"     ; # pot. temperature (3D)
 export nm_s="so"            ; # salinity (3D)
 export nm_u="uo"            ; # X current (3D)
