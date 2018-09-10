@@ -15,6 +15,10 @@ The code has been ported on /cca (ECMWF)/, /rhino (KNMI)/, /marconi
 
    : git clone https://github.com/plesager/ece3-postproc.git
 
+   and the dedicated data set available from ECMWF archive:
+
+   : ec:/nm6/EC-EARTH/ECEARTH3.2b/INPUT/ece-post-proc.tar.gz
+
    The general idea is that you pass the experiment name (EXP) and the
    years to process (typically a range, say, YEAR1 YEAR2) as input to
    the scripts on the command line.
@@ -191,19 +195,22 @@ The code has been ported on /cca (ECMWF)/, /rhino (KNMI)/, /marconi
    
 ** REPRODUCIBILITY TEST
 *** Overview
-    The acceptance/reproducibility test consists in 4 steps:
+    The acceptance/reproducibility test consists in 3+1 steps:
     - run an ensemble of 5 members
     - running EC-mean to get the climatology and the Reichler & Kim
       (R&K) performance indices of each run
     - cast the R&K indices into a format suitable for the next step
-    - repeat for another ensemble and compare 
-      
+
+    Several ensembles, corresponding to different setups (platform,
+    compiler,...), must be run. Then a statistical comparison (4th step) is
+    performed.
+
 *** Requirements
-    The acceptance/reproducibility test relies on a set of scripts
+    The acceptance/reproducibility test (4th step) relies on a set of scripts
     written in R. Few R packages are needed: /s2dverification, ncdf4,
-    RColorBrewer/. If you do not control your environment and R and/or
-    the packages are missing, it may be easier to work on another
-    machine where you can easy installed the packages. For example:
+    RColorBrewer/. If you do not control your environment and R and/or the
+    packages are missing, it may be easier to work on another machine where
+    you can easy installed the packages. For example:
     : # define a personal R library location,
     : mkdir /usr/people/sager/Rlib
     : # and make sure that R is aware of it (put that one in your ~/.bashrc): 
@@ -213,6 +220,8 @@ The code has been ported on /cca (ECMWF)/, /rhino (KNMI)/, /marconi
     : install.packages("s2dverification", lib="/usr/people/sager/Rlib/")
     : install.packages("ncdf4", lib="/usr/people/sager/Rlib/")
     : install.packages("RColorBrewer", lib="/usr/people/sager/Rlib/")
+    If you are not doing the test yourself, but only run an ensemble and
+    EC-mean on its members, you do not need these R packages.
 
 *** Experiment design
     You must run 5 experiments for 20 years with perturbed initial
@@ -227,7 +236,7 @@ The code has been ported on /cca (ECMWF)/, /rhino (KNMI)/, /marconi
 **** For AMIP runs
      you can create these initial conditions on the fly, by adding a
      call to the perturbation script in your /classic/ece-*.sh.tmpl/,
-     i.e. by replacing:
+     i.e. by replacing (be sure that there is *no* space after each '\'):
      : ln -s \
      : ${ini_data_dir}/ifs/${ifs_grid}/${leg_start_date_yyyymmdd}/ICMSHECE3INIT \
      :                                                     ICMSH${exp_name}INIT
@@ -274,6 +283,31 @@ The code has been ported on /cca (ECMWF)/, /rhino (KNMI)/, /marconi
      :          # add bare_soil_albedo to ICMGG*INIT
      Then, using your favorite method, run 5 experiments with a name
      that ends with 1,...,5.
+
+     *UPDATE* There is an alternative location of the BSC-1950 archive at
+     ECMWF:
+     : ec:/nm6/EC-EARTH/ECEARTH3.2b/INPUT/ece-data-reproducibility.tar.gz
+     It contains perturbed initial conditions for AMIP runs, which can be used
+     directly by replacing:
+
+     :    # Initial data
+     :    ln -s \
+     :    ${ini_data_dir}/ifs/${ifs_grid}/${leg_start_date_yyyymmdd}/ICMGGECE3INIUA \
+     :                                                        ICMGG${exp_name}INIUA
+     :    ln -s \
+     :    ${ini_data_dir}/ifs/${ifs_grid}/${leg_start_date_yyyymmdd}/ICMSHECE3INIT \
+     :                                                        ICMSH${exp_name}INIT
+     : 
+     :    rm -f ICMGG${exp_name}INIT
+     :    cp ${ini_data_dir}/ifs/${ifs_grid}/${leg_start_date_yyyymmdd}/ICMGGECE3INIT \
+     :                                                        ICMGG${exp_name}INIT
+     with (assuming you unpacked the data in your EC-Earth ini_data_dir):
+     : ln -s ${ini_data_dir}/ic/atmos/ICMGGa0raINIUA   ICMGG${exp_name}INIUA
+     : ln -s ${ini_data_dir}/ic/atmos/0${exp_name:3}/ICMSHa${exp_name:3}raINIT ICMSH${exp_name}INIT
+     : 
+     : rm -f ICMGG${exp_name}INIT
+     : cp ${ini_data_dir}/ic/atmos/ICMGGa0raINIT ICMGG${exp_name}INIT
+     This may be solution if you cannot install the grib_api module for python.
 
 **** For CMIP runs
      A perturbation script is also available for ocean restart but has
@@ -334,7 +368,11 @@ The code has been ported on /cca (ECMWF)/, /rhino (KNMI)/, /marconi
      :     ├── a0ra_fc2_19491231_restart.nc
      :     ├── a0ra_fc3_19491231_restart.nc
      :     └── a0ra_fc4_19491231_restart.nc
-     
+     *UPDATE* There is an alternative location of the archive at ECMWF:
+     : ec:/nm6/EC-EARTH/ECEARTH3.2b/INPUT/ece-data-reproducibility.tar.gz
+     it already has these links in place and contains perturbed initial
+     conditions for AMIP runs.
+
      Then you modify your /ece-esm.sh.tmpl/ template script to account
      for that data tree as follow (just 5 lines to change):
 
@@ -474,7 +512,7 @@ The code has been ported on /cca (ECMWF)/, /rhino (KNMI)/, /marconi
     - Some EC-Earth experiments put the water flux output from NEMO in
       the SBC files instead of the grid_T files. Then you need
       : export use_SBC=1
-      in your ./conf/conf_hiresclim_<your-machine>.sh config.
+      in your ./conf/<your-machine>/conf_hiresclim_<your-machine>.sh config.
 
 *** Build rebuild_nemo from EC-Earth source code:
     This is needed only if the output files of NEMO are per processes.
