@@ -192,7 +192,7 @@ then
     ncrename -O -d .y_grid_T,y ${froot}_icemod_tmp.nc
     # fix missingvalue introduced by ElPin
     $cdo setmissval,0 ${froot}_icemod_tmp.nc ${froot}_icemod_tmp2.nc
-    ncks -7 -O ${froot}_icemod_tmp2.nc ${froot}_icemod.nc
+    ncks -4 -O ${froot}_icemod_tmp2.nc ${froot}_icemod.nc
     rm -f ${froot}_icemod_tmp.nc ${froot}_icemod_tmp2.nc
 fi
 
