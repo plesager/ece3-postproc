@@ -1,5 +1,5 @@
 #!/bin/bash
-set -e
+set -xe
 
  ############################################
  # To be called from ../master_hiresclim.sh #
@@ -191,9 +191,13 @@ then
     ncrename -O -d .x_grid_T,x ${froot}_icemod_tmp.nc
     ncrename -O -d .y_grid_T,y ${froot}_icemod_tmp.nc
     # fix missingvalue introduced by ElPin
-    $cdo setmissval,0 ${froot}_icemod_tmp.nc ${froot}_icemod_tmp2.nc
-    ncks -7 -O ${froot}_icemod_tmp2.nc ${froot}_icemod.nc
-    rm -f ${froot}_icemod_tmp.nc ${froot}_icemod_tmp2.nc
+#    $cdo setmissval,0 ${froot}_icemod_tmp.nc ${froot}_icemod_tmp2.nc
+#    ncks -4 -O ${froot}_icemod_tmp2.nc ${froot}_icemod.nc
+#    rm -f ${froot}_icemod_tmp.nc ${froot}_icemod_tmp2.nc
+
+    $cdo setmissval,0 ${froot}_icemod_tmp.nc ${froot}_icemod.nc
+    rm -f ${froot}_icemod_tmp.nc
+
 fi
 
 # create time axis
@@ -242,7 +246,7 @@ done
 tempf=$(mktemp $SCRATCH/tmp_ecearth3/tmp/hireclim2_nemo_XXXXXX)
 
 $cdo selvar,iiceconc,iicethic ${froot}_icemod.nc $tempf
-$cdozip splitvar $tempf ${out}_
+$cdo splitvar $tempf ${out}_
 rm -f $tempf
 
 for v in iiceconc iicethic; do
@@ -252,7 +256,7 @@ done
 
 if (( $cdftools4 ))
 then
-    $cdozip selvar,iiceconc,iicethic ${froot}_icemod.nc ${out}_ice.nc    
+    $cdo selvar,iiceconc,iicethic ${froot}_icemod.nc ${out}_ice.nc    
     $cdftoolsbin/cdficediags -i ${froot}_icemod_cdfnew.nc -lim3 -o ${out}_icediags.nc
 else
     $cdozip selvar,iiceconc,iicethic ${froot}_icemod.nc ${out}_ice.nc
