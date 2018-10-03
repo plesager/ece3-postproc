@@ -1,0 +1,10 @@
+#!/bin/bash -l
+
+#SBATCH -J <JOBID>_<EXPID>_<Y1>
+#SBATCH -p test_large
+#SBATCH -N 1
+#SBATCH -o <OUT>/log/<JOBID>_<EXPID>_<Y1>.out
+#SBATCH -e <OUT>/log/<JOBID>_<EXPID>_<Y1>.out
+
+cd $ECE3_POSTPROC_TOPDIR/script
+

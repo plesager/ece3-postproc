@@ -1,0 +1,11 @@
+#!/bin/bash -l
+
+#SBATCH -J hc_<EXPID>_<YEAR>
+#SBATCH -p test_large
+#SBATCH -N 1
+#SBATCH -o <OUT>/log/hiresclim_<EXPID>_<YEAR>.out
+#SBATCH -e <OUT>/log/hiresclim_<EXPID>_<YEAR>.err
+
+cd $ECE3_POSTPROC_TOPDIR/script
+ 
+../hiresclim2/master_hiresclim.sh <OPTIONS> <EXPID> <YEAR> <YREF>
