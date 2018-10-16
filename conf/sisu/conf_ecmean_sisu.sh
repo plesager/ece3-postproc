@@ -9,7 +9,9 @@ export ECE3_POSTPROC_POSTDIR='/wrk/${USER}/${EXPID}/post'
 
 # --- TOOLS -----
 # Require cdo, including compression options
-export cdo=cdo
+export cdo="$USERAPPL/bioconda_env/nctools/bin/cdo"
+shopt -s expand_aliases    
+alias cdo="$USERAPPL/bioconda_env/nctools/bin/cdo"
 export cdozip="$cdo -f nc4c -z zip"
 export cdonc="$cdo -f nc"
 
