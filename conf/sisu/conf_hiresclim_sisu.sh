@@ -10,8 +10,8 @@
 #
 # optional variable are $USER, $LEGNB, $year
 #
-export IFSRESULTS0='/wrk/${USER}/${EXPID}/output/ifs/${LEGNB}'
-export NEMORESULTS0='/wrk/${USER}/${EXPID}/output/nemo/${LEGNB}'
+export IFSRESULTS0='/wrk/${USER}/ece-3.2.3-r/classic/${EXPID}/output/ifs/${LEGNB}'
+export NEMORESULTS0='/wrk/${USER}/ece-3.2.3-r/classic/${EXPID}/output/nemo/${LEGNB}'
 
 # --- PATTERN TO DEFINE WHERE TO SAVE POST-PROCESSED DATA
 # 
@@ -39,9 +39,15 @@ export ECE3_POSTPROC_POSTDIR='/wrk/${USER}/${EXPID}/post'
 
 
 # --- TOOLS (required programs, including compression options) -----
+# Load python environment
+module load python
+
 submit_cmd="sbatch"
 
 cdo="$USERAPPL/bioconda_env/nctools/bin/cdo"
+shopt -s expand_aliases    
+alias cdo="$USERAPPL/bioconda_env/nctools/bin/cdo"
+
 cdozip="$cdo -f nc4c -z zip"
 rbld="$USERAPPL/NEMO-tools/TOOLS/REBUILD_NEMO/rebuild_nemo"
 python=python
