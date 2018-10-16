@@ -17,8 +17,7 @@ export NEMORESULTS0='/wrk/${USER}/ece-3.2.3-r/classic/${EXPID}/output/nemo/${LEG
 # 
 # Should include ${EXPID} and be single-quoted
 #
-export ECE3_POSTPROC_POSTDIR='/wrk/${USER}/${EXPID}/post'
-
+export ECE3_POSTPROC_POSTDIR='/wrk/${USER}/ece-3.2.3-r/classic/post/${EXPID}'
 # --- PROCESSING TO PERFORM (uncomment to change default)
 # ECE3_POSTPROC_HC_IFS_MONTHLY=1
 # ECE3_POSTPROC_HC_IFS_MONTHLY_MMA=0

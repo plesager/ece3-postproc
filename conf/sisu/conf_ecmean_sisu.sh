@@ -4,7 +4,7 @@
 # 
 # Must include ${EXPID} and be single-quoted
 #
-export ECE3_POSTPROC_POSTDIR='/wrk/${USER}/${EXPID}/post'
+export ECE3_POSTPROC_POSTDIR='/wrk/${USER}/ece-3.2.3-r/classic/post/${EXPID}'
 
 
 # --- TOOLS -----
@@ -38,7 +38,7 @@ export remap="remapcon2"
 #     Tables for one simulation will be in ${ECE3_POSTPROC_DIAGDIR}/table/${EXPID}
 #     Summary tables for several simulations will be in ${ECE3_POSTPROC_DIAGDIR}/table/
 #     
-export ECE3_POSTPROC_DIAGDIR='$WRKDIR/EC-Earth/diag/'
+export ECE3_POSTPROC_DIAGDIR='$WRKDIR/ece-3.2.3-r/classic/post/diag'
 
 # [2] Where to save the climatology (769M IFS, 799M IFS+NEMO). 
 #
@@ -56,5 +56,5 @@ export ECE3_POSTPROC_DIAGDIR='$WRKDIR/EC-Earth/diag/'
 #     Can include ${STEMID} as ensemble ID.
 #     Must be single-quoted if to be evaluated later.
 #
-export ECE3_POSTPROC_PI4REPRO='$WRKDIR/EC-Earth/diag/${STEMID}'
+export ECE3_POSTPROC_PI4REPRO='$WRKDIR/ece-3.2.3-r/classic/post/diag/${STEMID}'
 
