@@ -119,7 +119,7 @@ fi
 # Checking if analysis has been run previously
 # ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 FILELIST=(${DIAG_D}/${RUN}*.nc)
-BASE_YEAR_INI=
+BASE_YEAR_INI=${YEAR_INI}
 
 if [ -e ${FILELIST[0]}  ] ; then
     echo " Timeseries analysis has been performed and files has been saved..." ; echo
@@ -146,7 +146,7 @@ if [ ${iforcey0} -eq 1 ]; then
 fi
 
 #PD: check to have more than one year
-if [ ${YEAR_INI} -eq ${YEAR_END} ] ; then
+if [ ${BASE_YEAR_INI} -eq ${YEAR_END} ] ; then
     echo "ERROR: only one year"; exit
 fi
 
@@ -525,7 +525,7 @@ if [ ${IPREPHTML} -eq 0 ]; then
     echo
 
     #Concatenate new and old files... 
-    if [[ ! -z ${BASE_YEAR_INI} ]] ; then
+    if [ ${BASE_YEAR_INI} -ne ${YEAR_INI} ] ; then
          echo " Concatenate old and new netcdf files... " 
          ncrcat -h ${OLD_SUPA_FILE} ${SUPA_FILE} ${DIAG_D}/${RUN}_${BASE_YEAR_INI}_${YEAR_END}_time-series_ocean.nc
          rm ${OLD_SUPA_FILE} ${SUPA_FILE}
