@@ -43,21 +43,24 @@ module load python
 
 submit_cmd="sbatch"
 
-cdo="$USERAPPL/bioconda_env/nctools/bin/cdo"
+export cdo="$USERAPPL/bioconda_env/nctools/bin/cdo"
 shopt -s expand_aliases    
 alias cdo="$USERAPPL/bioconda_env/nctools/bin/cdo"
+alias ncrename="$USERAPPL/bioconda_env/nco/bin/ncrename"
+alias ncdump="$USERAPPL/bioconda_env/nco/bin/ncdump"
+alias ncks="$USERAPPL/bioconda_env/nco/bin/ncks"
 
 cdozip="$cdo -f nc4c -z zip"
 rbld="$USERAPPL/NEMO-tools/TOOLS/REBUILD_NEMO/rebuild_nemo"
 python=python
 
 # CDFtools - note that you cannot use the "cdftools light" from the barakuda package
-cdftoolsbin="/nfs/home/users/sager/installed/CDFTOOLS/bin"
+cdftoolsbin="$USERAPPL/CDFTOOLS/bin"
 
 # By default the older (3.0.0) CDFTOOLS syntax is used.
 # If you use version 4 or 3.0.1 (or 3.0.2), set the corresponding flag to 1.
-cdftools4=1
-cdftools301=0
+cdftools4=0
+cdftools301=1
 
 # where to find mesh and mask files for NEMO. Files are expected in $MESHDIR_TOP/$NEMOCONFIG.
 export MESHDIR_TOP=${ECE3_POSTPROC_DATADIR}/post-proc
@@ -67,6 +70,9 @@ rh_build=1
 
 # Base dir to archive (ie just make a copy of) the monthly results. Daily results, if any, are left in scratch. 
 STOREDIR=
+
+IFS_NPROCS=12 
+NEMO_NPROCS=12
 
 # ---------- NEMO VAR/FILES MANGLING ----------------------
 
