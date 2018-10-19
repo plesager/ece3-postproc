@@ -1,0 +1,48 @@
+This configuration is for Sisu at CSC - IT Center for Science Ltd.
+
+To use the postprocessing package at Sisu, do the following:
+
+1. Add the following lines to your .bashrc
+
+   export ECE3_POSTPROC_TOPDIR=/wrk/${USER}/ece3-postproc
+   export ECE3_POSTPROC_DATADIR=/proj/atm/EC-Earth/input-trunk-r5801
+   export ECE3_POSTPROC_MACHINE=sisu
+   export SCRATCH=$WRKDIR
+
+2. Install cdo
+
+   This can be done with e.g. bioconda:
+
+   Add the following line to your .bashrc
+ 
+   export CONDA_ENVS_PATH=$USERAPPL/bioconda_env
+
+   Then load bioconda module:
+
+   module load bioconda
+
+   Install using bioconda:     
+
+   conda create -c conda-forge -n nctools cdo
+
+3. Install nco
+
+   Using bioconda, as above:
+
+   conda create -c conda-forge -n nco nco
+
+4. Install CDFTOOLS
+
+   module swap PrgEnv-cray PrgEnv-intel
+   module load cray-hdf5 cray-netcdf git
+   module swap craype-haswell craype-sandybridge
+
+   cd $TMPDIR
+   git clone https://github.com/meom-group/CDFTOOLS.git
+   cd CDFTOOLS
+   git checkout tags/v3.0.2
+   cd src
+   touch make.macro
+
+   make -j 8 F90="ftn" FFLAGS="-Dkey_netcdf4 -Dkey_CMIP6"
+   make install INSTALL=$USERAPPL/CDFTOOLS/bin
