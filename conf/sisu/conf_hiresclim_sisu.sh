@@ -76,12 +76,21 @@ NEMO_NPROCS=12
 
 # ---------- NEMO VAR/FILES MANGLING ----------------------
 
-# NEMO 'wfo' variable can be in the SBC files instead of T files, then
-# set this flag to 1
-export use_SBC=1
+# NEMO monthly output files - Without the  <exp>_1m_YYYY0101_YYYY1231_  prefix
+# 
+# In some version of EC-Earth, NEMO 'wfo' variable is output in the SBC
+# files. If NEMO_SBC_FILES is non-null, the script will look in that file for
+# 'wfo', else it will look in the T2D file.
+#
+# If 3D variables on the T grid are in the same file as the 2D variables,
+# specify only the NEMO_T2D_FILES.
 
-# NEMO files - which files are saved / we care for?
-NEMO_SAVED_FILES="grid_T grid_U grid_V icemod"
+NEMO_SBC_FILES="SBC"
+NEMO_T2D_FILES="grid_T"
+NEMO_T3D_FILES=""
+NEMO_U3D_FILES="grid_U"
+NEMO_V3D_FILES="grid_V"
+LIM_T_FILES=icemod
 
 # NEMO variables as currently named in EC-Earth output
 export nm_wfo="wfo"         ; # water flux 
@@ -94,3 +103,31 @@ export nm_tpot="thetao"     ; # pot. temperature (3D)
 export nm_s="so"            ; # salinity (3D)
 export nm_u="uo"            ; # X current (3D)
 export nm_v="vo"            ; # Y current (3D)
+
+#--CMIP6--#  #### Herafter is a version that works with the branch
+#--CMIP6--#  #### r5717-cmip6-nemo-namelists (see issue #518)
+#--CMIP6--#   
+#--CMIP6--#  # NEMO monthly output files - Without the  <exp>_1m_YYYY0101_YYYY1231_  prefix
+#--CMIP6--#  # 
+#--CMIP6--#  # In some version of EC-Earth, NEMO 'wfo' variable is output in the SBC
+#--CMIP6--#  # files. If NEMO_SBC_FILES is non-null, the script will look in that file for
+#--CMIP6--#  # 'wfo', else it will look in the T2D file.
+#--CMIP6--#   
+#--CMIP6--#  NEMO_SBC_FILES=''
+#--CMIP6--#  NEMO_T2D_FILES="opa_grid_T_2D"
+#--CMIP6--#  NEMO_T3D_FILES="opa_grid_T_3D"
+#--CMIP6--#  NEMO_U3D_FILES="opa_grid_U_3D"
+#--CMIP6--#  NEMO_V3D_FILES="opa_grid_V_3D"
+#--CMIP6--#  LIM_T_FILES="lim_grid_T_2D"
+#--CMIP6--#   
+#--CMIP6--#  # NEMO variables as currently named in EC-Earth output
+#--CMIP6--#  export nm_wfo="wfonocorr"  ; # water flux                               [opa_grid_T_2D]
+#--CMIP6--#  export nm_sst="tos"        ; # SST (2D)                                 [opa_grid_T_2D]
+#--CMIP6--#  export nm_sss="sos"        ; # SS salinity (2D)                         [opa_grid_T_2D]
+#--CMIP6--#  export nm_ssh="zos"        ; # sea surface height (2D)                  [opa_grid_T_2D]
+#--CMIP6--#  export nm_iceconc="siconc" ; # Ice concentration as in icemod file (2D) [lim_grid_T_2D]
+#--CMIP6--#  export nm_icethic="sithick"; # Ice thickness as in icemod file (2D)     [lim_grid_T_2D]
+#--CMIP6--#  export nm_tpot="thetao"    ; # pot. temperature (3D)                    [opa_grid_T_3D]
+#--CMIP6--#  export nm_s="so"           ; # salinity (3D)                            [opa_grid_T_3D]
+#--CMIP6--#  export nm_u="uo"           ; # X current (3D)                           [opa_grid_U_3D]
+#--CMIP6--#  export nm_v="vo"           ; # Y current (3D)                           [opa_grid_V_3D]
