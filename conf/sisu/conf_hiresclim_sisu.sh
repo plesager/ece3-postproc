@@ -26,16 +26,21 @@ export ECE3_POSTPROC_POSTDIR='/wrk/${USER}/ece-3.2.3-r/classic/post/${EXPID}'
 # ECE3_POSTPROC_HC_NEMO=1         # applied only if available
 # ECE3_POSTPROC_HC_NEMO_EXTRA=0   # require nco
 
-# -- Filter IFS output (to be applied through a grib_filter call)
-# Useful when there is output with mixed timestep and/or levels
-# Comment if no filtering/change for different output
-# 
-#  The following will screen out model levels and 3-hourly data
-#  from default Primavera output:
-#export FILTERGG2D="if ( (!(typeOfLevel is \"isobaricInhPa\") && !(typeOfLevel is \"isobaricInPa\") && !(typeOfLevel is \"potentialVorticity\" ) && ((dataTime == 0000) || (dataTime == 0600) || (dataTime == 1200)  || (dataTime == 1800))) ) { write; }"
-#export FILTERGG3D="if ( ((typeOfLevel is \"isobaricInhPa\") || (typeOfLevel is \"isobaricInPa\") && ((dataTime == 0000) || (dataTime == 0600) || (dataTime == 1200)  || (dataTime == 1800) ))) { write; }"
-#export FILTERSH="if ( ((dataTime == 0000) || (dataTime == 0600) || (dataTime == 1200)  || (dataTime == 1800) )) { write; }"
+# --- Switch between CMIP6 (1) or default (0) output. If set to 1,
+#      grib_filtering is applied, and NEMO files/variable name from
+#      r5717-cmip6-nemo-namelists are used.
+CMIP6=1
 
+# --- Filter IFS output (to be applied through a grib_filter call)
+#      Useful when there are output with different timestep and/or level types.
+#      Comment or set CMIP=0 for no filtering.
+
+if (( CMIP6 ))
+then
+    FILTERGG2D="if ( param is \"182.128\" || param is \"165.128\" || param is \"166.128\" || param is \"167.128\" || param is \"31.128\" || param is \"34.128\" || param is \"141.128\" || param is \"168.128\" || param is \"164.128\" || param is \"186.128\" || param is \"187.128\" || param is \"188.128\" || param is \"78.128\" || param is \"79.128\" || param is \"137.128\" || param is \"151.128\" || param is \"243.128\" || param is \"205.128\" || param is \"144.128\" || param is \"142.128\" || param is \"143.128\" || param is \"228.128\" || param is \"176.128\" || param is \"177.128\" || param is \"146.128\" || param is \"147.128\" || param is \"178.128\" || param is \"179.128\" || param is \"180.128\" || param is \"181.128\" || param is \"169.128\" || param is \"175.128\" || param is \"208.128\" || param is \"209.128\" || param is \"210.128\" || param is \"211.128\" ) { write; }"
+    FILTERGG3D="if ( ((typeOfLevel is \"isobaricInhPa\") || (typeOfLevel is \"isobaricInPa\") )) { write; }"
+    FILTERSH="if ( ((dataTime == 0000) || (dataTime == 0600) || (dataTime == 1200)  || (dataTime == 1800) )) { write; }"
+fi
 
 # --- TOOLS (required programs, including compression options) -----
 # Load python environment
@@ -75,7 +80,7 @@ IFS_NPROCS=12
 NEMO_NPROCS=12
 
 # ---------- NEMO VAR/FILES MANGLING ----------------------
-
+#
 # NEMO monthly output files - Without the  <exp>_1m_YYYY0101_YYYY1231_  prefix
 # 
 # In some version of EC-Earth, NEMO 'wfo' variable is output in the SBC
@@ -85,49 +90,50 @@ NEMO_NPROCS=12
 # If 3D variables on the T grid are in the same file as the 2D variables,
 # specify only the NEMO_T2D_FILES.
 
-NEMO_SBC_FILES="SBC"
-NEMO_T2D_FILES="grid_T"
-NEMO_T3D_FILES=""
-NEMO_U3D_FILES="grid_U"
-NEMO_V3D_FILES="grid_V"
-LIM_T_FILES=icemod
+if (( CMIP6 ))
+then
 
-# NEMO variables as currently named in EC-Earth output
-export nm_wfo="wfo"         ; # water flux 
-export nm_sst="tos"         ; # SST (2D)
-export nm_sss="sos"         ; # SS salinity (2D)
-export nm_ssh="zos"         ; # sea surface height (2D)
-export nm_iceconc="siconc"  ; # Ice concentration as in icemod file (2D)
-export nm_icethic="sithic"  ; # Ice thickness as in icemod file (2D)  --- ! use "sithic" for EC-Earth 3.2.3, and "sithick" for PRIMAVERA
-export nm_tpot="thetao"     ; # pot. temperature (3D)
-export nm_s="so"            ; # salinity (3D)
-export nm_u="uo"            ; # X current (3D)
-export nm_v="vo"            ; # Y current (3D)
+    #### Herafter is a version that works with the r5717-cmip6-nemo-namelists
+    #### branch (see issue #518) 
+    
+    NEMO_SBC_FILES=''
+    NEMO_T2D_FILES="opa_grid_T_2D"
+    NEMO_T3D_FILES="opa_grid_T_3D"
+    NEMO_U3D_FILES="opa_grid_U_3D"
+    NEMO_V3D_FILES="opa_grid_V_3D"
+    LIM_T_FILES="lim_grid_T_2D"
 
-#--CMIP6--#  #### Herafter is a version that works with the branch
-#--CMIP6--#  #### r5717-cmip6-nemo-namelists (see issue #518)
-#--CMIP6--#   
-#--CMIP6--#  # NEMO monthly output files - Without the  <exp>_1m_YYYY0101_YYYY1231_  prefix
-#--CMIP6--#  # 
-#--CMIP6--#  # In some version of EC-Earth, NEMO 'wfo' variable is output in the SBC
-#--CMIP6--#  # files. If NEMO_SBC_FILES is non-null, the script will look in that file for
-#--CMIP6--#  # 'wfo', else it will look in the T2D file.
-#--CMIP6--#   
-#--CMIP6--#  NEMO_SBC_FILES=''
-#--CMIP6--#  NEMO_T2D_FILES="opa_grid_T_2D"
-#--CMIP6--#  NEMO_T3D_FILES="opa_grid_T_3D"
-#--CMIP6--#  NEMO_U3D_FILES="opa_grid_U_3D"
-#--CMIP6--#  NEMO_V3D_FILES="opa_grid_V_3D"
-#--CMIP6--#  LIM_T_FILES="lim_grid_T_2D"
-#--CMIP6--#   
-#--CMIP6--#  # NEMO variables as currently named in EC-Earth output
-#--CMIP6--#  export nm_wfo="wfonocorr"  ; # water flux                               [opa_grid_T_2D]
-#--CMIP6--#  export nm_sst="tos"        ; # SST (2D)                                 [opa_grid_T_2D]
-#--CMIP6--#  export nm_sss="sos"        ; # SS salinity (2D)                         [opa_grid_T_2D]
-#--CMIP6--#  export nm_ssh="zos"        ; # sea surface height (2D)                  [opa_grid_T_2D]
-#--CMIP6--#  export nm_iceconc="siconc" ; # Ice concentration as in icemod file (2D) [lim_grid_T_2D]
-#--CMIP6--#  export nm_icethic="sithick"; # Ice thickness as in icemod file (2D)     [lim_grid_T_2D]
-#--CMIP6--#  export nm_tpot="thetao"    ; # pot. temperature (3D)                    [opa_grid_T_3D]
-#--CMIP6--#  export nm_s="so"           ; # salinity (3D)                            [opa_grid_T_3D]
-#--CMIP6--#  export nm_u="uo"           ; # X current (3D)                           [opa_grid_U_3D]
-#--CMIP6--#  export nm_v="vo"           ; # Y current (3D)                           [opa_grid_V_3D]
+    # variables as currently named in EC-Earth output
+    export nm_wfo="wfonocorr"  ; # water flux                               [opa_grid_T_2D]
+    export nm_sst="tos"        ; # SST (2D)                                 [opa_grid_T_2D]
+    export nm_sss="sos"        ; # SS salinity (2D)                         [opa_grid_T_2D]
+    export nm_ssh="zos"        ; # sea surface height (2D)                  [opa_grid_T_2D]
+    export nm_iceconc="siconc" ; # Ice concentration as in icemod file (2D) [lim_grid_T_2D]
+    export nm_icethic="sithick"; # Ice thickness as in icemod file (2D)     [lim_grid_T_2D]
+    export nm_tpot="thetao"    ; # pot. temperature (3D)                    [opa_grid_T_3D]
+    export nm_s="so"           ; # salinity (3D)                            [opa_grid_T_3D]
+    export nm_u="uo"           ; # X current (3D)                           [opa_grid_U_3D]
+    export nm_v="vo"           ; # Y current (3D)                           [opa_grid_V_3D]
+
+else
+    #-- Default ECE-3.2.3 --#
+
+    NEMO_SBC_FILES="SBC"
+    NEMO_T2D_FILES="grid_T"
+    NEMO_T3D_FILES=""
+    NEMO_U3D_FILES="grid_U"
+    NEMO_V3D_FILES="grid_V"
+    LIM_T_FILES=icemod
+
+    # variables as currently named in EC-Earth output
+    export nm_wfo="wfo"        ; # water flux 
+    export nm_sst="tos"        ; # SST (2D)
+    export nm_sss="sos"        ; # SS salinity (2D)
+    export nm_ssh="zos"        ; # sea surface height (2D)
+    export nm_iceconc="siconc" ; # Ice concentration as in icemod file (2D)
+    export nm_icethic="sithic" ; # Ice thickness as in icemod file (2D) --- ! use "sithic" for EC-Earth 3.2.3, and "sithick" for PRIMAVERA
+    export nm_tpot="thetao"    ; # pot. temperature (3D)
+    export nm_s="so"           ; # salinity (3D)
+    export nm_u="uo"           ; # X current (3D)
+    export nm_v="vo"           ; # Y current (3D)
+fi
