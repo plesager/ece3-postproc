@@ -241,8 +241,19 @@ done
 
 # save global salinity and temperature mean
 for v in votemper vosaline; do
-    (( $cdftools4 )) && $cdftoolsbin/cdfmean -f ${froot}_${NEMO_T3D_FILES}.nc -v $v -p T \
-            || $cdftoolsbin/cdfmean ${froot}_${NEMO_T3D_FILES}.nc $v T 
+    # (( $cdftools4 )) && $cdftoolsbin/cdfmean -f ${froot}_${NEMO_T3D_FILES}.nc -v $v -p T \
+    #         || $cdftoolsbin/cdfmean ${froot}_${NEMO_T3D_FILES}.nc $v T 
+
+    if (( $cdftools4 ))
+    then
+        $cdo -f nc selvar,$v ${froot}_${NEMO_T3D_FILES}.nc tmp_$v.nc
+        ncrename -d .olevel,depth tmp_$v.nc
+        $cdftoolsbin/cdfmean -f tmp_$v.nc -v $v -p T
+    else
+        $cdftoolsbin/cdfmean ${froot}_${NEMO_T3D_FILES}.nc $v T
+    fi
+
+
     #$cdozip -selvar,mean_$v,mean_3D$v cdfmean.nc  ${out}_${v}_mean.nc
     $cdozip copy cdfmean.nc  ${out}_${v}_mean.nc
 done
