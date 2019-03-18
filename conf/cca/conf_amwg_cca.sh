@@ -26,12 +26,6 @@ export DATA_OBS="${NCAR_DATA}/obs_data_5.5"
 
 
 # --- OUTPUT -----
-# Root path to a temporary filesystem:
-#export TMPDIR_ROOT=$SCRATCH/tmp/timeseries
-
-# Where to store time-series produced by script
-#export DIR_TIME_SERIES="${EMOP_CLIM_DIR}/timeseries"
-
 #
 # [1] Where to store all output (climatology, netcdf diag files, diagnostic plots)
 #
@@ -51,8 +45,8 @@ export EMOP_CLIM_DIR=$SCRATCH/amwg
 #
 #  [2] The diagnostic tar file can be put on a remote machine RHOST (login: RUSER)
 #      in the WWW_DIR_ROOT/amwg/${EXPID} directory, using ssh and scp.
-#       =>  Comment or set RHOST="" to disable this functionality.
-#export RHOST=pc170547
+#       =>  Set RHOST="" to disable this functionality. (Do not comment! Used in csh script!)
+export RHOST=
 export RUSER=sager
 export WWW_DIR_ROOT="/usr/people/sager/ECEARTH/diag"
 
@@ -89,14 +83,6 @@ export cdo=cdo
 
 # job scheduler submit command
 submit_cmd="qsub"
-
-# support for GRIB_API?
-# Set the directory where the GRIB_API tools are installed
-# Note: cdo had to be compiled with GRIB_API support for this to work
-# This is only required if your highest level is above 1 hPa,
-# otherwise leave GRIB_API_BIN empty (or just comment the line)!
-#export GRIB_API_BIN="/home/john/bin"
-
 
 
 ######################################################
