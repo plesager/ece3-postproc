@@ -7,6 +7,7 @@
 #PBS -l EC_threads_per_task=1
 #PBS -l EC_memory_per_task=24GB
 #PBS -l EC_hyperthreads=1
+#PBS -W depend=afterok:<DEPENDENCY>
 #PBS -l walltime=04:00:00
 #PBS -j oe
 #PBS -o <OUT>/log/<JOBID>_<EXPID>_<Y1>.out

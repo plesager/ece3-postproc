@@ -3,7 +3,7 @@
 usage()
 {
    echo "Usage: "
-   echo "  amwg.sh [-a account] [-r altdir] [-u USERexp] EXP YEAR1 YEAR2"
+   echo "  amwg.sh [-a account] [-d dependency] [-r altdir] [-u USERexp] EXP YEAR1 YEAR2"
    echo
    echo "Submit to a job scheduler an AMWG analysis of experiment EXP in years"
    echo " YEAR1 to YEAR2. This is basically a wrapper around the amwg_modobs.sh script."
@@ -19,6 +19,7 @@ set -ue
 # -- default option
 account=${ECE3_POSTPROC_ACCOUNT-}
 ALT_RUNDIR=""
+dependency=
 options=""
 
 while getopts "h?a:r:u:" opt; do
@@ -26,6 +27,8 @@ while getopts "h?a:r:u:" opt; do
         h|\?)
             usage
             exit 0
+            ;;
+        d)  dependency=$OPTARG
             ;;
         r)  options="${options} -r $OPTARG"
             ALT_RUNDIR=$OPTARG
@@ -105,6 +108,11 @@ sed "s/<EXPID>/$1/" < ${CONFDIR}/header_$ECE3_POSTPROC_MACHINE.tmpl > $tgt_scrip
 [[ -n $account ]] && \
     sed -i "s/<ACCOUNT>/$account/" $tgt_script || \
     sed -i "/<ACCOUNT>/ d" $tgt_script
+
+[[ -n $dependency ]] && \
+    sed -i "s/<DEPENDENCY>/$dependency/" $tgt_script || \
+    sed -i "/<DEPENDENCY>/ d" $tgt_script
+
 sed -i "s/<JOBID>/amwg/" $tgt_script
 sed -i "s/<Y1>/$2/" $tgt_script
 sed -i "s|<OUT>|$OUT|" $tgt_script

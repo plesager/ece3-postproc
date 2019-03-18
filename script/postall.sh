@@ -43,7 +43,15 @@ fi
 
 sed "s/<EXPID>/$1/" < $SCRIPTDIR/header_$MACHINE.tmpl > $OUT/postall.job
 sed -i "s/<USERme>/$USERme/" $OUT/postall.job
-sed -i "s/<ACCOUNT>/$account/" $OUT/postall.job
+
+[[ -n $account ]] && \
+    sed -i "s/<ACCOUNT>/$account/" $tgt_script || \
+    sed -i "/<ACCOUNT>/ d" $tgt_script
+
+[[ -n $dependency ]] && \
+    sed -i "s/<DEPENDENCY>/$dependency/" $tgt_script || \
+    sed -i "/<DEPENDENCY>/ d" $tgt_script
+
 sed -i "s/<JOBID>/postall/" $OUT/postall.job
 
 echo echo Running EC-Mean >>  $OUT/postall.job

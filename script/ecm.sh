@@ -2,7 +2,7 @@
 
 usage()
 {
-   echo "Usage: ecm.sh [-a account] [-r rundir] [-u USERexp] [-c] [-p] [-y] EXP YEAR1 YEAR2"
+   echo "Usage: ecm.sh [-a account] [-d dependency] [-r rundir] [-u USERexp] [-c] [-p] [-y] EXP YEAR1 YEAR2"
    echo
    echo "Submit to a job scheduler an EC-MEAN analysis of experiment EXP in years"
    echo " YEAR1 to YEAR2."
@@ -13,6 +13,7 @@ usage()
    echo "Options are:"
    echo "   -c          : check if processing was successful"
    echo "   -a account  : specify a different special project for accounting (default: ${ECE3_POSTPROC_ACCOUNT-unknown})"
+   echo "   -d depend   : add dependency between this job and other jobs"
    echo "   -r RUNDIR   : fully qualified path to HIRESCLIM2 ouput (default: \${ECE3_POSTPROC_POSTDIR}/mon)"
    echo "   -u USERexp  : alternative 'user' owner of the experiment"
    echo "   -y          : (Y)early global mean are added to \$OUTDIR/yearly_fldmean_\${EXP}.txt"
@@ -26,6 +27,7 @@ set -ue
 
 # -- default option
 account=${ECE3_POSTPROC_ACCOUNT-}
+dependency=
 ALT_RUNDIR=""
 checkit=0
 options=""
@@ -34,6 +36,8 @@ while getopts "hcr:u:a:py" opt; do
     case "$opt" in
         h)  usage
             exit 0
+            ;;
+        d)  dependency=$OPTARG
             ;;
         r)  options="${options} -r $OPTARG"
             ALT_RUNDIR=$OPTARG
@@ -126,6 +130,10 @@ sed "s/<EXPID>/$1/" < ${CONFDIR}/header_$ECE3_POSTPROC_MACHINE.tmpl > $tgt_scrip
 [[ -n $account ]] && \
     sed -i "s/<ACCOUNT>/$account/" $tgt_script || \
     sed -i "/<ACCOUNT>/ d" $tgt_script
+
+[[ -n $dependency ]] && \
+    sed -i "s/<DEPENDENCY>/$dependency/" $tgt_script || \
+    sed -i "/<DEPENDENCY>/ d" $tgt_script
 
 sed -i "s/<JOBID>/ecm/" $tgt_script
 sed -i "s/<Y1>/$2/" $tgt_script
