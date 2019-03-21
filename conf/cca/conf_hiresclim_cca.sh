@@ -66,6 +66,9 @@ done
 module unload nco
 module load nco/4.3.7
 
+module unload cdo
+module load cdo/1.6.1
+
 cdo=cdo
 cdozip="$cdo -f nc4c -z zip"
 rbld="/perm/ms/nl/nm6/trunk/sources/nemo-3.6/TOOLS/REBUILD_NEMO/rebuild_nemo"
