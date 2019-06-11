@@ -2,6 +2,7 @@
 #SBATCH --job-name=hc_<EXPID>_<YEAR>
 #SBATCH --partition=all
 #SBATCH --account=<ACCOUNT>
+#SBATCH --depend=afterok:<DEPENDENCY>
 #SBATCH --nodes=1
 #SBATCH --cpus-per-task=<NPROCS>
 #SBATCH --share

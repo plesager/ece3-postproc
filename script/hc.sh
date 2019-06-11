@@ -14,6 +14,7 @@ usage()
    echo "Options are:"
    echo "   -a ACCOUNT  : specify a different special project for accounting (default: ${ECE3_POSTPROC_ACCOUNT:-unknown})"
    echo "   -c          : check for success"
+   echo "   -d depend   : add dependency to the job being submitted"
    echo "   -u USERexp  : alternative user owner of the experiment, default $USER"
    echo "   -m months_per_leg : run was performed with months_per_leg legs (yearly legs expected by default)"
    echo "   -n numprocs       : set number of processors to use (default is 12)"
@@ -28,11 +29,13 @@ options=""
 nprocs=12
 
 # -- options
-while getopts "hcu:a:m:n:" opt; do
+while getopts "hcd:u:a:m:n:" opt; do
     case "$opt" in
         h)
             usage
             exit 0
+            ;;
+        d)  dependency=$OPTARG
             ;;
         n)  nprocs=$OPTARG
             ;;
@@ -93,6 +96,10 @@ do
     [[ -n $account ]] && \
         sed -i "s/<ACCOUNT>/$account/" $tgt_script || \
         sed -i "/<ACCOUNT>/ d" $tgt_script
+
+    [[ -n $dependency ]] && \
+        sed -i "s/<DEPENDENCY>/$dependency/" $tgt_script || \
+        sed -i "/<DEPENDENCY>/ d" $tgt_script
 
     # -- number of processors to use, default 12
     sed -i "s/<NPROCS>/$nprocs/" $tgt_script
