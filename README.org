@@ -72,9 +72,9 @@ The code has been ported on /cca (ECMWF)/, /rhino (KNMI)/, /marconi
 *** First, run HIRESCLIM2 to extract and average variables of interest:
 
     : cd ${ECE3_POSTPROC_TOPDIR}/script
-    : ./hc.sh [-c] [-a account] [-u userexp] [-m months_per_leg] EXP YEAR1 YEAR2 REF
+    : ./hc.sh [-c] [-6] [-a account] [-u userexp] [-m months_per_leg] EXP YEAR1 YEAR2 REF
 
-    This will create a set of netcdf files with monthly averages in the
+    This will create a set of netcdf files with monthly global averages in the
     /${ECE3_POSTPROC_POSTDIR}/post/ directory, which is defined in the config
     file.
 
@@ -124,16 +124,17 @@ The code has been ported on /cca (ECMWF)/, /rhino (KNMI)/, /marconi
      : cdo(3) timmean: Open failed on >icmgg2df_195001<
      : Unsupported file structure
 
-     Filtering can be done with /grib_filter/, and is readily
-     available in hiresclim. You can activate a pass through
-     /grib_filter/ by uncommenting the lines in the
-     conf_hiresclim_<your-machine>.sh file that start with:
+     Filtering can be done with /grib_filter/, and is readily available in
+     hiresclim. You can activate a pass through /grib_filter/ by uncommenting
+     the lines in the conf_hiresclim_<your-machine>.sh file that start with:
      : FILTERGG2D
      : FILTERGG3D
      : FILTERGGSH
-     As written now in the /conf_hiresclim_rhino.sh/, these filters
-     work with the PRIMAVERA project output, and may just work out of
-     the box for yours.
+     As written now in some of the /conf_hiresclim_<platform>.sh/ files, these
+     filters are activated if you set the CMIP6=1 in the config file. Going
+     one step further, on some platforms, calling /hc.sh/ with the /-6/ option
+     automatically set CMIP6=1 in the config file (see the /cca/ platform for
+     example).
     
 *** Then, you can compute the global mean fluxes with EC-MEAN:
 

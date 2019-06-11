@@ -15,8 +15,14 @@ set -eu
 
 usage()
 {
-  echo "Usage:   ./master_hiresclim.sh [-m months_per_leg] [-u userexp] EXP YEAR YREF"
-  echo "Example: ./master_hiresclim.sh io01 1995 1990"
+    echo "Usage:   ./master_hiresclim.sh [-m months_per_leg] [-u userexp] EXP YEAR YREF"
+    echo 
+    echo "Options are:"
+    echo "   -6          : use if EC-Earth run with CMIP6 ctrl output (requires implementation in your config file)" 
+    echo "   -u USERexp  : alternative user owner of the experiment, default $USER"
+    echo "   -m months_per_leg : run was performed with months_per_leg legs (yearly legs expected by default)"
+    echo
+    echo "Example: ./master_hiresclim.sh io01 1995 1990"
 }
 
 #########################
@@ -25,7 +31,7 @@ usage()
 
 months_per_leg=12                  # nb of months per legs. Default: yearly legs.
 
-while getopts "h?m:u:" opt; do
+while getopts "h?6m:u:" opt; do
     case "$opt" in
         h|\?)
             usage
@@ -33,8 +39,10 @@ while getopts "h?m:u:" opt; do
             ;;
         m)  months_per_leg=$OPTARG
             ;;
+        6)  export CMIP6=1
+            ;;
         u)  USERexp=$OPTARG
-	    ;;
+            ;;
     esac
 done
 shift $((OPTIND-1))

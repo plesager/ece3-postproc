@@ -14,6 +14,7 @@ usage()
    echo "Options are:"
    echo "   -a ACCOUNT  : specify a different special project for accounting (default: ${ECE3_POSTPROC_ACCOUNT:-unknown})"
    echo "   -c          : check for success"
+   echo "   -6          : use if EC-Earth run with CMIP6 ctrl output (requires implementation in your config file - see cca example)" 
    echo "   -u USERexp  : alternative user owner of the experiment, default $USER"
    echo "   -m months_per_leg : run was performed with months_per_leg legs (yearly legs expected by default)"
    echo "   -n numprocs       : set number of processors to use (default is 12)"
@@ -28,7 +29,7 @@ options=""
 nprocs=12
 
 # -- options
-while getopts "hcu:a:m:n:" opt; do
+while getopts "hc6u:a:m:n:" opt; do
     case "$opt" in
         h)
             usage
@@ -39,6 +40,8 @@ while getopts "hcu:a:m:n:" opt; do
         m)  options=${options}" -m $OPTARG"
             ;;
         u)  options=${options}" -u $OPTARG"
+            ;;
+        6)  options=${options}" -6"
             ;;
         c)  checkit=1
             ;;
