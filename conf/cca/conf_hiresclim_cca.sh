@@ -29,10 +29,10 @@
 # ECE3_POSTPROC_HC_NEMO=1         # applied only if available
 # ECE3_POSTPROC_HC_NEMO_EXTRA=0   # require nco
 
-# --- Switch between CMIP6 (1) or default (0) output. If set to 1,
-#      grib_filtering is applied, and NEMO files/variable name from
-#      r5717-cmip6-nemo-namelists are used.
-CMIP6=1
+# --- Switch between CMIP6 (1) or default (0) EC-Earth output. If set to 1,
+#      grib_filtering is applied to IFS output, and NEMO files/variable names
+#      used for CMIP6 are expected. Can be set outside this script
+[[ -z ${CMIP6:-} ]] && CMIP6=0
 
 # --- Filter IFS output (to be applied through a grib_filter call)
 #      Useful when there are output with different timestep and/or level types.
