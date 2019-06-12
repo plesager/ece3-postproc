@@ -64,10 +64,10 @@ do
     fi
 done
 module unload nco
-module load nco/4.3.7
+module load nco/4.6.7
 
 module unload cdo
-module load cdo/1.6.1
+module load cdo/1.9.6
 
 cdo=cdo
 cdozip="$cdo -f nc4c -z zip"

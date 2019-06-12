@@ -49,6 +49,12 @@ do
     fi
 done
 
+module unload nco
+module load nco/4.6.7
+
+module unload cdo
+module load cdo/1.9.6
+
 # The CDFTOOLS set of executables should be found into:
 export CDFTOOLS_BIN="${CDFTOOLS_DIR}/bin"
 
