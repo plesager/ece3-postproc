@@ -28,6 +28,7 @@ account="${ECE3_POSTPROC_ACCOUNT-}"
 checkit=0
 options=""
 nprocs=12
+dependency=
 
 # -- options
 while getopts "hc6d:u:a:m:n:" opt; do
