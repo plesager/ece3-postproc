@@ -8,12 +8,16 @@
 # 
 # Must include $EXPID and be single-quoted
 #
-# optional variable are $USER, $LEGNB, $year
+# Must include $LEGNB or $year
 #
-#export IFSRESULTS0='/lustre3/projects/PRIMAVERA/${USER}/ecearth3/${EXPID}/output/ifs/${LEGNB}'
-#export NEMORESULTS0='/lustre3/projects/PRIMAVERA/${USER}/ecearth3/${EXPID}/output/nemo/${LEGNB}'
-export IFSRESULTS0='/lustre3/projects/CMIP6/${USER}/rundirs/${EXPID}/output/ifs/${LEGNB}'
-export NEMORESULTS0='/lustre3/projects/CMIP6/${USER}/rundirs/${EXPID}/output/nemo/${LEGNB}'
+# Optional variable: $USERexp, which can be specified at the command
+# line (witho option -u) to overwrite a default value that you specify
+# here. Useful to specify any part of the path from the CLI.
+
+export USERexp=${USERexp:-"/lustre3/projects/CMIP6/${USER}/rundirs/"}
+
+export IFSRESULTS0='${USERexp}/${EXPID}/output/ifs/${LEGNB}'
+export NEMORESULTS0='${USERexp}/${EXPID}/output/nemo/${LEGNB}'
 
 # --- PATTERN TO DEFINE WHERE TO SAVE POST-PROCESSED DATA
 # 
@@ -30,9 +34,9 @@ export ECE3_POSTPROC_POSTDIR='/lustre3/projects/CMIP6/${USER}/rundirs/${EXPID}/p
 # ECE3_POSTPROC_HC_NEMO_EXTRA=0   # require nco
 
 # --- Switch between CMIP6 (1) or default (0) output. If set to 1,
-#      grib_filtering is applied, and NEMO files/variable name from
-#      r5717-cmip6-nemo-namelists are used.
-CMIP6=1
+#      grib_filtering is applied to IFS output, and NEMO file/variable
+#      names used in the "ctr/cmip6-output-control-files" are expected
+[[ -z ${CMIP6:-} ]] && CMIP6=0
 
 # --- Filter IFS output (to be applied through a grib_filter call)
 #      Useful when there are output with different timestep and/or level types.
@@ -48,7 +52,7 @@ fi
 # --- TOOLS (required programs, including compression options) -----
 submit_cmd="sbatch"
 
-cdo=cdo
+cdo=/nfs/home/users/sager/installed/cdo-1.9.6/bin/cdo
 cdozip="$cdo -f nc4c -z zip"
 rbld="/nfs/home/users/sager/primavera/sources/nemo-3.6/TOOLS/REBUILD_NEMO/rebuild_nemo"
 python=/nfs/home/users/sager/anaconda2/bin/python
@@ -122,7 +126,7 @@ else
     export nm_sss="sos"        ; # SS salinity (2D)
     export nm_ssh="zos"        ; # sea surface height (2D)
     export nm_iceconc="siconc" ; # Ice concentration as in icemod file (2D)
-    export nm_icethic="sithic" ; # Ice thickness as in icemod file (2D) --- ! use "sithic" for EC-Earth 3.2.3, and "sithick" for PRIMAVERA
+    export nm_icethic="sithick" ; # Ice thickness as in icemod file (2D) --- ! use "sithic" for EC-Earth 3.2.3, and "sithick" for PRIMAVERA
     export nm_tpot="thetao"    ; # pot. temperature (3D)
     export nm_s="so"           ; # salinity (3D)
     export nm_u="uo"           ; # X current (3D)

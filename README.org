@@ -102,13 +102,16 @@ The code has been ported on /cca (ECMWF)/, /rhino (KNMI)/, /marconi
     to the EXP argument passed to the script. You can also use the ${USERexp}
     variable to define any part of the path, which will be expanded to the -u
     option value set at the command line. You will need to define a default
-    value in your config file to fully exploit this feature.
+    value in your config file to fully exploit this feature. For an
+    example of how it can be done, look at:
+
+    : conf/rhino/conf_hiresclim_rhino.sh
 
     The NEMO variable names expected by HIRESCLIM2 may differ from those found
     in EC-Earth3 output. If needed, you can change the variables name from EC-Earth in
     /conf_hiresclim_<your-machine>.sh/. Note for example that for the
     ice thickness from the /icemod/ file, you need:
-    : export nm_icethic="sithic"  # for EC-Earth 3.2.3, and "sithick" for PRIMAVERA
+    : export nm_icethic="sithic"  # for EC-Earth (3.2.3 and above) default output
     : export nm_icethic="sithick" # for older version like PRIMAVERA
 
 
@@ -133,8 +136,8 @@ The code has been ported on /cca (ECMWF)/, /rhino (KNMI)/, /marconi
      As written now in some of the /conf_hiresclim_<platform>.sh/ files, these
      filters are activated if you set the CMIP6=1 in the config file. Going
      one step further, on some platforms, calling /hc.sh/ with the /-6/ option
-     automatically set CMIP6=1 in the config file (see the /cca/ platform for
-     example).
+     automatically set CMIP6=1 in the config file (see the /cca/ and /rhino/ 
+     platforms for example).
     
 *** Then, you can compute the global mean fluxes with EC-MEAN:
 
