@@ -194,8 +194,12 @@ The code has been ported on /cca (ECMWF)/, /rhino (KNMI)/, /marconi
     The output can be put on a remote machine through ssh and scp. See
     remote variables RHOST, RUSER, WWW_DIR_ROOT in the config file. If
     access to the remote machine is possible only from the login node,
-    you should run the script on that node with the /-l/ flag.
-
+    you should run the script on that node with the /-l/ flag to get
+    scp to work. But that will slow down the computing of the
+    timeseries -if allowed-. It is then better to switch this off
+    (with empty RHOST) for computing, and then either switch it on and
+    re-run to just copy to the remote or write your own dedicated
+    script/CLI bash function.
    
 ** REPRODUCIBILITY TEST
 *** Overview

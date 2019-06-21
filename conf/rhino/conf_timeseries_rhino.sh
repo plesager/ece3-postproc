@@ -31,7 +31,7 @@ export ECE3_POSTPROC_DIAGDIR="$HOME/EC-Earth/diag"
 #
 #  [2] The output can be put on a remote machine through ssh and scp.
 #       =>  Comment or set RHOST="" to disable this function...
-export RHOST=pc170547
+export RHOST=
 export RUSER=sager
 export WWW_DIR_ROOT="/usr/people/sager/ECEARTH/diag"
 
