@@ -79,7 +79,7 @@ then
 else
     INDATA=`eval echo ${ECE3_POSTPROC_POSTDIR}`/mon
 fi
-[[ ! -d $INDATA ]] && echo "*EE* Experiment HiresClim2 output dir $INDATA does not exist!" && exit 1
+[[ -z $dependency ]] && [[ ! -d $INDATA ]] && echo "*EE* Experiment HiresClim2 output dir $INDATA does not exist!" && exit 1
 
 
 # -- check previously computed TS
