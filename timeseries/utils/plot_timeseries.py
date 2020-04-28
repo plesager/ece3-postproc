@@ -34,7 +34,7 @@ parser.add_argument("-f", "--fname", help="file name for pdf output"+
                     "(default: exp1_timeseries.pdf)")
 parser.add_argument("-t", "--title", help="main plot title (default: none)")
 parser.add_argument("-a", "--ave", help="12-month moving average ONLY", action="store_true")
-parser.add_argument("-b", "--bigave", help="yearly average", action="store_true") #EXPERIMENTAL - WIP
+parser.add_argument("--ymean", help="yearly mean, if equal 1. If >1, size (in years) of rolling window mean.", type=int)
 parser.add_argument("-m", "--marks", help="use markers in the moving average lines", action="store_true")
 parser.add_argument("-y", "--years", help="year range", nargs=2, type=float)
 
@@ -98,7 +98,7 @@ oce_wanted = ['sosstsst', 'sosaline', 'sossheig', 'votemper_3d',
               'max_amoc_50N', 'tot_area_ice_north', 'tot_area_ice_south']
 
 #atm_wanted=['tas']
-#oce_wanted = ['sossheig']
+#oce_wanted = ['tot_area_ice_north']
 
 
 reg=re.compile(".*/.{4}_(\d{4})_(\d{4})_time-series_.*nc")
@@ -140,8 +140,7 @@ for e in args.exp:
             dsa.coords['time'] = float(expa[e][1])-310. + (np.arange(len(dsa.time), dtype=float)+0.5)/12.
 
         # create a year coordinates (needed when switching to
-        # fractional year to be able to do yearly means, but you
-        # cannot do rolling average)
+        # fractional year to be able to do yearly means)
         dsa.coords['year'] = (dsa['time'] // 1).astype('int')
         
     if expo[e]:
@@ -210,25 +209,29 @@ if pdf:
                     #ds[e][k] = xr.where(cond, ds[e][k]*100., ds[e][k])
                     #print(cond[0], ds[e][k][0])
 
-                # Yearly mean and 12-month moving average possible only if there are more than 12 months of data
-                if len(ds[e][k]) > 12:
-                    if args.bigave:
-                        line,= ds[e][k].groupby('year').mean().plot(color='C'+str(i),
-                                                                    label=labels[i],
-                                                                    marker=m[i] if use_mark else '')
-                    else:
-                        if not args.ave: ds[e][k].plot(color='C'+str(i), linewidth=1, linestyle="--")
-                        line,= ds[e][k].rolling(**{vtime:12, "center": True}).mean().plot(color='C'+str(i),
-                                                                                          label=labels[i],
-                                                                                          marker=m[i] if use_mark else '')
-                    lines.append(line)
+                # Moving averages are possible only if there are enough data
+                if args.ymean:
+                    if len(ds[e][k]) > args.ymean:
+
+                        line,= ds[e][k].groupby('year').mean().rolling(year=args.ymean,
+                                                                       center=True).mean().plot(color='C'+str(i),
+                                                                                                label=labels[i],
+                                                                                                marker=m[i] if use_mark else '')
+                        lines.append(line)
                 else:
-                    if not args.ave: ds[e][k].plot(color='C'+str(i), linewidth=1, label=labels[i])
+                    if len(ds[e][k]) > 12:
+                        if not args.ave: ds[e][k].plot(color='C'+str(i), linewidth=1, linestyle="--")
+                        line,= ds[e][k].rolling(time=12, center=True).mean().plot(color='C'+str(i),
+                                                                                  label=labels[i],
+                                                                                  marker=m[i] if use_mark else '')
+                        lines.append(line)
+                    else:
+                        if not args.ave: ds[e][k].plot(color='C'+str(i), linewidth=1, label=labels[i])
 
             axes = plt.gca()
             axes.grid()
-
             plt.ylabel(units)
+
             plt.title(title)
             if args.years: plt.xlim(args.years)
             if lines:
@@ -290,12 +293,12 @@ else:
                 cond = ds[e][k] < 3.0e14
                 #print(cond)
                 #print(cond[0], ds[e][k][0])
-                ds[e][k] = xr.where(cond, ds[e][k]*100., ds[e][k])
+                #ds[e][k] = xr.where(cond, ds[e][k]*100., ds[e][k])
                 #print(cond[0], ds[e][k][0])
 
             # Yearly mean and 12-month moving average possible only if there are more than 12 months of data
             if len(ds[e][k]) > 12:
-                if args.bigave:
+                if args.ymean:
                     line,= ds[e][k].groupby('year').mean().plot(color='C'+str(i),
                                                                 label=labels[i],
                                                                 marker=m[i] if use_mark else '')
