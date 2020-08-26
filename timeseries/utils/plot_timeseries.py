@@ -297,19 +297,23 @@ else:
                 #print(cond[0], ds[e][k][0])
 
             # Yearly mean and 12-month moving average possible only if there are more than 12 months of data
-            if len(ds[e][k]) > 12:
-                if args.ymean:
-                    line,= ds[e][k].groupby('year').mean().plot(color='C'+str(i),
-                                                                label=labels[i],
-                                                                marker=m[i] if use_mark else '')
-                else:
-                    if not args.ave: ds[e][k].plot(color='C'+str(i), linewidth=1, linestyle="--")
-                    line,= ds[e][k].rolling(**{vtime:12, "center": True}).mean().plot(color='C'+str(i),
-                                                                                      label=labels[i],
-                                                                                      marker=m[i] if use_mark else '')
-                lines.append(line)
+            if args.ymean:
+                if len(ds[e][k]) > args.ymean:
+
+                    line,= ds[e][k].groupby('year').mean().rolling(year=args.ymean,
+                                                                   center=True).mean().plot(color='C'+str(i),
+                                                                                            label=labels[i],
+                                                                                            marker=m[i] if use_mark else '')
+                    lines.append(line)
             else:
-                if not args.ave: ds[e][k].plot(color='C'+str(i), linewidth=1, label=labels[i])
+                if len(ds[e][k]) > 12:
+                    if not args.ave: ds[e][k].plot(color='C'+str(i), linewidth=1, linestyle="--")
+                    line,= ds[e][k].rolling(time=12, center=True).mean().plot(color='C'+str(i),
+                                                                              label=labels[i],
+                                                                              marker=m[i] if use_mark else '')
+                    lines.append(line)
+                else:
+                    if not args.ave: ds[e][k].plot(color='C'+str(i), linewidth=1, label=labels[i])
 
         axes = plt.gca()
         axes.grid()
