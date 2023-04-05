@@ -254,7 +254,7 @@ $cdo -R -t $ecearth_table setparam,150.128 -fldmean \
 $cdozip -r -t $ecearth_table copy tmp_tnr.grb ${out}_tnr.nc
 
 # change file suffices
-( cd $OUTDIR ; for f in $(ls *.nc4); do mv $f ${f/.nc4/.nc}; done )
+( cd $OUTDIR ; for f in *.nc4; do [[ -f $f ]] && mv $f ${f/.nc4/.nc}; done )
 
 set -x
 rm $WRKDIR/*.grb

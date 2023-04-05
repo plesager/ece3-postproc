@@ -178,11 +178,11 @@ then
         cp ${froot}_${LIM_T_FILES}.nc  ${froot}_icemod_cdfnew.nc
     fi
     if [ "${nm_icethic}" != "sithic" ]; then
-        ncrename -v ${nm_icethic},sithic  ${froot}_icemod_cdfnew.nc
+        ncrename -v .${nm_icethic},sithic  ${froot}_icemod_cdfnew.nc
     fi
 fi
 if [ "${nm_iceconc}" != "iiceconc" ]; then ncrename -v ${nm_iceconc},iiceconc  ${froot}_${LIM_T_FILES}.nc ; fi
-if [ "${nm_icethic}" != "iicethic" ]; then ncrename -v ${nm_icethic},iicethic  ${froot}_${LIM_T_FILES}.nc ; fi
+if [ "${nm_icethic}" != "iicethic" ]; then ncrename -v .${nm_icethic},iicethic  ${froot}_${LIM_T_FILES}.nc ; fi
 
 # SHACONEMO update (april 2018) changes dimension names in the icemod files
 which ncdump

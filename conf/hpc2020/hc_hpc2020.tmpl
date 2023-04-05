@@ -1,0 +1,19 @@
+#! /usr/bin/env bash
+#SBATCH --job-name=hc_<EXPID>_<YEAR>
+#SBATCH --qos=nf
+#SBATCH --account=<ACCOUNT>
+#SBATCH --depend=afterok:<DEPENDENCY>
+#SBATCH --ntasks=1
+#SBATCH --hint=nomultithread
+#SBATCH --mem=120G
+#SBATCH --cpus-per-task=<NPROCS>
+#SBATCH --output=<OUT>/log/hiresclim_<EXPID>_<YEAR>.out
+
+set -e
+
+cd $ECE3_POSTPROC_TOPDIR/script
+ 
+export NEMO_NPROCS=12
+export IFS_NPROCS=12
+ 
+../hiresclim2/master_hiresclim.sh <OPTIONS> <EXPID> <YEAR> <YREF>
