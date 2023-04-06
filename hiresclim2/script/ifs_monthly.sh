@@ -19,6 +19,8 @@ fi
 # temp working dir, within $TMPDIR so it is automatically removed
 mkdir -p $SCRATCH/tmp_ecearth3/tmp
 WRKDIR=$(mktemp -d $SCRATCH/tmp_ecearth3/tmp/hireclim2_${expname}_XXXXXX) # use template if debugging
+
+cwd=$(pwd)
 cd $WRKDIR
 
 NPROCS=${IFS_NPROCS:-12}
@@ -194,6 +196,7 @@ $cdozip -R -r -t $ecearth_table mulc,1000 -divc,$pptime -selvar,sf \
 
 if ( ! $cdo -t $ecearth_table showname icmgg_$year.grb | grep -Fwq totp )
 then
+    echo "*II*   Derive totp from lsp+cp"
     $cdo -t $ecearth_table setparam,228.128 -expr,"totp=1000*(lsp+cp)/$pptime" \
         icmgg_${year}.grb tmp_totp.grb
     $cdozip -r -R -t $ecearth_table copy tmp_totp.grb ${out}_totp.nc
@@ -207,6 +210,7 @@ then
 
 elif ( ! $cdo -t $ecearth_table showname icmgg_$year.grb | grep -Fwq lsp )
 then
+    echo "*II*   Derive lsp from totp-cp"
     $cdo -t $ecearth_table setparam,142.128 -expr,"lsp=1000*(totp-cp)/$pptime" \
         icmgg_${year}.grb tmp_lsp.grb
     $cdozip -r -R -t $ecearth_table copy tmp_lsp.grb ${out}_lsp.nc
@@ -220,6 +224,7 @@ then
 
 elif ( ! $cdo -t $ecearth_table showname icmgg_$year.grb | grep -Fwq cp )
 then
+    echo "*II*   Derive cp from totp-lsp"
     $cdo -t $ecearth_table setparam,143.128 -expr,"cp=1000*(totp-lsp)/$pptime" \
         icmgg_${year}.grb tmp_cp.grb
     $cdozip -r -R -t $ecearth_table copy tmp_cp.grb ${out}_cp.nc
@@ -232,6 +237,7 @@ then
     $cdozip -r -t $ecearth_table copy tmp_pme.grb ${out}_pme.nc
 
 else
+    echo "*II*   Assume that e.cp.lsp.totp are all available"
     $cdozip -r -R -t $ecearth_table splitvar -mulc,1000 -divc,$pptime \
         -selvar,e,cp,lsp,totp icmgg_${year}.grb ${out}_
 
@@ -241,11 +247,13 @@ else
 fi
 
 # divide fluxes by PP timestep
+echo "*II* Convert accumulated fluxes"
 $cdozip -r -R -t $ecearth_table splitvar -divc,$pptime \
    -selvar,ssr,str,sshf,ssrd,strd,slhf,tsr,ttr,ewss,nsss,ssrc,strc,tsrc,ttrc \
    icmgg_${year}.grb ${out}_
 
 # net SFC and TOA fluxes
+echo "*II* NetConvert accumulated fluxes"
 $cdo -R -t $ecearth_table setparam,149.128 -fldmean \
    -expr,"snr=(ssr+str+slhf+sshf)/$pptime" icmgg_${year}.grb tmp_snr.grb
 $cdozip -r -t $ecearth_table copy tmp_snr.grb ${out}_snr.nc
@@ -254,10 +262,15 @@ $cdo -R -t $ecearth_table setparam,150.128 -fldmean \
 $cdozip -r -t $ecearth_table copy tmp_tnr.grb ${out}_tnr.nc
 
 # change file suffices
-( cd $OUTDIR ; for f in *.nc4; do [[ -f $f ]] && mv $f ${f/.nc4/.nc}; done )
+pushd $OUTDIR
+for f in *.nc4
+do
+    [ -f $f ] && mv $f ${f/.nc4/.nc}
+done
+popd
 
 set -x
 rm $WRKDIR/*.grb
-cd -
+cd $cwd
 rmdir $WRKDIR
 set +x

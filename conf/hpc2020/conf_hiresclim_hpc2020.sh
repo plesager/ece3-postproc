@@ -53,6 +53,7 @@ fi
 # --- TOOLS (required programs, including compression options) -----
 # python required only to rebuild relative humidity
 # nco provides ncrename used for nemo post-processing
+# prgenv/intel needed because used to compile CDFTOOLS
 
 submit_cmd="sbatch"
 

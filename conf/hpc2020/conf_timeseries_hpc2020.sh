@@ -11,7 +11,7 @@
 # Token ${USERexp} can be used (and set through -u option at the command line).
 # Provide default if using it. 
 # 
-[[ -z ${ECE3_POSTPROC_POSTDIR:-} ]] && export ECE3_POSTPROC_POSTDIR='$SCRATCH/ECEARTH-RUNS/${EXPID}/post'
+[[ -z ${ECE3_POSTPROC_POSTDIR:-} ]] && export ECE3_POSTPROC_POSTDIR='$SCRATCH/ecearth3/${EXPID}/post'
 #
 # Where to find mesh and mask files for NEMO.
 # Files are expected in $MESHDIR_TOP/$NEMOCONFIG.
@@ -41,7 +41,7 @@ export WWW_DIR_ROOT="/usr/people/sager/ECEARTH/diag"
 ######################
 #  nco netcdf python cdo cdftools
 
-for soft in nco netcdf python cdo #cdftools
+for soft in nco netcdf4 python3 cdo #cdftools
 do
     if ! module -t list 2>&1 | grep -q $soft
     then
@@ -50,12 +50,12 @@ do
 done
 
 # The CDFTOOLS set of executables should be found into:
-export CDFTOOLS_BIN="/nfs/home/users/sager/installed/CDFTOOLS/bin"
+export CDFTOOLS_BIN="$PERM/CDFTOOLS/bin"
 
 # The rebuild_nemo (provided with NEMO), that somebody has built (relies on flio_rbld.exe):
-export RBLD_NEMO="/perm/nm6/ecearth3/ec-earth3/sources/nemo-3.6/TOOLS/REBUILD_NEMO/rebuild_nemo"
+export RBLD_NEMO="$PERM/ecearth3/ec-earth3/sources/nemo-3.6/TOOLS/REBUILD_NEMO/rebuild_nemo"
 
-export PYTHON=python
+export PYTHON=python3
 export cdo=cdo
 
 # job scheduler submit command
