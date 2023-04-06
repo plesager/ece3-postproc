@@ -473,7 +473,7 @@ if [ ${IPREPHTML} -eq 0 ]; then
                     ncks -3 -A -h -v time_counter time_${jyear}.nc -o tmp_${hs}.nc
 
                     echo "ncks -3 -h -A -v tot_area_ice_${hs} tmp_${hs}.nc -o ${SUPA_Y}"
-                    ncks -3 -h -A -v tot_area_ice_${hs} tmp_${hs}.nc -o ${SUPA_Y}
+                    ncks -3 -h -A -C -v tot_area_ice_${hs} tmp_${hs}.nc -o ${SUPA_Y}
                     
                 done
                 rm -f tmp0.nc  tmp_e1t_e2t.nc tmp_*.nc
