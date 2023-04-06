@@ -4,22 +4,25 @@ set -ue
 
 usage()
 {
-    echo "Usage: ts.sh [-a account] [-d dependency] [-u userexp] [-r POSTDIR] [-c] EXP"
-    echo
-    echo "Submit to a job scheduler the computation of timeseries for experiment EXP"
-    echo
-    echo "This is basically a wrapper around the timeseries.sh script."
-    echo 
-    echo "Options are:"
-    echo "   -l          : local (run on the local node, do not submit to compute node)"
-    echo "   -c          : check if processing was successful"
-    echo "   -a account  : specify a different special project for accounting (default: ${ECE3_POSTPROC_ACCOUNT:-unknown})"
-    echo "   -d depend   : add dependency between this job and other jobs"
-    echo "   -r POSTDIR  : overwrite ECE3_POSTPROC_POSTDIR "
-    echo "   -u USERexp  : alternative 'user' owner of the experiment, overwrite USERexp token"
-    echo
-    echo "   ECE3_POSTPROC_POSTDIR and USERexp default values should be set in"
-    echo "   your conf_timeseries_$ECE3_POSTPROC_MACHINE.sh file"
+    cat << EOT >&2
+  Usage: ts.sh [-a account] [-d dependency] [-u userexp] [-r POSTDIR] [-c] [-w] EXP
+
+  Submit to a job scheduler the computation of timeseries for experiment EXP
+
+  This is basically a wrapper around the timeseries.sh script.
+
+  Options are:
+     -l          : local (run on the local node, do not submit to compute node)
+     -c          : check if processing was successful
+     -a account  : specify a different special project for accounting (default: ${ECE3_POSTPROC_ACCOUNT:-unknown})
+     -d depend   : add dependency between this job and other jobs
+     -r POSTDIR  : overwrite ECE3_POSTPROC_POSTDIR
+     -u USERexp  : alternative 'user' owner of the experiment, overwrite USERexp token
+     -w          : create plots and Webpages to display them
+
+     ECE3_POSTPROC_POSTDIR and USERexp default values should be set in
+     your conf_timeseries_$ECE3_POSTPROC_MACHINE.sh file
+EOT
 }
 
 # -- default option
@@ -29,8 +32,9 @@ ALT_RUNDIR=
 checkit=0
 nosub=0
 options=
+web=0
 
-while getopts "h?clu:r:a:d:" opt; do
+while getopts "h?clu:r:a:d:w" opt; do
     case "$opt" in
         h|\?)
             usage
@@ -45,6 +49,9 @@ while getopts "h?clu:r:a:d:" opt; do
             ;;
         u)  options="${options} -u $OPTARG"
             USERexp=$OPTARG
+            ;;
+        w)  options="${options} -w"
+            web=1
             ;;
         c)  checkit=1
             ;;
@@ -91,11 +98,13 @@ then
 
     printf "\n\tchecking TimeSeries results for Atmosphere:\n"
     ls -lt ${diagdir}/timeseries/${EXPID}/atmosphere/${EXPID}_????_????_time-series_atmo.nc
-    ls -lt ${diagdir}/timeseries/${EXPID}/atmosphere/index.html
+    (( web )) && ls -lt ${diagdir}/timeseries/${EXPID}/atmosphere/index.html \
+            || echo "no plots-and-html-page were generated for atmosphere"
 
     printf "\n\tchecking TimeSeries results for Ocean:\n"
     ls -lt ${diagdir}/timeseries/${EXPID}/ocean/${EXPID}_????_????_time-series_ocean.nc
-    ls -lt ${diagdir}/timeseries/${EXPID}/ocean/index.html
+    (( web )) && ls -lt ${diagdir}/timeseries/${EXPID}/ocean/index.html \
+            || echo "no plots-and-html-page were generated for ocean"
 
     printf "\n\tLog file: $OUT/log/ts_${EXPID}_.out"
     #printf "\n\tDo you want to check this log w/ less? "

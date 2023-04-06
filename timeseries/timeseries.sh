@@ -4,26 +4,31 @@ set -eu
 
 usage()
 {
-  echo "Usage: timeseries.sh [-r POSTDIR] [-u userexp] EXP"
-  echo
-  echo "Example: ./timeseries.sh io01"
-  echo "   Compute timeseries for experiment EXP."
-  echo
-  echo "Options:"
-  echo "   -r POSTDIR  : overwrite ECE3_POSTPROC_POSTDIR "
-  echo "   -u USERexp  : alternative 'user' owner of the experiment, default to $USER"
-  echo "                  overwrite USERexp token."
-  echo
-  echo "   ECE3_POSTPROC_POSTDIR and USERexp default values should be set in"
-  echo "   your conf_timeseries_$ECE3_POSTPROC_MACHINE.sh file"
+    cat << EOT >&2
+
+  Usage: timeseries.sh [-r POSTDIR] [-u userexp] [-w] EXP
+
+  Example: ./timeseries.sh io01
+     Compute timeseries for experiment EXP.
+
+  Options:
+     -r POSTDIR  : overwrite ECE3_POSTPROC_POSTDIR
+     -u USERexp  : alternative 'user' owner of the experiment, default to $USER
+                    overwrite USERexp token.
+     -w  : create plots and Webpage to display them
+
+     ECE3_POSTPROC_POSTDIR and USERexp default values should be set in
+     your conf_timeseries_$ECE3_POSTPROC_MACHINE.sh file
+EOT
 }
 
 #########################
 # options and arguments #
 #########################
 ALT_RUNDIR=""
+web=0
 
-while getopts "h?u:r:" opt; do
+while getopts "h?u:r:w" opt; do
     case "$opt" in
         h|\?)
             usage
@@ -33,6 +38,7 @@ while getopts "h?u:r:" opt; do
             ;;
         r)  ALT_RUNDIR=$OPTARG
             ;;
+        w)  web=1
     esac
 done
 shift $((OPTIND-1))
@@ -113,8 +119,8 @@ cd $ECE3_POSTPROC_TOPDIR/timeseries
 echo "*II* Compute Atmospheric TimeSeries"
 ./monitor_atmo.sh -R $EXPID -o
 
-echo "*II* Plot Atmospheric TimeSeries"
-./monitor_atmo.sh -R $EXPID -e
+(( web )) && { echo "*II* Plot Atmospheric TimeSeries"
+               ./monitor_atmo.sh -R $EXPID -e ; }
 
 #######################
 # -- Oceanic timeseries
@@ -125,8 +131,8 @@ then
     echo "*II* Compute Oceanic TimeSeries"
     ./monitor_ocean.sh -R $EXPID
     
-    echo "*II* Plot Oceanic TimeSeries"
-    ./monitor_ocean.sh -R $EXPID -e
+    (( web )) && { echo "*II* Plot Oceanic TimeSeries"
+                   ./monitor_ocean.sh -R $EXPID -e ; }
 fi
 
 #########################
